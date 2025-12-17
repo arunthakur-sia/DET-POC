@@ -1,6 +1,6 @@
 import Head from "next/head";
-import Link from "next/link";
 import { DocumentTextIcon, CogIcon } from "@heroicons/react/24/outline";
+import { AgentCard } from "@/components/AgentCard";
 
 export default function Home() {
   return (
@@ -70,32 +70,19 @@ export default function Home() {
 
               {/* Agent Cards */}
               <div className="flex gap-4">
-                <Link href="/blueprint">
-                  <div className="agent-card h-40 w-80 cursor-pointer rounded-lg border border-gray-200 bg-gray-100 p-5 shadow-sm transition-all hover:border-cyan-400 hover:bg-gray-50 hover:shadow-md">
-                    <div className="mb-2 flex items-center gap-2">
-                      <DocumentTextIcon className="h-6 w-6 text-cyan-500" />
-                      <span className="font-bold text-gray-800">
-                        Service Blueprinting Tool
-                      </span>
-                    </div>
-                    <p className="text-gray-600">
-                      An assistant to optimise your service blueprint
-                    </p>
-                  </div>
-                </Link>
+                <AgentCard
+                  title="Service Blueprinting Tool"
+                  description="An assistant to optimise your service blueprint"
+                  icon={<DocumentTextIcon className="h-6 w-6" />}
+                  href="/blueprint"
+                />
 
-                <div className="agent-card h-40 w-80 cursor-not-allowed rounded-lg border border-gray-200 bg-gray-50 p-5 opacity-60">
-                  <div className="mb-2 flex items-center gap-2">
-                    <CogIcon className="h-6 w-6 text-gray-400" />
-                    <span className="font-bold text-gray-500">
-                      Process Optimizer
-                    </span>
-                  </div>
-                  <p className="text-gray-400">
-                    Optimize business processes with AI-powered analysis
-                  </p>
-                  <p className="mt-2 text-xs text-gray-400">(Coming Soon)</p>
-                </div>
+                <AgentCard
+                  title="Process Optimizer"
+                  description="Optimize business processes with AI-powered analysis"
+                  icon={<CogIcon className="h-6 w-6" />}
+                  href="/process-optimizer"
+                />
               </div>
             </div>
           </div>

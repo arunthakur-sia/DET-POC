@@ -1,10 +1,16 @@
 import Head from "next/head";
+import Image from "next/image";
 import { useState, useCallback } from "react";
 import { useDropzone } from "react-dropzone";
-import ReactMarkdown from "react-markdown";
 import { api } from "@/utils/api";
 import MermaidDiagram from "@/components/MermaidDiagram";
 import type { OptimizationResults } from "@/server/services/ProcessOptimizer";
+import type {
+  ProcessDiagnosis,
+  DiagnosisQuickWin,
+  ProcessAnalysis,
+} from "@/server/services/ProcessOptimizer";
+import { CheckCircleIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 
 export default function ProcessOptimizer() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -13,10 +19,63 @@ export default function ProcessOptimizer() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [results, setResults] = useState<OptimizationResults | null>(null);
   const [error, setError] = useState<string>("");
+  const [currentPhase, setCurrentPhase] = useState<1 | 2 | 3>(1);
+  const [diagnosis, setDiagnosis] = useState<{
+    analysis: ProcessAnalysis | null;
+    currentMermaid: string;
+    report: ProcessDiagnosis | null;
+    timestamp?: string;
+  }>({ analysis: null, currentMermaid: "", report: null });
+  const [selectedQuickWinIds, setSelectedQuickWinIds] = useState<
+    Record<number, boolean>
+  >({});
+  const [guidedMode, setGuidedMode] = useState<boolean>(true);
+  const [sopMarkdown, setSopMarkdown] = useState<string>("");
+  const [isGeneratingSop, setIsGeneratingSop] = useState<boolean>(false);
+  const [impactAnalysis, setImpactAnalysis] = useState<{
+    comparison: {
+      current: {
+        totalSteps: number;
+        totalDuration: number;
+        departmentHandoffs: number;
+        approvalLayers: number;
+      };
+      optimized: {
+        totalSteps: number;
+        totalDuration: number;
+        departmentHandoffs: number;
+        approvalLayers: number;
+      };
+      improvements: {
+        stepReduction: number;
+        timeReduction: number;
+        timeReductionPercent: number;
+      };
+    };
+    appliedChanges: Array<{
+      changeDescription: string;
+      impact: string;
+      affectedDepartment?: string;
+    }>;
+  } | null>(null);
+  const copyToClipboard = async (text: string) => {
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // noop
+    }
+  };
 
-  const extractTextMutation = api.processOptimizer.extractText.useMutation();
+  // removed unused helper
+
+  // Use combined endpoint for faster processing (single API call instead of 2-3)
+  const extractAndDiagnoseMutation =
+    api.processOptimizer.extractAndDiagnose.useMutation();
   const optimizeProcessMutation =
     api.processOptimizer.optimizeProcess.useMutation();
+  const generateSopMutation = api.processOptimizer.generateSOP.useMutation();
+  const isProcessing = extractAndDiagnoseMutation.isPending;
+  const isBusy = isProcessing || isGenerating;
 
   const onDrop = useCallback(
     (acceptedFiles: File[]) => {
@@ -42,22 +101,45 @@ export default function ProcessOptimizer() {
             // For PDF files, convert to base64 to preserve binary data
             const arrayBuffer = await file.arrayBuffer();
             const uint8Array = new Uint8Array(arrayBuffer);
-            fileContent = btoa(String.fromCharCode(...uint8Array));
+            // Use chunked approach to avoid "Maximum call stack size exceeded" error
+            const chunkSize = 8192;
+            let binaryString = "";
+            for (let i = 0; i < uint8Array.length; i += chunkSize) {
+              const chunk = uint8Array.subarray(i, i + chunkSize);
+              binaryString += String.fromCharCode.apply(
+                null,
+                Array.from(chunk),
+              );
+            }
+            fileContent = btoa(binaryString);
           } else {
             // For text files, use text content
             fileContent = await file.text();
           }
 
-          const result = await extractTextMutation.mutateAsync({
+          // Use combined endpoint - single API call for extraction + analysis + diagnosis
+          const result = await extractAndDiagnoseMutation.mutateAsync({
             fileContent,
             fileName: file.name,
             fileType: file.type,
           });
 
-          if (result.success) {
-            setExtractedText(result.text ?? "");
+          if (
+            result.success &&
+            "extractedText" in result &&
+            result.analysis &&
+            result.diagnosis
+          ) {
+            setExtractedText(String(result.extractedText ?? ""));
+            setDiagnosis({
+              analysis: result.analysis,
+              currentMermaid: String(result.currentMermaid ?? ""),
+              report: result.diagnosis,
+              timestamp: new Date().toISOString(),
+            });
+            setCurrentPhase(1);
           } else {
-            setError(result.error ?? "Failed to extract text");
+            setError(result.error ?? "Failed to process document");
           }
         } catch (err) {
           setError(
@@ -68,7 +150,7 @@ export default function ProcessOptimizer() {
 
       void processFile();
     },
-    [extractTextMutation],
+    [extractAndDiagnoseMutation],
   );
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
@@ -80,20 +162,239 @@ export default function ProcessOptimizer() {
     multiple: false,
   });
 
+  const renderPhaseNav = () => (
+    <div className="flex items-center justify-between border-b border-gray-200 bg-white px-5 py-3">
+      <div className="flex items-center gap-6 text-sm">
+        <div
+          className={`flex items-center gap-2 ${currentPhase >= 1 ? "text-cyan-700" : "text-gray-400"}`}
+        >
+          <span>1. Diagnose</span>
+          {diagnosis.report ? (
+            <CheckCircleIcon className="h-4 w-4 text-emerald-600" />
+          ) : null}
+        </div>
+        <div className="text-gray-300">──►</div>
+        <div
+          className={`flex items-center gap-2 ${currentPhase >= 2 ? "text-cyan-700" : "text-gray-400"}`}
+        >
+          <span>2. Optimize</span>
+          {results ? (
+            <CheckCircleIcon className="h-4 w-4 text-emerald-600" />
+          ) : null}
+        </div>
+        <div className="text-gray-300">──►</div>
+        <div
+          className={`flex items-center gap-2 ${currentPhase >= 3 ? "text-cyan-700" : "text-gray-400"}`}
+        >
+          <span>3. Generate SOP</span>
+          {sopMarkdown ? (
+            <CheckCircleIcon className="h-4 w-4 text-emerald-600" />
+          ) : (
+            <LockClosedIcon className="h-4 w-4 text-gray-400" />
+          )}
+        </div>
+      </div>
+      <div className="text-xs text-gray-500">
+        {diagnosis.timestamp
+          ? `Last diagnosis: ${new Date(diagnosis.timestamp).toLocaleString()}`
+          : ""}
+      </div>
+    </div>
+  );
+
+  const toggleQuickWin = (idx: number) => {
+    setSelectedQuickWinIds((prev) => ({ ...prev, [idx]: !prev[idx] }));
+  };
+
+  const buildInstructionsFromQuickWins = (
+    quickWins: DiagnosisQuickWin[],
+  ): {
+    instructions: string[];
+    appliedChanges: Array<{
+      changeDescription: string;
+      impact: string;
+      affectedDepartment?: string;
+    }>;
+  } => {
+    const selected = quickWins.filter((_, i) => selectedQuickWinIds[i]);
+    const instructions: string[] = [];
+    const appliedChanges: Array<{
+      changeDescription: string;
+      impact: string;
+      affectedDepartment?: string;
+    }> = [];
+    selected.forEach((q) => {
+      if (q.category === "Removal") {
+        instructions.push(`Remove "${q.stepName}"`);
+      } else if (
+        q.category === "Consolidation" &&
+        q.steps &&
+        q.steps.length > 1 &&
+        q.consolidationSuggestion
+      ) {
+        instructions.push(
+          `Merge steps "${q.steps.join('" and "')}" into a single step: "${q.consolidationSuggestion}". Keep the earliest step's position in the flow.`,
+        );
+      } else {
+        instructions.push(q.suggestion);
+      }
+      appliedChanges.push({
+        changeDescription: q.suggestion,
+        impact: q.estimatedTimeSaving
+          ? `Saved ${q.estimatedTimeSaving}`
+          : "N/A",
+      });
+    });
+    return { instructions, appliedChanges };
+  };
+
+  const parseTimeSaving = (text: string | undefined): number => {
+    if (!text) return 0;
+    const match = /(\d+(\.\d+)?)\s*(day|days|working day|working days)/i.exec(
+      text,
+    );
+    if (match?.[1]) return parseFloat(match[1]);
+    return 0;
+  };
+
+  const simulateImpact = (
+    selected: DiagnosisQuickWin[],
+    proc: ProcessAnalysis,
+  ) => {
+    const currentTotalSteps = proc.processSteps.length;
+    const currentDuration =
+      Object.values(proc.leadTimes ?? {}).reduce((a, b) => a + (b ?? 0), 0) ||
+      0;
+    const currentHandoffs = (() => {
+      const nodes = proc.nodes ?? [];
+      const edges = proc.edges ?? [];
+      if (!nodes.length || !edges.length) return 0;
+      const idToDept = new Map(nodes.map((n) => [n.id, n.department]));
+      return edges.reduce((count, e) => {
+        const from = idToDept.get(e.from);
+        const to = idToDept.get(e.to);
+        return count + (from && to && from !== to ? 1 : 0);
+      }, 0);
+    })();
+    const approvalLayers = (() => {
+      const nodes = proc.nodes ?? [];
+      if (!nodes.length) {
+        return proc.processSteps.filter((s) =>
+          s.name.toLowerCase().includes("approve"),
+        ).length;
+      }
+      return nodes.filter(
+        (n) => n.type === "gateway" || n.name.toLowerCase().includes("approve"),
+      ).length;
+    })();
+
+    let timeSaved = 0;
+    let stepsRemoved = 0;
+    selected.forEach((q) => {
+      if (q.category === "Removal") {
+        const step = proc.processSteps.find((s) => s.id === q.stepId);
+        if (step) {
+          stepsRemoved += 1;
+          timeSaved += proc.leadTimes?.[step.id] ?? 0;
+        }
+      } else if (q.category === "Consolidation") {
+        stepsRemoved += 1;
+        timeSaved += parseTimeSaving(q.estimatedTimeSaving);
+      } else if (q.category === "Parallelization") {
+        const step = proc.processSteps.find((s) => s.id === q.stepId);
+        const base = step ? (proc.leadTimes?.[step.id] ?? 0) : 0;
+        timeSaved += base * 0.5;
+      } else {
+        timeSaved += parseTimeSaving(q.estimatedTimeSaving);
+      }
+    });
+
+    const optimizedDuration = Math.max(0, currentDuration - timeSaved);
+    const timeReduction = Math.max(0, timeSaved);
+    const timeReductionPercent =
+      currentDuration > 0
+        ? Math.round((timeReduction / currentDuration) * 100)
+        : timeReduction > 0
+          ? 100 // If we save time but baseline was 0, technically it's 100% improvement relative to the known blockage
+          : 0;
+
+    return {
+      comparison: {
+        current: {
+          totalSteps: currentTotalSteps,
+          totalDuration: currentDuration,
+          departmentHandoffs: currentHandoffs,
+          approvalLayers: approvalLayers,
+        },
+        optimized: {
+          totalSteps: Math.max(0, currentTotalSteps - stepsRemoved),
+          totalDuration: optimizedDuration,
+          departmentHandoffs: currentHandoffs,
+          approvalLayers: approvalLayers,
+        },
+        improvements: {
+          stepReduction: stepsRemoved,
+          timeReduction,
+          timeReductionPercent,
+        },
+      },
+    };
+  };
+
   const handleOptimizeProcess = async () => {
-    if (!extractedText || !optimizationCriteria.trim()) return;
+    if (!extractedText) return;
 
     setIsGenerating(true);
     setError("");
 
     try {
+      // Build criteria from guided selections if applicable
+      let criteria = optimizationCriteria.trim();
+      let appliedChangesLocal:
+        | Array<{
+            changeDescription: string;
+            impact: string;
+            affectedDepartment?: string;
+          }>
+        | undefined;
+      if (guidedMode && diagnosis.report) {
+        const { instructions, appliedChanges } = buildInstructionsFromQuickWins(
+          diagnosis.report.quickWins ?? [],
+        );
+        if (instructions.length > 0) {
+          criteria =
+            instructions.map((ins) => `- ${ins}`).join("\n") +
+            (criteria ? `\n${criteria}` : "");
+        }
+        appliedChangesLocal = appliedChanges;
+      }
+
       const result = await optimizeProcessMutation.mutateAsync({
         content: extractedText,
-        optimizationCriteria: optimizationCriteria.trim(),
+        optimizationCriteria: criteria,
       });
 
       if (result.success) {
         setResults(result.results ?? null);
+        // Compute impact analysis if we have diagnosis + selections
+        if (diagnosis.analysis && diagnosis.report) {
+          const selected = (diagnosis.report.quickWins ?? []).filter(
+            (_q, i) => selectedQuickWinIds[i],
+          );
+          const impact = simulateImpact(selected, diagnosis.analysis);
+          setImpactAnalysis({
+            ...impact,
+            appliedChanges:
+              appliedChangesLocal ??
+              selected.map((q) => ({
+                changeDescription: q.suggestion,
+                impact: q.estimatedTimeSaving
+                  ? `Saved ${q.estimatedTimeSaving}`
+                  : "N/A",
+              })),
+          });
+        }
+        setCurrentPhase(2);
       } else {
         setError(result.error ?? "Failed to optimize process");
       }
@@ -106,11 +407,56 @@ export default function ProcessOptimizer() {
     }
   };
 
+  const handleGenerateSOP = async () => {
+    if (!diagnosis.analysis || !results) return;
+    try {
+      setIsGeneratingSop(true);
+
+      // Get quick wins with best practice references
+      const selectedQuickWins = (diagnosis.report?.quickWins ?? []).filter(
+        (_, i) => selectedQuickWinIds[i],
+      );
+
+      const sop = await generateSopMutation.mutateAsync({
+        originalContent: extractedText,
+        processName: diagnosis.analysis.processName,
+        optimizedMermaid: results.optimizedMermaid,
+        appliedChanges: selectedQuickWins.map((qw) => ({
+          changeDescription: qw.suggestion,
+          impact: qw.estimatedTimeSaving
+            ? `Saved ${qw.estimatedTimeSaving}`
+            : undefined,
+          affectedDepartment: undefined,
+          performedBy: qw.performedBy,
+        })),
+        impactAnalysis: impactAnalysis ?? undefined,
+        processId: diagnosis.analysis.documentMetadata?.processId,
+        processOwner: diagnosis.analysis.documentMetadata?.processOwner,
+        department: diagnosis.analysis.documentMetadata?.department,
+        section: diagnosis.analysis.documentMetadata?.section,
+        documentMetadata: diagnosis.analysis.documentMetadata,
+        diagnosis: diagnosis.report,
+      });
+      if (sop.success) {
+        setSopMarkdown(sop.markdown ?? "");
+        setCurrentPhase(3);
+      } else {
+        setError(sop.error ?? "Failed to generate SOP");
+      }
+    } catch (err) {
+      setError(
+        err instanceof Error ? err.message : "Failed to generate SOP document",
+      );
+    } finally {
+      setIsGeneratingSop(false);
+    }
+  };
+
   const renderSidebar = () => (
     <div className="w-56 bg-gray-100 p-5">
       {/* Logo */}
       <div className="mb-8">
-        <img src="/assets/sia.png" alt="SIA Logo" className="h-8 w-auto" />
+        <Image src="/assets/sia.png" alt="SIA Logo" width={120} height={32} />
       </div>
 
       {/* Navigation */}
@@ -161,7 +507,7 @@ export default function ProcessOptimizer() {
           {...getRootProps()}
           className={`file-upload-area cursor-pointer rounded-lg border-2 border-dashed border-cyan-500 p-8 text-center ${
             isDragActive ? "bg-cyan-50" : "bg-cyan-25"
-          }`}
+          } ${isBusy ? "pointer-events-none opacity-70" : ""}`}
         >
           <input {...getInputProps()} />
           <div className="text-gray-600">
@@ -177,6 +523,15 @@ export default function ProcessOptimizer() {
             )}
           </div>
         </div>
+
+        {isProcessing && (
+          <div className="mt-3 rounded border border-cyan-200 bg-cyan-50 p-3 text-sm text-cyan-800">
+            <div className="flex items-center">
+              <div className="mr-2 inline-block h-4 w-4 animate-spin rounded-full border-b-2 border-cyan-500"></div>
+              <span>Analyzing document (extraction + diagnosis)...</span>
+            </div>
+          </div>
+        )}
 
         {uploadedFile && (
           <div className="mt-4 rounded border bg-gray-50 p-3">
@@ -200,186 +555,516 @@ export default function ProcessOptimizer() {
                 {extractedText.length > 1000 && "..."}
               </pre>
             </div>
+            <details className="mt-2">
+              <summary className="cursor-pointer text-xs text-cyan-600 hover:text-cyan-800">
+                View full extracted content
+              </summary>
+              <div className="mt-2 rounded border bg-white p-2">
+                <div className="mb-2 flex justify-end">
+                  <button
+                    onClick={() => void copyToClipboard(extractedText)}
+                    className="rounded border px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+                  >
+                    Copy
+                  </button>
+                </div>
+                <pre className="max-h-80 overflow-auto text-[11px] whitespace-pre-wrap text-gray-700">
+                  {extractedText}
+                </pre>
+              </div>
+            </details>
           </div>
         )}
       </div>
 
-      <div className="mb-6">
-        <h3 className="text-md mb-3 font-semibold text-gray-800">
-          Optimization Criteria
-        </h3>
-
-        <textarea
-          value={optimizationCriteria}
-          onChange={(e) => setOptimizationCriteria(e.target.value)}
-          placeholder="Enter your optimization criteria here...&#10;&#10;Examples:&#10;- Remove process XYZ&#10;- Add dependency ABC to process XYZ&#10;- Streamline approval workflow"
-          className="w-full rounded border border-gray-300 p-3 text-sm focus:border-cyan-500 focus:outline-none"
-          rows={6}
-        />
-
-        <div className="mt-2 text-xs text-gray-500">
-          Describe the changes you want to make to the process. Be specific
-          about which processes to modify, remove, or add dependencies to.
-        </div>
-      </div>
-
-      {extractedText && optimizationCriteria.trim() && (
-        <button
-          onClick={handleOptimizeProcess}
-          disabled={isGenerating}
-          className="btn-primary w-full rounded bg-cyan-500 px-4 py-2 text-white hover:bg-cyan-600 disabled:cursor-not-allowed disabled:bg-gray-400"
-        >
-          {isGenerating ? "Optimizing Process..." : "Optimize Process"}
-        </button>
-      )}
+      {/* Optimization criteria moved to Phase 2 (Custom mode) to avoid duplication */}
     </div>
   );
 
+  const renderPhase1 = () => {
+    if (!diagnosis.analysis || !diagnosis.report) return null;
+    const report = diagnosis.report;
+    const analysis = diagnosis.analysis;
+    const quickWins = report.quickWins ?? [];
+    const totalSteps = analysis.processSteps.length;
+    const totalDuration =
+      Object.values(analysis.leadTimes ?? {}).reduce(
+        (a, b) => a + (b ?? 0),
+        0,
+      ) || 0;
+    const metadata = analysis.documentMetadata;
+    const hasStepCountDiscrepancy = metadata?.stepCountDiscrepancy ?? false;
+    const flowchartBoxCount = metadata?.flowchartBoxCount;
+    const activitiesTableCount = metadata?.activitiesTableCount ?? totalSteps;
+
+    return (
+      <div className="p-5">
+        <h3 className="mb-4 text-lg font-semibold text-gray-800">
+          Process Diagnosis Report
+        </h3>
+        {/* Summary Card */}
+        <div className="mb-6 grid grid-cols-1 gap-4 md:grid-cols-4">
+          <div className="rounded border bg-white p-4">
+            <div className="text-sm text-gray-500">Process</div>
+            <div className="text-base font-semibold text-gray-800">
+              {analysis.processName}
+            </div>
+            {metadata?.processId && (
+              <div className="text-xs text-gray-400">{metadata.processId}</div>
+            )}
+          </div>
+          <div className="rounded border bg-white p-4">
+            <div className="text-sm text-gray-500">Total Steps</div>
+            <div className="text-base font-semibold text-gray-800">
+              {activitiesTableCount}
+              {flowchartBoxCount !== undefined &&
+                flowchartBoxCount !== activitiesTableCount && (
+                  <span
+                    className={`ml-2 text-xs ${hasStepCountDiscrepancy ? "text-amber-600" : "text-gray-400"}`}
+                  >
+                    (Flowchart: {flowchartBoxCount})
+                  </span>
+                )}
+            </div>
+            {hasStepCountDiscrepancy && (
+              <div className="mt-1 text-xs text-amber-600">
+                ⚠️ Flowchart/table mismatch
+              </div>
+            )}
+          </div>
+          <div className="rounded border bg-white p-4">
+            <div className="text-sm text-gray-500">
+              Estimated Duration (days)
+            </div>
+            <div className="text-base font-semibold text-gray-800">
+              {totalDuration}
+            </div>
+          </div>
+          <div className="rounded border bg-white p-4">
+            <div className="text-sm text-gray-500">Process Owner</div>
+            <div className="text-base font-semibold text-gray-800">
+              {metadata?.processOwner ?? "N/A"}
+            </div>
+            {metadata?.department && (
+              <div className="text-xs text-gray-400">{metadata.department}</div>
+            )}
+          </div>
+        </div>
+
+        {/* KPI and SIPOC Summary */}
+        {(metadata?.kpis?.length ?? 0) > 0 && (
+          <div className="mb-6">
+            <h4 className="text-md mb-2 font-semibold text-gray-800">
+              Process KPIs
+            </h4>
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2 lg:grid-cols-3">
+              {metadata?.kpis?.map((kpi, idx) => (
+                <div key={idx} className="rounded border bg-white p-3">
+                  <div className="text-sm font-medium text-gray-700">
+                    {kpi.name}
+                  </div>
+                  <div className="text-lg font-semibold text-cyan-700">
+                    {kpi.target}
+                  </div>
+                  {kpi.formula && (
+                    <div className="text-xs text-gray-400">
+                      Formula: {kpi.formula}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Current Diagram */}
+        <div className="mb-6">
+          <h4 className="text-md mb-3 font-semibold text-gray-800">
+            Current Process Flow Diagram
+          </h4>
+          {diagnosis.currentMermaid &&
+          diagnosis.currentMermaid.trim() !== "" ? (
+            <div className="mb-4 rounded border bg-white p-4">
+              <MermaidDiagram
+                key={`phase1-current-${diagnosis.timestamp ?? "default"}`}
+                chart={diagnosis.currentMermaid}
+                id="phase1-current"
+              />
+            </div>
+          ) : (
+            <div className="mb-4 rounded border border-amber-200 bg-amber-50 p-4 text-sm text-amber-700">
+              No diagram data available. The process might not have a structured
+              flowchart representation in the source document.
+            </div>
+          )}
+        </div>
+
+        {/* Bottlenecks */}
+        {report.bottlenecks && report.bottlenecks.length > 0 && (
+          <div className="mb-6">
+            <h4 className="text-md mb-2 font-semibold text-gray-800">
+              Identified Bottlenecks
+            </h4>
+            <div className="space-y-2">
+              {report.bottlenecks.map((b, i) => (
+                <div
+                  key={i}
+                  className="rounded border border-red-200 bg-red-50 p-3"
+                >
+                  <div className="text-sm">
+                    <strong>Step ID:</strong>{" "}
+                    <span className="font-mono text-xs">{b.stepId}</span>
+                    {" — "}
+                    <strong>Step:</strong> {b.stepName}
+                  </div>
+                  <div className="text-sm">
+                    <strong>Issue:</strong> {b.reason}
+                  </div>
+                  <div className="text-sm">
+                    <strong>Impact:</strong> {b.impact}
+                  </div>
+                  <div className="text-sm">
+                    <strong>Timing:</strong> {b.timingIssue.utilizationPercent}%
+                    utilization
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Quick Wins */}
+        <div className="mb-6">
+          <h4 className="text-md mb-2 font-semibold text-gray-800">
+            Quick Win Opportunities
+          </h4>
+          {quickWins.length === 0 ? (
+            <div className="rounded border bg-white p-3 text-sm text-gray-600">
+              No quick wins identified.
+            </div>
+          ) : (
+            <div className="max-w-full overflow-x-auto rounded-lg border border-gray-200 bg-white shadow-sm">
+              <table className="text-left text-sm">
+                <thead className="bg-gray-50 text-gray-600">
+                  <tr>
+                    <th className="px-4 py-3 whitespace-nowrap">Select</th>
+                    <th className="min-w-[300px] px-4 py-3">Suggestion</th>
+                    <th className="min-w-[140px] px-4 py-3">Step ID</th>
+                    <th className="min-w-[180px] px-4 py-3">Step</th>
+                    <th className="min-w-[180px] px-4 py-3">Performed By</th>
+                    <th className="px-4 py-3 whitespace-nowrap">Effort</th>
+                    <th className="px-4 py-3 whitespace-nowrap">Impact</th>
+                    <th className="min-w-[120px] px-4 py-3">Time Saving</th>
+                    <th className="min-w-[140px] px-4 py-3">Category</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y">
+                  {quickWins.map((q, idx) => (
+                    <tr
+                      key={idx}
+                      className="transition-colors hover:bg-gray-50"
+                    >
+                      <td className="px-4 py-3">
+                        <label className="inline-flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            className="h-4 w-4 appearance-none rounded border border-gray-300 ring-0 transition-all outline-none checked:bg-cyan-600 checked:ring-0"
+                            checked={Boolean(selectedQuickWinIds[idx])}
+                            onChange={() => toggleQuickWin(idx)}
+                          />
+                        </label>
+                      </td>
+                      <td className="px-4 py-3">{q.suggestion}</td>
+                      <td className="px-4 py-3">
+                        <span className="font-mono text-xs text-gray-700">
+                          {q.stepId}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3">{q.stepName}</td>
+                      <td className="px-4 py-3">
+                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium whitespace-nowrap text-blue-800">
+                          {q.performedBy ?? "Unassigned"}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {q.effort}
+                      </td>
+                      <td className="px-4 py-3 whitespace-nowrap">
+                        {q.impact}
+                      </td>
+                      <td className="px-4 py-3">{q.estimatedTimeSaving}</td>
+                      <td className="px-4 py-3">{q.category}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* Debug: Diagnosis JSON and Mermaid */}
+        <details className="mb-4">
+          <summary className="cursor-pointer text-xs text-cyan-600 hover:text-cyan-800">
+            Show diagnosis JSON (debug)
+          </summary>
+          <div className="mt-2 rounded border bg-white p-2">
+            <div className="mb-2 flex justify-end">
+              <button
+                onClick={() =>
+                  void copyToClipboard(
+                    JSON.stringify(diagnosis.report ?? {}, undefined, 2),
+                  )
+                }
+                className="rounded border px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+              >
+                Copy
+              </button>
+            </div>
+            <pre className="max-h-80 overflow-auto text-[11px] whitespace-pre-wrap text-gray-700">
+              {JSON.stringify(diagnosis.report ?? {}, undefined, 2)}
+            </pre>
+          </div>
+        </details>
+
+        <details className="mb-6">
+          <summary className="cursor-pointer text-xs text-cyan-600 hover:text-cyan-800">
+            Show raw Mermaid (current, debug)
+          </summary>
+          <div className="mt-2 rounded border bg-white p-2">
+            <div className="mb-2 flex justify-end">
+              <button
+                onClick={() => void copyToClipboard(diagnosis.currentMermaid)}
+                className="rounded border px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+              >
+                Copy
+              </button>
+            </div>
+            <pre className="max-h-80 overflow-auto text-[11px] whitespace-pre text-gray-700">
+              {diagnosis.currentMermaid}
+            </pre>
+          </div>
+        </details>
+      </div>
+    );
+  };
+
+  const renderPhase2Controls = () => {
+    if (!diagnosis.analysis || !diagnosis.report) return null;
+    return (
+      <div className="border-b border-gray-200 p-5">
+        <div className="mb-3 flex items-center justify-between">
+          <h3 className="text-md font-semibold text-gray-800">
+            Phase 2: Optimize
+          </h3>
+          <div className="flex items-center gap-2 text-sm">
+            <button
+              className={`rounded-l border px-3 py-1 ${guidedMode ? "border-cyan-600 bg-cyan-600 text-white" : "border-gray-300 bg-white text-gray-700"}`}
+              onClick={() => setGuidedMode(true)}
+            >
+              Guided
+            </button>
+            <button
+              className={`rounded-r border px-3 py-1 ${!guidedMode ? "border-cyan-600 bg-cyan-600 text-white" : "border-gray-300 bg-white text-gray-700"}`}
+              onClick={() => setGuidedMode(false)}
+            >
+              Custom
+            </button>
+          </div>
+        </div>
+
+        {!guidedMode && (
+          <>
+            <textarea
+              value={optimizationCriteria}
+              onChange={(e) => setOptimizationCriteria(e.target.value)}
+              placeholder="Additional instructions (optional). Be specific and surgical."
+              className="w-full rounded border border-gray-300 p-3 text-sm focus:border-cyan-500 focus:outline-none"
+              rows={6}
+            />
+            <div className="mt-2 text-xs text-gray-500">
+              Example:
+              <pre className="mt-1 rounded bg-gray-50 p-2">
+                {`- Remove "Manual Review"
+- Merge steps "Validate Request" and "Verify Details" into "Auto Validation"
+- Add dependency from "Approve" to "Notify" with label "Approved"`}
+              </pre>
+            </div>
+          </>
+        )}
+
+        {guidedMode && diagnosis.report?.quickWins && (
+          <div className="mt-2 text-sm text-gray-600">
+            Using your selected quick wins above to construct precise
+            instructions.
+          </div>
+        )}
+
+        <div className="mt-4">
+          <button
+            onClick={handleOptimizeProcess}
+            disabled={
+              isGenerating ||
+              (guidedMode &&
+                !(diagnosis.report?.quickWins ?? []).some(
+                  (_, i) => selectedQuickWinIds[i],
+                )) ||
+              (!guidedMode && optimizationCriteria.trim().length === 0)
+            }
+            className="rounded bg-cyan-600 px-4 py-2 text-sm text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+          >
+            {isGenerating ? "Optimizing..." : "Apply Optimizations"}
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const renderResults = () => {
-    if (isGenerating) {
+    if (isBusy) {
       return (
         <div className="p-8 text-center">
           <div className="mb-4 inline-block h-10 w-10 animate-spin rounded-full border-b-2 border-cyan-500"></div>
           <p className="text-gray-600">
-            AI is analyzing your process document and generating optimized
-            workflow...
+            {isProcessing
+              ? "Analyzing document..."
+              : "Applying optimizations..."}
           </p>
         </div>
       );
     }
 
     if (!results) {
-      return (
-        <div className="p-8">
-          <h3 className="mb-4 text-lg font-semibold text-gray-800">Output</h3>
-          <div className="rounded border border-cyan-200 bg-cyan-50 p-4">
-            <p className="text-cyan-800">
-              Upload a process document and enter optimization criteria to
-              generate optimized workflow
-            </p>
+      // If we have Phase 1, show its UI; otherwise show placeholder
+      if (diagnosis.report && diagnosis.analysis) {
+        return renderPhase1();
+      } else {
+        return (
+          <div className="p-8">
+            <h3 className="mb-4 text-lg font-semibold text-gray-800">Output</h3>
+            <div className="rounded border border-cyan-200 bg-cyan-50 p-4">
+              <p className="text-cyan-800">
+                Upload a process document to run automatic diagnosis.
+              </p>
+            </div>
           </div>
-        </div>
-      );
+        );
+      }
     }
 
     return (
       <div className="p-5">
-        <h3 className="mb-6 text-lg font-semibold text-gray-800">
-          Process Optimization Results
+        <h3 className="mb-3 text-lg font-semibold text-gray-800">
+          Process Optimization Results (Phase 2)
         </h3>
 
-        {/* Current Process Analysis */}
-        <div className="mb-8">
-          <h4 className="text-md mb-3 font-semibold text-gray-800">
-            Current Process Flow
-          </h4>
-          <div className="mb-4 rounded border bg-white p-4">
-            <MermaidDiagram
-              chart={results.currentMermaid}
-              id="current-process"
-            />
-          </div>
-          <details className="mb-4">
-            <summary className="cursor-pointer text-sm text-cyan-600 hover:text-cyan-800">
-              Current Process Details
-            </summary>
-            <div className="mt-2 rounded border bg-gray-50 p-3">
-              <div className="mb-3">
-                <strong className="text-sm text-gray-700">Process Name:</strong>
-                <p className="text-sm text-gray-600">
-                  {results.currentAnalysis.processName}
-                </p>
-              </div>
-              <div className="mb-3">
-                <strong className="text-sm text-gray-700">Departments:</strong>
-                <p className="text-sm text-gray-600">
-                  {results.currentAnalysis.departments.join(", ")}
-                </p>
-              </div>
-              <div className="mb-3">
-                <strong className="text-sm text-gray-700">
-                  Process Steps:
-                </strong>
-                <ul className="text-sm text-gray-600">
-                  {results.currentAnalysis.processSteps.map((step, index) => (
-                    <li key={index} className="ml-4 list-disc">
-                      {step.department} - {step.role}: {step.name}
-                    </li>
-                  ))}
-                </ul>
-              </div>
-            </div>
-          </details>
-        </div>
-
-        {/* Optimized Process */}
-        <div className="mb-8">
-          <h4 className="text-md mb-3 font-semibold text-gray-800">
-            Optimized Process Flow
-          </h4>
-          <div className="mb-4 rounded border bg-white p-4">
-            <MermaidDiagram
-              chart={results.optimizedMermaid}
-              id="optimized-process"
-            />
-          </div>
-
-          {/* Changes Made */}
-          <div className="mb-4">
-            <h5 className="mb-2 text-sm font-semibold text-gray-800">
-              Changes Made:
-            </h5>
-            <div className="space-y-2">
-              {results.optimization.changes.map((change, index) => (
-                <div key={index} className="rounded border bg-yellow-50 p-3">
-                  <div className="mb-1 flex items-center gap-2">
-                    <span
-                      className={`rounded px-2 py-1 text-xs font-medium ${
-                        change.type === "removed"
-                          ? "bg-red-100 text-red-800"
-                          : change.type === "added"
-                            ? "bg-green-100 text-green-800"
-                            : change.type === "modified"
-                              ? "bg-blue-100 text-blue-800"
-                              : "bg-orange-100 text-orange-800"
-                      }`}
-                    >
-                      {change.type.toUpperCase()}
-                    </span>
-                    <span
-                      className={`rounded px-2 py-1 text-xs font-medium ${
-                        change.impact === "high"
-                          ? "bg-red-100 text-red-800"
-                          : change.impact === "medium"
-                            ? "bg-yellow-100 text-yellow-800"
-                            : "bg-green-100 text-green-800"
-                      }`}
-                    >
-                      {change.impact.toUpperCase()} IMPACT
-                    </span>
-                  </div>
-                  <p className="text-sm text-gray-700">{change.description}</p>
-                </div>
-              ))}
+        {/* Stacked diagrams */}
+        <div className="mb-8 flex flex-col gap-8">
+          <div>
+            <h4 className="text-md mb-3 font-semibold text-gray-800">As-Is</h4>
+            <div className="mb-4 rounded border bg-white p-4">
+              <MermaidDiagram
+                chart={results.currentMermaid}
+                id="current-process"
+              />
             </div>
           </div>
+          <div>
+            <h4 className="text-md mb-3 font-semibold text-gray-800">To-Be</h4>
+            <div className="mb-4 rounded border bg-white p-4">
+              <MermaidDiagram
+                chart={results.optimizedMermaid}
+                id="optimized-process"
+              />
+            </div>
+          </div>
+        </div>
 
-          {/* Impact Analysis */}
-          {results.optimization.impactAnalysis && (
-            <details className="mb-4">
-              <summary className="cursor-pointer text-sm text-cyan-600 hover:text-cyan-800">
-                Impact Analysis
-              </summary>
-              <div className="mt-2 rounded border bg-gray-50 p-3">
-                <div className="prose prose-sm max-w-none text-sm text-gray-700">
-                  <ReactMarkdown>
-                    {results.optimization.impactAnalysis}
-                  </ReactMarkdown>
+        {/* Optimization Impact Analysis */}
+        {impactAnalysis && (
+          <div className="mb-6 rounded border bg-white p-4">
+            <h4 className="text-md mb-2 font-semibold text-gray-800">
+              Optimization Impact Analysis
+            </h4>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <div className="rounded border bg-gray-50 p-3">
+                <div className="text-xs text-gray-500">Time Saved</div>
+                <div className="text-base font-semibold text-gray-800">
+                  {impactAnalysis.comparison.improvements.timeReduction} days (
+                  {impactAnalysis.comparison.improvements.timeReductionPercent}
+                  %)
                 </div>
               </div>
-            </details>
-          )}
+              <div className="rounded border bg-gray-50 p-3">
+                <div className="text-xs text-gray-500">Steps Reduced</div>
+                <div className="text-base font-semibold text-gray-800">
+                  {impactAnalysis.comparison.current.totalSteps} →{" "}
+                  {impactAnalysis.comparison.optimized.totalSteps}
+                </div>
+              </div>
+            </div>
+            <div className="mt-4">
+              <h5 className="mb-1 text-sm font-semibold text-gray-800">
+                Applied Changes
+              </h5>
+              <ul className="text-sm text-gray-700">
+                {impactAnalysis.appliedChanges.map((c, i) => (
+                  <li key={i} className="ml-4 list-disc">
+                    <span className="inline-flex items-center gap-1 font-medium">
+                      <CheckCircleIcon className="h-4 w-4 text-emerald-600" />
+                      {c.changeDescription}
+                    </span>
+                    {c.impact ? ` — Impact: ${c.impact}` : ""}
+                    {c.affectedDepartment
+                      ? ` — Dept: ${c.affectedDepartment}`
+                      : ""}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+        )}
+
+        {/* Actions Phase 3 */}
+        <div className="flex gap-3">
+          <button
+            onClick={handleGenerateSOP}
+            disabled={!results || isGeneratingSop}
+            className="rounded bg-cyan-600 px-4 py-2 text-sm text-white hover:bg-cyan-700 disabled:cursor-not-allowed disabled:bg-gray-400"
+          >
+            {isGeneratingSop
+              ? "Generating SOP..."
+              : "Generate Updated SOP Document"}
+          </button>
+          {/* Refine Optimization button hidden as requested */}
         </div>
+
+        {/* SOP Output */}
+        {sopMarkdown && (
+          <div className="mt-8 rounded border bg-white p-4">
+            <h4 className="text-md mb-2 font-semibold text-gray-800">
+              Updated SOP Document
+            </h4>
+            <div className="mb-2 flex justify-end gap-2">
+              <button
+                onClick={() => void copyToClipboard(sopMarkdown)}
+                className="rounded border px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+              >
+                Copy to Clipboard
+              </button>
+              {/* Download as markdown */}
+              <a
+                href={`data:text/markdown;charset=utf-8,${encodeURIComponent(sopMarkdown)}`}
+                download="updated-sop.md"
+                className="rounded border px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
+              >
+                Download as Markdown
+              </a>
+            </div>
+            <pre className="max-h-96 overflow-auto text-[12px] whitespace-pre-wrap text-gray-800">
+              {sopMarkdown}
+            </pre>
+          </div>
+        )}
       </div>
     );
   };
@@ -395,12 +1080,16 @@ export default function ProcessOptimizer() {
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="flex min-h-screen bg-gray-50">
+      <div className="flex min-h-screen overflow-x-hidden bg-gray-50">
         {renderSidebar()}
 
-        <div className="flex flex-1">
+        <div className="flex flex-1 overflow-x-hidden">
           <div className="w-80">{renderUploadSection()}</div>
-          <div className="flex-1">{renderResults()}</div>
+          <div className="flex-1 overflow-x-hidden">
+            {renderPhaseNav()}
+            {!results && currentPhase < 3 && renderPhase2Controls()}
+            {renderResults()}
+          </div>
         </div>
       </div>
 

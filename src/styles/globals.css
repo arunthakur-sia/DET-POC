@@ -6,6 +6,40 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+/* Ensure text selection works on text content (not buttons/interactive elements) */
+body,
+p,
+div,
+span,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6,
+pre,
+code,
+td,
+th,
+label {
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  user-select: text;
+}
+
+/* But allow normal behavior for buttons and inputs */
+button,
+input,
+select,
+textarea,
+a {
+  -webkit-user-select: auto;
+  -moz-user-select: auto;
+  -ms-user-select: auto;
+  user-select: auto;
+}
+
 /* Custom styles to match Streamlit design */
 .mermaid-container {
   display: flex;
@@ -17,6 +51,17 @@
 .mermaid-container svg {
   max-width: 100%;
   height: auto;
+}
+
+/* Allow text selection in SVG text elements */
+.mermaid-container svg text,
+.mermaid-container svg tspan {
+  user-select: text;
+  -webkit-user-select: text;
+  -moz-user-select: text;
+  -ms-user-select: text;
+  pointer-events: auto;
+  cursor: text;
 }
 
 /* Loading animation */
