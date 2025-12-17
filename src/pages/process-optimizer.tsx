@@ -11,6 +11,8 @@ import type {
   ProcessAnalysis,
 } from "@/server/services/ProcessOptimizer";
 import { CheckCircleIcon, LockClosedIcon } from "@heroicons/react/24/solid";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
 
 export default function ProcessOptimizer() {
   const [uploadedFile, setUploadedFile] = useState<File | null>(null);
@@ -439,7 +441,7 @@ export default function ProcessOptimizer() {
       });
       if (sop.success) {
         setSopMarkdown(sop.markdown ?? "");
-        setCurrentPhase(3);
+        setCurrentPhase(3); // Navigate to Phase 3
       } else {
         setError(sop.error ?? "Failed to generate SOP");
       }
@@ -1037,34 +1039,168 @@ export default function ProcessOptimizer() {
           </button>
           {/* Refine Optimization button hidden as requested */}
         </div>
+      </div>
+    );
+  };
 
-        {/* SOP Output */}
-        {sopMarkdown && (
-          <div className="mt-8 rounded border bg-white p-4">
-            <h4 className="text-md mb-2 font-semibold text-gray-800">
+  const renderPhase3 = () => {
+    if (!sopMarkdown) return null;
+
+    return (
+      <div className="p-8">
+        {/* Header with actions */}
+        <div className="mb-6 flex items-center justify-between">
+          <div>
+            <h2 className="text-2xl font-bold text-gray-800">
               Updated SOP Document
-            </h4>
-            <div className="mb-2 flex justify-end gap-2">
-              <button
-                onClick={() => void copyToClipboard(sopMarkdown)}
-                className="rounded border px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
-              >
-                Copy to Clipboard
-              </button>
-              {/* Download as markdown */}
-              <a
-                href={`data:text/markdown;charset=utf-8,${encodeURIComponent(sopMarkdown)}`}
-                download="updated-sop.md"
-                className="rounded border px-2 py-1 text-xs text-gray-600 hover:bg-gray-50"
-              >
-                Download as Markdown
-              </a>
-            </div>
-            <pre className="max-h-96 overflow-auto text-[12px] whitespace-pre-wrap text-gray-800">
-              {sopMarkdown}
-            </pre>
+            </h2>
+            <p className="text-sm text-gray-500">
+              Standard Operating Procedure - Process Optimization
+            </p>
           </div>
-        )}
+          <div className="flex gap-3">
+            <button
+              onClick={() => setCurrentPhase(2)}
+              className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              ← Back to Optimization
+            </button>
+            <button
+              onClick={() => void copyToClipboard(sopMarkdown)}
+              className="rounded border border-gray-300 px-4 py-2 text-sm text-gray-700 hover:bg-gray-50"
+            >
+              Copy to Clipboard
+            </button>
+            <a
+              href={`data:text/markdown;charset=utf-8,${encodeURIComponent(sopMarkdown)}`}
+              download="updated-sop.md"
+              className="rounded bg-cyan-600 px-4 py-2 text-sm text-white hover:bg-cyan-700"
+            >
+              Download as Markdown
+            </a>
+          </div>
+        </div>
+
+        {/* Rendered Markdown Content */}
+        <div className="prose prose-sm max-w-none rounded-lg border bg-white p-8 shadow-sm">
+          <ReactMarkdown
+            remarkPlugins={[remarkGfm]}
+            components={{
+              // Custom styling for markdown elements
+              h1: ({ ...props }) => (
+                <h1
+                  className="mb-4 text-3xl font-bold text-gray-900"
+                  {...props}
+                />
+              ),
+              h2: ({ ...props }) => (
+                <h2
+                  className="mt-6 mb-3 text-2xl font-semibold text-gray-800"
+                  {...props}
+                />
+              ),
+              h3: ({ ...props }) => (
+                <h3
+                  className="mt-4 mb-2 text-xl font-semibold text-gray-800"
+                  {...props}
+                />
+              ),
+              h4: ({ ...props }) => (
+                <h4
+                  className="mt-3 mb-2 text-lg font-semibold text-gray-700"
+                  {...props}
+                />
+              ),
+              p: ({ ...props }) => (
+                <p className="mb-3 leading-relaxed text-gray-700" {...props} />
+              ),
+              ul: ({ ...props }) => (
+                <ul
+                  className="mb-4 ml-6 list-disc space-y-1 text-gray-700"
+                  {...props}
+                />
+              ),
+              ol: ({ ...props }) => (
+                <ol
+                  className="mb-4 ml-6 list-decimal space-y-1 text-gray-700"
+                  {...props}
+                />
+              ),
+              li: ({ ...props }) => (
+                <li className="leading-relaxed" {...props} />
+              ),
+              table: ({ ...props }) => (
+                <div className="my-4 overflow-x-auto">
+                  <table
+                    className="min-w-full divide-y divide-gray-300 border"
+                    {...props}
+                  />
+                </div>
+              ),
+              thead: ({ ...props }) => (
+                <thead className="bg-gray-50" {...props} />
+              ),
+              th: ({ ...props }) => (
+                <th
+                  className="border px-4 py-2 text-left text-sm font-semibold text-gray-900"
+                  {...props}
+                />
+              ),
+              td: ({ ...props }) => (
+                <td
+                  className="border px-4 py-2 text-sm text-gray-700"
+                  {...props}
+                />
+              ),
+              code: ({ className, children, ...props }) => {
+                const isInline = !className;
+                if (isInline) {
+                  return (
+                    <code
+                      className="rounded bg-gray-100 px-1.5 py-0.5 font-mono text-sm text-cyan-700"
+                      {...props}
+                    >
+                      {children}
+                    </code>
+                  );
+                }
+                // Block code - check if it's mermaid
+                const match = /language-(\w+)/.exec(className ?? "");
+                const language = match?.[1];
+                if (language === "mermaid") {
+                  const chartContent = Array.isArray(children)
+                    ? children.join("")
+                    : typeof children === "string"
+                      ? children
+                      : "";
+                  return (
+                    <div className="my-4">
+                      <MermaidDiagram chart={chartContent.replace(/\n$/, "")} />
+                    </div>
+                  );
+                }
+                return (
+                  <pre className="my-4 overflow-x-auto rounded bg-gray-50 p-4">
+                    <code className={className} {...props}>
+                      {children}
+                    </code>
+                  </pre>
+                );
+              },
+              blockquote: ({ ...props }) => (
+                <blockquote
+                  className="my-4 border-l-4 border-cyan-500 pl-4 text-gray-700 italic"
+                  {...props}
+                />
+              ),
+              hr: ({ ...props }) => (
+                <hr className="my-6 border-gray-300" {...props} />
+              ),
+            }}
+          >
+            {sopMarkdown}
+          </ReactMarkdown>
+        </div>
       </div>
     );
   };
@@ -1084,11 +1220,19 @@ export default function ProcessOptimizer() {
         {renderSidebar()}
 
         <div className="flex flex-1 overflow-x-hidden">
-          <div className="w-80">{renderUploadSection()}</div>
+          {currentPhase < 3 && (
+            <div className="w-80">{renderUploadSection()}</div>
+          )}
           <div className="flex-1 overflow-x-hidden">
             {renderPhaseNav()}
-            {!results && currentPhase < 3 && renderPhase2Controls()}
-            {renderResults()}
+            {currentPhase === 3 ? (
+              renderPhase3()
+            ) : (
+              <>
+                {!results && currentPhase < 3 && renderPhase2Controls()}
+                {renderResults()}
+              </>
+            )}
           </div>
         </div>
       </div>

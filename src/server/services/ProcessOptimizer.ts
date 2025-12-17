@@ -469,6 +469,26 @@ export class ProcessOptimizer {
 
     console.log(`[extractAndDiagnose] TOTAL took ${Date.now() - startTime}ms`);
 
+    // Debug: Log SIPOC extraction
+    if (analysis.documentMetadata?.sipoc) {
+      console.log("[extractAndDiagnose] SIPOC extracted:");
+      console.log("  Suppliers:", analysis.documentMetadata.sipoc.suppliers);
+      console.log("  Inputs:", analysis.documentMetadata.sipoc.inputs);
+      console.log("  Process:", analysis.documentMetadata.sipoc.process);
+      console.log("  Outputs:", analysis.documentMetadata.sipoc.outputs);
+      console.log("  Customers:", analysis.documentMetadata.sipoc.customers);
+    } else {
+      console.log(
+        "[extractAndDiagnose] WARNING: No SIPOC data found in extraction!",
+      );
+    }
+
+    // Log raw structured response to see what Claude actually returned
+    console.log(
+      "[extractAndDiagnose] Raw JSON keys:",
+      Object.keys(analysis.documentMetadata ?? {}),
+    );
+
     return { extractedText: text, analysis, diagnosis, currentMermaid };
   }
 
@@ -683,6 +703,22 @@ Return ONLY valid JSON (no markdown fences, no explanation):
         `[extractTextFromPDFBase64] Got ${responseText.length} chars response`,
       );
 
+      // Debug: Check if SIPOC data is in the response
+      if (responseText.includes('"sipoc"')) {
+        const sipocRegex = /"sipoc"\s*:\s*\{[^}]+\}/s;
+        const sipocMatch = sipocRegex.exec(responseText);
+        if (sipocMatch) {
+          console.log(
+            "[extractTextFromPDFBase64] SIPOC in response:",
+            sipocMatch[0].substring(0, 500),
+          );
+        }
+      } else {
+        console.log(
+          "[extractTextFromPDFBase64] WARNING: No sipoc field found in Claude response",
+        );
+      }
+
       return responseText;
     } catch (error) {
       console.error(
@@ -879,7 +915,13 @@ Return ONLY a single JSON document inside a code fence like this:
   "flowchartBoxCount": 0,
   "activitiesTableCount": 0,
   "stepCountDiscrepancy": false,
-  "sipoc": { "suppliers": [], "inputs": [], "process": "", "outputs": [], "customers": [] },
+  "sipoc": {
+    "suppliers": ["Asset Management Department"],
+    "inputs": ["All RTA projects/initiatives/practices aligned with Circular Economy"],
+    "process": "Manage RTA Circular Economy",
+    "outputs": ["Annual report for CE performance in RTA to the HE DG."],
+    "customers": ["All RTA's sectors and agencies and its affiliated departments."]
+  },
   "kpis": [ { "name": "", "nameArabic": "", "formula": "", "target": "", "measurementFrequency": "" } ],
   "internalControls": [ { "controlId": "", "description": "", "riskMitigated": "", "controlType": "" } ],
   "relatedDocuments": [ { "name": "", "reference": "", "type": "" } ],
@@ -904,6 +946,19 @@ Rules:
 - Preserve the exact step sequence and IDs from the activities table
 - Include edge labels like Yes/No or condition text when present (use English if available)
 - Extract ALL document sections: SIPOC, KPIs, Controls, Related Documents, Approvals
+- SIPOC EXTRACTION CRITICAL: Find the table with heading "SIPOC" or section titled "SIPOC". This table has 5 rows.
+  * The table has multiple columns with English and Arabic text. You need to extract the ENGLISH text only.
+  * Look for these row labels: "Supplier"/"المورد", "Input"/"المدخل", "Process"/"العملية", "Output"/"المخرج", "Customer"/"العميل"
+  * When you find a SIPOC row, read ALL the English text in that row's data cell. The English text is usually between the row label and the Arabic translation.
+  * Example table structure:
+    | Component | Details (English) | Details (Arabic) |
+    | Supplier  | Asset Management Department | إدارة األصول |
+  * For Supplier row: Extract English text like ["Asset Management Department"] or ["N/A"]
+  * For Input row: Extract the COMPLETE English description (often a long sentence): ["All RTA projects/initiatives/practices aligned with Circular Economy"]  
+  * For Process row: Extract as string: "Manage RTA Circular Economy"
+  * For Output row: Extract COMPLETE English text: ["Annual report for CE performance in RTA to the HE DG."]
+  * For Customer row: Extract COMPLETE English text: ["All RTA's sectors and agencies and its affiliated departments."]
+  * IMPORTANT: DO NOT return empty arrays. If you cannot find text, use ["NOT FOUND"] so we can debug. Only use ["N/A"] if the cell actually says "N/A".
 - If multiple pages, merge into a single graph
 - Flag stepCountDiscrepancy if flowchartBoxCount != activitiesTableCount`;
 
@@ -1103,7 +1158,13 @@ Return ONLY a single JSON document inside a code fence like this:
   "flowchartBoxCount": 0,
   "activitiesTableCount": 0,
   "stepCountDiscrepancy": false,
-  "sipoc": { "suppliers": [], "inputs": [], "process": "", "outputs": [], "customers": [] },
+  "sipoc": {
+    "suppliers": ["Asset Management Department"],
+    "inputs": ["All RTA projects/initiatives/practices aligned with Circular Economy"],
+    "process": "Manage RTA Circular Economy",
+    "outputs": ["Annual report for CE performance in RTA to the HE DG."],
+    "customers": ["All RTA's sectors and agencies and its affiliated departments."]
+  },
   "kpis": [ { "name": "", "nameArabic": "", "formula": "", "target": "", "measurementFrequency": "" } ],
   "internalControls": [ { "controlId": "", "description": "", "riskMitigated": "", "controlType": "" } ],
   "relatedDocuments": [ { "name": "", "reference": "", "type": "" } ],
@@ -1128,6 +1189,19 @@ Rules:
 - Preserve the exact step sequence and IDs from the activities table
 - Include edge labels like Yes/No or condition text when present (use English if available)
 - Extract ALL document sections: SIPOC, KPIs, Controls, Related Documents, Approvals
+- SIPOC EXTRACTION CRITICAL: Find the table with heading "SIPOC" or section titled "SIPOC". This table has 5 rows.
+  * The table has multiple columns with English and Arabic text. You need to extract the ENGLISH text only.
+  * Look for these row labels: "Supplier"/"المورد", "Input"/"المدخل", "Process"/"العملية", "Output"/"المخرج", "Customer"/"العميل"
+  * When you find a SIPOC row, read ALL the English text in that row's data cell. The English text is usually between the row label and the Arabic translation.
+  * Example table structure:
+    | Component | Details (English) | Details (Arabic) |
+    | Supplier  | Asset Management Department | إدارة األصول |
+  * For Supplier row: Extract English text like ["Asset Management Department"] or ["N/A"]
+  * For Input row: Extract the COMPLETE English description (often a long sentence): ["All RTA projects/initiatives/practices aligned with Circular Economy"]  
+  * For Process row: Extract as string: "Manage RTA Circular Economy"
+  * For Output row: Extract COMPLETE English text: ["Annual report for CE performance in RTA to the HE DG."]
+  * For Customer row: Extract COMPLETE English text: ["All RTA's sectors and agencies and its affiliated departments."]
+  * IMPORTANT: DO NOT return empty arrays. If you cannot find text, use ["NOT FOUND"] so we can debug. Only use ["N/A"] if the cell actually says "N/A".
 - If multiple pages, merge into a single graph
 - Flag stepCountDiscrepancy if flowchartBoxCount != activitiesTableCount`;
 
@@ -1914,11 +1988,51 @@ Analysis criteria:
       scope: structured.scope,
       sipoc: structured.sipoc
         ? {
-            suppliers: structured.sipoc.suppliers ?? [],
-            inputs: structured.sipoc.inputs ?? [],
-            process: structured.sipoc.process ?? "",
-            outputs: structured.sipoc.outputs ?? [],
-            customers: structured.sipoc.customers ?? [],
+            suppliers:
+              (structured.sipoc.suppliers ??
+              (structured.sipoc as unknown as Record<string, unknown>).supplier)
+                ? [
+                    String(
+                      structured.sipoc.suppliers ??
+                        (structured.sipoc as unknown as Record<string, unknown>)
+                          .supplier,
+                    ),
+                  ]
+                : [],
+            inputs:
+              (structured.sipoc.inputs ??
+              (structured.sipoc as unknown as Record<string, unknown>).input)
+                ? [
+                    String(
+                      structured.sipoc.inputs ??
+                        (structured.sipoc as unknown as Record<string, unknown>)
+                          .input,
+                    ),
+                  ]
+                : [],
+            process: String(structured.sipoc.process ?? ""),
+            outputs:
+              (structured.sipoc.outputs ??
+              (structured.sipoc as unknown as Record<string, unknown>).output)
+                ? [
+                    String(
+                      structured.sipoc.outputs ??
+                        (structured.sipoc as unknown as Record<string, unknown>)
+                          .output,
+                    ),
+                  ]
+                : [],
+            customers:
+              (structured.sipoc.customers ??
+              (structured.sipoc as unknown as Record<string, unknown>).customer)
+                ? [
+                    String(
+                      structured.sipoc.customers ??
+                        (structured.sipoc as unknown as Record<string, unknown>)
+                          .customer,
+                    ),
+                  ]
+                : [],
           }
         : undefined,
       kpis: structured.kpis ?? [],
@@ -2109,7 +2223,12 @@ JSON output:`;
     analysis: ProcessAnalysis,
   ): Promise<string> {
     if (this.hasStructuredGraph(analysis)) {
-      return this.buildMermaidFromStructured(analysis);
+      const mermaid = this.buildMermaidFromStructured(analysis);
+      console.log(
+        "[createCurrentProcessDiagram] Generated Mermaid (first 500 chars):",
+        mermaid.substring(0, 500),
+      );
+      return mermaid;
     }
 
     // Fallback to LLM rendering if structured graph is not available
@@ -2151,7 +2270,14 @@ JSON output:`;
     optimization: ProcessOptimization,
   ): Promise<string> {
     if (this.hasStructuredGraph(optimization.optimizedProcess)) {
-      return this.buildMermaidFromStructured(optimization.optimizedProcess);
+      const mermaid = this.buildMermaidFromStructured(
+        optimization.optimizedProcess,
+      );
+      console.log(
+        "[createOptimizedProcessDiagram] Generated Mermaid (first 500 chars):",
+        mermaid.substring(0, 500),
+      );
+      return mermaid;
     }
 
     const prompt = `
@@ -2292,9 +2418,9 @@ JSON output:`;
       ? `\nCurrent KPIs:\n${documentMetadata.kpis.map((k) => `- ${k.name}: Target ${k.target}${k.formula ? ` (Formula: ${k.formula})` : ""}`).join("\n")}`
       : "";
 
-    // Build SIPOC context
+    // Build SIPOC context - create the actual markdown table
     const sipocContext = documentMetadata?.sipoc
-      ? `\nCurrent SIPOC:\n- Suppliers: ${documentMetadata.sipoc.suppliers?.join(", ") || "N/A"}\n- Inputs: ${documentMetadata.sipoc.inputs?.join(", ") || "N/A"}\n- Outputs: ${documentMetadata.sipoc.outputs?.join(", ") || "N/A"}\n- Customers: ${documentMetadata.sipoc.customers?.join(", ") || "N/A"}`
+      ? `\nCurrent SIPOC (use this exact table in the SOP):\n\n| Component | Details |\n|-----------|----------|\n| Suppliers | ${documentMetadata.sipoc.suppliers?.join(", ") || "N/A"} |\n| Inputs | ${documentMetadata.sipoc.inputs?.join(", ") || "N/A"} |\n| Process | ${documentMetadata.sipoc.process || "N/A"} |\n| Outputs | ${documentMetadata.sipoc.outputs?.join(", ") || "N/A"} |\n| Customers | ${documentMetadata.sipoc.customers?.join(", ") || "N/A"} |`
       : "";
 
     // Build controls context
@@ -2311,98 +2437,84 @@ JSON output:`;
     const sopPrompt = `
 You are generating an updated Standard Operating Procedure (SOP) document for RTA (Roads and Transport Authority).
 
-Original Process Information (extract what you can from the following text; if absent, leave placeholders):
+CRITICAL RULES:
+1. DO NOT invent, fabricate, or hallucinate ANY information
+2. ONLY include data that was explicitly provided below
+3. If information is missing, write "NOT AVAILABLE" or omit that section entirely
+4. DO NOT generate placeholder values, example durations, or made-up metrics
+5. DO NOT invent KPI targets, activity durations, or performance numbers
+
+Original Process Information:
 ${originalContent.slice(0, 2000)}
 
-Provided metadata overrides (use when present):
-- Process ID: ${processId ?? documentMetadata?.processId ?? ""}
+Provided metadata (ONLY use what's explicitly present):
+- Process ID: ${processId ?? documentMetadata?.processId ?? "NOT AVAILABLE"}
 - Process Name: ${processName}
-- Process Owner: ${processOwner ?? documentMetadata?.processOwner ?? ""}
-- Department: ${department ?? documentMetadata?.department ?? ""}
-- Section: ${section ?? documentMetadata?.section ?? ""}
+- Process Owner: ${processOwner ?? documentMetadata?.processOwner ?? "NOT AVAILABLE"}
+- Department: ${department ?? documentMetadata?.department ?? "NOT AVAILABLE"}
+- Section: ${section ?? documentMetadata?.section ?? "NOT AVAILABLE"}
 ${kpisContext}
 ${sipocContext}
 ${controlsContext}
 ${relatedDocsContext}
 
-Optimization Summary:
+Optimization Changes Applied:
 ${changesList}
 
 Optimized Process Mermaid:
 ${optimizedMermaid}
 
-Impact Analysis (free-form JSON-like info to summarize in KPIs/Description):
-${impactAnalysis ? JSON.stringify(impactAnalysis).slice(0, 1000) : ""}
+Impact Analysis (actual calculated data):
+${impactAnalysis ? JSON.stringify(impactAnalysis).slice(0, 1000) : "NOT AVAILABLE"}
 
-Your task: Generate a complete SOP document in markdown format (MVP) with this structure:
+Generate an SOP document in markdown with ONLY the following sections where data exists:
 
-# ${processId ?? documentMetadata?.processId ?? "PROCESS-ID"} - ${processName}
+# ${processId ?? documentMetadata?.processId ?? "NOT AVAILABLE"} - ${processName}
 
 ## Issue Details
-- Issue Number: [Increment]
 - Issue Date: ${today}
 - Change Type: Process Optimization Update
 
 ## Process Information
 - Process Name: ${processName}
-- Process ID: ${processId ?? documentMetadata?.processId ?? "PROCESS-ID"}
-- Process Owner: ${processOwner ?? documentMetadata?.processOwner ?? "[Owner]"}
-- Section: ${section ?? documentMetadata?.section ?? "[Section]"}
-- Department: ${department ?? documentMetadata?.department ?? "[Department]"}
+${(processId ?? documentMetadata?.processId) ? `- Process ID: ${processId ?? documentMetadata?.processId}` : ""}
+${(processOwner ?? documentMetadata?.processOwner) ? `- Process Owner: ${processOwner ?? documentMetadata?.processOwner}` : ""}
+${(section ?? documentMetadata?.section) ? `- Section: ${section ?? documentMetadata?.section}` : ""}
+${(department ?? documentMetadata?.department) ? `- Department: ${department ?? documentMetadata?.department}` : ""}
 
-## Description
-Provide a concise description of the optimized process, highlighting improvements and rationale.
-${documentMetadata?.description ? `\nOriginal Description: ${documentMetadata.description}` : ""}
+${documentMetadata?.description ? `## Description\n${documentMetadata.description}\n` : ""}
 
-## Purpose
-State the updated purpose of the process aligned with optimization goals.
-${documentMetadata?.purpose ? `\nOriginal Purpose: ${documentMetadata.purpose}` : ""}
+${documentMetadata?.purpose ? `## Purpose\n${documentMetadata.purpose}\n` : ""}
 
-## Scope
-Define the scope (use original if inferable, otherwise write a reasonable placeholder).
-${documentMetadata?.scope ? `\nOriginal Scope: ${documentMetadata.scope}` : ""}
+${documentMetadata?.scope ? `## Scope\n${documentMetadata.scope}\n` : ""}
 
-## SIPOC
-Recreate a simple SIPOC-style table (as markdown) based on available process information.
+${documentMetadata?.sipoc ? `## SIPOC\n\n| Component | Details |\n|-----------|----------|\n| Suppliers | ${documentMetadata.sipoc.suppliers?.join(", ") || "N/A"} |\n| Inputs | ${documentMetadata.sipoc.inputs?.join(", ") || "N/A"} |\n| Process | ${documentMetadata.sipoc.process || "N/A"} |\n| Outputs | ${documentMetadata.sipoc.outputs?.join(", ") || "N/A"} |\n| Customers | ${documentMetadata.sipoc.customers?.join(", ") || "N/A"} |\n` : ""}
 
-## Related Strategic Goals
-- Enhance operational efficiency
-- [Add more if inferable]
-
-## Process KPIs (Updated)
-Update KPIs based on improvements. For each KPI:
-- Show current target and proposed new target with justification
-- Example: "If we automate step X, target should increase from 70% to 85%"
-${kpisContext}
+${kpisContext ? `## Process KPIs\nList the KPIs provided above. DO NOT invent new targets or improvements unless explicitly stated in the impact analysis.\n` : ""}
 
 ## Process Model (Optimized Flow)
 \`\`\`mermaid
 ${optimizedMermaid}
 \`\`\`
 
-## Activities and Responsibilities
-Provide an activities table (Step ID, Activity Name, Performed By, Department, Description, Expected Duration).
+## Optimization Change Log
+| Change Applied | Performed By | Impact |
+|----------------|--------------|--------|
+${appliedChanges.map((c) => `| ${c.changeDescription} | ${c.performedBy ?? "N/A"} | ${c.impact ?? "N/A"} |`).join("\n")}
 
-### Optimization Change Log
-| Original Step | Change Applied | Performed By | Impact |
-|--------------|----------------|--------------|--------|
-Fill the table with the applied changes above where possible.
+${impactAnalysis ? `## Impact Analysis\nSummarize the actual calculated improvements from the impact analysis data above (steps reduced, time saved, etc.). DO NOT invent numbers.\n` : ""}
 
-## Internal Controls (Updated)
-List key controls; update if steps changed; otherwise provide baseline controls.
-Flag any controls that were streamlined or automated as part of the optimization.
-${controlsContext}
+${controlsContext ? `## Internal Controls\nList the internal controls provided above. Note any that were affected by the optimization changes.\n` : ""}
 
-## Related Documents and Standards
-${relatedDocsContext || "- List applicable standards and policies"}
+${relatedDocsContext || ""}
 
 ## Document Revision History
-Add an entry summarizing this optimization update, including:
-- Date of change
-- Summary of optimizations applied
-- Expected impact on KPIs
+- Date: ${today}
+- Change: Process optimization applied
+- Changes: ${appliedChanges.length} optimization(s) implemented
+${impactAnalysis ? `- Impact: See Impact Analysis section above` : ""}
 
-Return ONLY the markdown for the SOP (no extra prose).
+Return ONLY the markdown for the SOP. DO NOT add fabricated sections, invented metrics, or placeholder data.
 `.trim();
 
     const message = await this.client.messages.create({
@@ -2554,7 +2666,9 @@ ProcessOptimizer.prototype.buildMermaidFromStructured = function (
               ? "End"
               : n.type === "gateway"
                 ? "Decision"
-                : "";
+                : n.type === "data"
+                  ? "Data"
+                  : "Step"; // Default label for nodes without names
 
       let nodeLine = "";
       if (n.type === "start") {
@@ -2579,13 +2693,40 @@ ProcessOptimizer.prototype.buildMermaidFromStructured = function (
     const from = sanitizeMermaidId(e.from);
     const to = sanitizeMermaidId(e.to);
     if (e.label && e.label.trim().length > 0) {
-      lines.push(`    ${from} -- ${escapeMermaidLabel(e.label)} --> ${to}`);
+      const safeLabel = escapeMermaidLabel(e.label);
+      lines.push(`    ${from} -- ${safeLabel} --> ${to}`);
     } else {
       lines.push(`    ${from} --> ${to}`);
     }
   });
 
-  return lines.join("\n");
+  const result = lines.join("\n");
+
+  // Validate: check for common Mermaid syntax issues
+  const syntaxIssues: string[] = [];
+  lines.forEach((line, idx) => {
+    // Check for empty node definitions like "nodeId[]"
+    if (/\w+\[\]\s*(?!\-\->)/.test(line)) {
+      syntaxIssues.push(
+        `Line ${idx + 1}: Empty node label detected: ${line.trim()}`,
+      );
+    }
+    // Check for multiple node definitions on same line
+    if (/\]\s*[a-zA-Z_]\w*[\[\{]/.test(line) && !line.includes("-->")) {
+      syntaxIssues.push(
+        `Line ${idx + 1}: Multiple nodes without connector: ${line.trim()}`,
+      );
+    }
+  });
+
+  if (syntaxIssues.length > 0) {
+    console.error(
+      "[buildMermaidFromStructured] Syntax issues detected:",
+      syntaxIssues,
+    );
+  }
+
+  return result;
 };
 
 ProcessOptimizer.prototype.applyDeterministicChange = function (
