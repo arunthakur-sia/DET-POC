@@ -355,6 +355,7 @@ export interface DiagnosisQuickWin {
   estimatedTimeSaving: string;
   category: QuickWinCategory;
   performedBy: string; // Who performs the step(s) affected by this quick win
+  bestPractice?: string; // Reference to methodology (e.g., "Lean - Eliminate Waiting Waste", "Six Sigma - Reduce Variation")
   // Optional fields that may assist downstream deterministic logic
   steps?: string[]; // for consolidation quick wins
   consolidationSuggestion?: string;
@@ -1443,7 +1444,62 @@ Rules:
       : "";
 
     const prompt = `
-You are a process optimization expert analyzing an organizational workflow for RTA (Roads and Transport Authority). Given the following process data:
+You are a process optimization expert analyzing an organizational workflow for RTA (Roads and Transport Authority).
+
+STEP 1: IDENTIFY THE PROCESS TYPE AND APPLICABLE STANDARDS
+
+Based on the process name and content, determine which international standards apply:
+
+| Process Type Keywords | Applicable Standards |
+|----------------------|---------------------|
+| asset, assets, registration, inspection, lifecycle, maintenance | ISO 55001 (Asset Management) |
+| risk, hazard, mitigation, threat, control | ISO 31000 (Risk Management) |
+| software, IT, system, application, license | ISO 19770 (IT Asset Management), ITIL |
+| value, benefit, cost-benefit, investment | EN 12973 (Value Management) |
+| quality, compliance, audit, governance | ISO 9001 (Quality Management) |
+| project, deliverable, milestone | PMI/PRINCE2 principles |
+
+STEP 2: APPLY THE RELEVANT STANDARD'S PRINCIPLES
+
+For ASSET MANAGEMENT processes (ISO 55001):
+- Lifecycle perspective: Are decisions considering whole-life costs?
+- Risk-based approach: Are critical assets prioritized?
+- Value realization: Does the process maximize asset value?
+- Integration: Is asset data integrated across systems?
+
+For RISK MANAGEMENT processes (ISO 31000):
+- Risk identification: Is there systematic identification?
+- Risk assessment: Are likelihood and impact evaluated?
+- Risk treatment: Are treatment options properly evaluated?
+- Monitoring & review: Is there continuous monitoring?
+
+For IT/SOFTWARE ASSET processes (ISO 19770, ITIL):
+- Discovery: Are all software assets identified?
+- License compliance: Is licensing tracked?
+- Lifecycle management: Is there proper onboarding/offboarding?
+- Integration: Is data synchronized across systems?
+
+For VALUE MANAGEMENT processes (EN 12973):
+- Function analysis: Are functions clearly defined?
+- Value assessment: Is value vs cost evaluated?
+- Alternatives: Are alternatives systematically considered?
+
+STEP 3: APPLY LEAN PRINCIPLES (applicable to ALL processes)
+
+Look for the 8 wastes:
+- Transport: Unnecessary movement of information/materials between departments
+- Inventory: Work items waiting in queues
+- Motion: Unnecessary manual steps or data re-entry
+- Waiting: Delays between steps, waiting for approvals
+- Overproduction: Doing more than required
+- Over-processing: Excessive reviews, redundant approvals
+- Defects: Steps that cause rework or errors
+- Skills underutilization: Manual work that could be automated
+
+STEP 4: APPLY THEORY OF CONSTRAINTS
+The bottleneck step limits overall throughput. Identify and address it first.
+
+Given the following process data:
 
 Process Name: ${analysis.processName}
 Total Steps: ${stepCount}
@@ -1462,7 +1518,7 @@ ${stepsTimingLines}
 Dependencies:
 ${depsLines}
 
-Your task is to analyze this process and return ONLY a valid JSON object (no markdown, no explanation) with this exact structure:
+Analyze this process and return ONLY a valid JSON object (no markdown, no explanation) with this exact structure:
 {
   "bottlenecks": [
     {
@@ -1493,7 +1549,8 @@ Your task is to analyze this process and return ONLY a valid JSON object (no mar
       "impact": "High|Medium|Low",
       "estimatedTimeSaving": "e.g., '5 working days' or 'None'",
       "category": "Automation|Consolidation|Removal|Parallelization|Simplification",
-      "performedBy": "Role/department responsible for this step (from swimlane or activities table)"
+      "performedBy": "Role/department responsible for this step",
+      "bestPractice": "ONLY cite if certain. Use exact Lean waste names or accurate ISO terminology. Leave empty string '' if unsure or general optimization."
     }
   ],
   "priorityActions": [
@@ -1519,15 +1576,52 @@ Your task is to analyze this process and return ONLY a valid JSON object (no mar
   }
 }
 
-Analysis criteria:
-- Bottlenecks: Steps where actual time approaches or exceeds available time (>80% utilization), or steps with 3+ dependencies
-- Redundancies: Steps with similar names/activities or sequential approvals by same department
-- Quick wins: Focus on steps that can be automated, removed, or parallelized with minimal effort
-- For each quick win, ALWAYS include:
-  - performedBy: Extract from the step's swimlane or "Performed By" column in activities table
-- Analyze whether current KPI targets are realistic given process bottlenecks
-- Identify controls that add unnecessary overhead or could be automated
-- Prioritize by impact/effort ratio
+ANALYSIS CRITERIA:
+
+BOTTLENECK IDENTIFICATION:
+- Steps where actual time >= 80% of available time (capacity constraint)
+- Steps with 3+ dependencies (coordination bottleneck)
+- Steps causing downstream waiting (Lean: Waiting waste)
+- Steps with high rework/error rates (Lean: Defects waste)
+
+REDUNDANCY DETECTION:
+- Sequential approvals by same department (Lean: Over-processing)
+- Duplicate data entry or validation steps (Lean: Motion waste)
+- Multiple handoffs that could be consolidated (Lean: Transport waste)
+- Parallel review/approval that could be combined
+
+QUICK WIN IDENTIFICATION (prioritize by impact/effort ratio):
+1. ELIMINATION: Remove non-value-added steps
+2. AUTOMATION: Digitize manual data entry, approvals, notifications
+3. PARALLELIZATION: Run independent activities concurrently (Critical Path)
+4. CONSOLIDATION: Merge similar activities to reduce handoffs
+5. SIMPLIFICATION: Reduce decision points, clarify criteria
+
+For each quick win:
+- ALWAYS include performedBy: Extract from the step's swimlane or "Performed By" column
+- Be specific and actionable - name the exact change and expected outcome
+- bestPractice: BE CONSERVATIVE. Only cite a standard if you are certain the suggestion directly aligns with terminology or principles from that standard. This will be reviewed by experts.
+  
+  ALLOWED Lean references (these are well-defined):
+  * "Lean - Eliminate waiting waste" (only if reducing wait/queue time)
+  * "Lean - Eliminate motion waste" (only if reducing unnecessary manual steps/re-entry)
+  * "Lean - Reduce over-processing" (only if removing redundant approvals/reviews)
+  * "Lean - Reduce transport waste" (only if reducing unnecessary handoffs between departments)
+  * "Lean - Prevent defects" (only if adding validation to prevent rework)
+  
+  ISO references - USE SPARINGLY and only with accurate terminology:
+  * "ISO 55001" - Only for asset lifecycle, risk-based asset decisions, asset information management
+  * "ISO 31000" - Only for risk identification, assessment, treatment, monitoring
+  * "ISO 19770" - Only for software license management, IT asset discovery
+  
+  When in doubt, leave as empty string "". It's better to have no methodology than to cite incorrectly.
+  
+- Consider government constraints (compliance, audit trails, transparency)
+
+PRIORITY ACTIONS:
+- Address the constraint/bottleneck first
+- Consider implementation complexity and change management
+- Factor in quick wins that can demonstrate value early
 `.trim();
 
     try {
@@ -2088,7 +2182,7 @@ ${(currentAnalysis.edges ?? []).map((e) => `  - ${e.from} → ${e.to}${e.label ?
     : ""
 }
 
-Optimization Instructions:
+Optimization Instructions (apply these changes based on best practice recommendations):
 ${cleanCriteria}
 
 CRITICAL INSTRUCTIONS:
@@ -2097,6 +2191,10 @@ CRITICAL INSTRUCTIONS:
 3. If merging steps A+B: remove B's node, update A's node name, reconnect B's edges to A  
 4. If parallelizing: adjust edge connections to enable parallel execution
 5. Preserve all unchanged steps/nodes/edges exactly as they are
+6. IMPORTANT: Each node in the "nodes" array MUST have a "name" field with the actual step name (not generic labels like "Step" or "Decision")
+7. Copy node names from the current graph structure above when preserving nodes
+8. Maintain process integrity: ensure no orphan nodes (all nodes must be connected)
+9. Preserve necessary control points and compliance requirements
 
 Return ONLY a valid JSON object with this structure (no markdown fences, no explanations):
 
@@ -2270,6 +2368,17 @@ JSON output:`;
     optimization: ProcessOptimization,
   ): Promise<string> {
     if (this.hasStructuredGraph(optimization.optimizedProcess)) {
+      // Debug: Check for nodes without names
+      const nodesWithoutNames = (
+        optimization.optimizedProcess.nodes ?? []
+      ).filter((n) => !n.name || n.name.trim().length === 0);
+      if (nodesWithoutNames.length > 0) {
+        console.warn(
+          "[createOptimizedProcessDiagram] WARNING: Found nodes without names:",
+          nodesWithoutNames.map((n) => ({ id: n.id, type: n.type })),
+        );
+      }
+
       const mermaid = this.buildMermaidFromStructured(
         optimization.optimizedProcess,
       );
@@ -2611,6 +2720,12 @@ ProcessOptimizer.prototype.buildMermaidFromStructured = function (
   const nodes = analysis.nodes ?? [];
   const edges = analysis.edges ?? [];
 
+  // Create a map of node IDs to step names for fallback
+  const nodeIdToStepName = new Map<string, string>();
+  (analysis.processSteps ?? []).forEach((step) => {
+    nodeIdToStepName.set(step.id, step.name);
+  });
+
   const splitDeptAndRole = (
     full: string,
   ): { department: string; role?: string } => {
@@ -2657,18 +2772,28 @@ ProcessOptimizer.prototype.buildMermaidFromStructured = function (
       const id = sanitizeMermaidId(n.id);
       const raw = typeof n.name === "string" ? n.name : "";
       const safe = escapeMermaidLabel(raw).trim();
+
+      // Try to get name from processSteps if node name is empty
+      const fallbackName =
+        safe.length === 0 ? nodeIdToStepName.get(n.id) : undefined;
+      const safeFallback = fallbackName
+        ? escapeMermaidLabel(fallbackName).trim()
+        : "";
+
       const label =
         safe.length > 0
           ? safe
-          : n.type === "start"
-            ? "Start"
-            : n.type === "end"
-              ? "End"
-              : n.type === "gateway"
-                ? "Decision"
-                : n.type === "data"
-                  ? "Data"
-                  : "Step"; // Default label for nodes without names
+          : safeFallback.length > 0
+            ? safeFallback
+            : n.type === "start"
+              ? "Start"
+              : n.type === "end"
+                ? "End"
+                : n.type === "gateway"
+                  ? "Decision"
+                  : n.type === "data"
+                    ? "Data"
+                    : "Step"; // Default label for nodes without names
 
       let nodeLine = "";
       if (n.type === "start") {
@@ -3021,6 +3146,7 @@ ProcessOptimizer.prototype.buildDeterministicDiagnosis = function (
     .filter((b): b is DiagnosisBottleneck => Boolean(b));
 
   // Heuristic quick wins: automation for "Enter/Update/Create", parallelization for long steps
+  // These are basic pattern-based suggestions - no methodology labels since this is deterministic fallback
   const quickWins: DiagnosisQuickWin[] = [];
   steps.forEach((s) => {
     const lower = s.name.toLowerCase();
@@ -3080,28 +3206,29 @@ ProcessOptimizer.prototype.buildDeterministicDiagnosis = function (
     quickWins.length > 0 || bottlenecks.length > 0
       ? [
           {
-            action: "Automate high-friction data entry/update steps",
+            action: "Resolve bottleneck steps first",
             rationale:
-              "Reduces manual effort and cycle time on frequently executed tasks",
+              "System throughput is limited by its bottleneck; fixing it yields maximum improvement",
             order: 1,
           },
           {
-            action: "Resolve high-utilization or fan-in bottlenecks",
+            action: "Automate high-friction data entry and manual steps",
             rationale:
-              "Bottleneck removal yields outsized throughput improvement",
+              "Reduces manual effort and human error; enables faster cycle time",
             order: 2,
           },
           {
-            action: "Consider parallelization on long-duration steps",
+            action: "Consolidate approval layers and reduce handoffs",
             rationale:
-              "Overlap work where dependencies allow to cut elapsed time",
+              "Each handoff adds delay and potential for errors; fewer handoffs = faster throughput",
             order: 3,
           },
         ]
       : [
           {
             action: "Validate step timings and dependencies",
-            rationale: "Ensure accurate measurements to enable optimization",
+            rationale:
+              "Accurate baseline measurements are essential before optimization can begin",
             order: 1,
           },
         ];

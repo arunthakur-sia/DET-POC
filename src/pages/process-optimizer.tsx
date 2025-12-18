@@ -758,6 +758,7 @@ export default function ProcessOptimizer() {
                     <th className="px-4 py-3 whitespace-nowrap">Impact</th>
                     <th className="min-w-[120px] px-4 py-3">Time Saving</th>
                     <th className="min-w-[140px] px-4 py-3">Category</th>
+                    <th className="min-w-[180px] px-4 py-3">Methodology</th>
                   </tr>
                 </thead>
                 <tbody className="divide-y">
@@ -784,7 +785,7 @@ export default function ProcessOptimizer() {
                       </td>
                       <td className="px-4 py-3">{q.stepName}</td>
                       <td className="px-4 py-3">
-                        <span className="inline-flex items-center rounded-full bg-blue-100 px-2.5 py-1 text-xs font-medium whitespace-nowrap text-blue-800">
+                        <span className="inline-flex items-center rounded-md bg-blue-100 px-2 py-1 text-xs font-medium text-blue-800">
                           {q.performedBy ?? "Unassigned"}
                         </span>
                       </td>
@@ -796,6 +797,15 @@ export default function ProcessOptimizer() {
                       </td>
                       <td className="px-4 py-3">{q.estimatedTimeSaving}</td>
                       <td className="px-4 py-3">{q.category}</td>
+                      <td className="px-4 py-3">
+                        {q.bestPractice && q.bestPractice.trim() !== "" ? (
+                          <span className="inline-flex items-center rounded-md bg-emerald-100 px-2 py-1 text-xs font-medium text-emerald-800">
+                            {q.bestPractice}
+                          </span>
+                        ) : (
+                          <span className="text-xs text-gray-400">—</span>
+                        )}
+                      </td>
                     </tr>
                   ))}
                 </tbody>
