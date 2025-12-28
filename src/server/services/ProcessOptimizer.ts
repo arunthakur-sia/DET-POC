@@ -2578,7 +2578,7 @@ ${impactAnalysis ? JSON.stringify(impactAnalysis).slice(0, 1000) : "NOT AVAILABL
 
 Generate an SOP document in markdown with ONLY the following sections where data exists:
 
-# ${processId ?? documentMetadata?.processId ?? "NOT AVAILABLE"} - ${processName}
+# ${(processId ?? documentMetadata?.processId) ? `${processId ?? documentMetadata?.processId} - ` : ""}${processName}
 
 ## Issue Details
 - Issue Date: ${today}
