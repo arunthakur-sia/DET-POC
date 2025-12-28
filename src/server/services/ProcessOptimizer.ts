@@ -1418,9 +1418,11 @@ Rules:
             return `- ${s.id} | ${s.name} | ${s.department} | performedBy:${performedBy} | actual:${actual} | available:${available}`;
           })
         : harvestedActivities.map((a) => {
-            const id = a.id ?? a.name.replace(/\s+/g, "_").toLowerCase();
+            const id =
+              a.id ??
+              (a.name ? a.name.replace(/\s+/g, "_").toLowerCase() : "unknown");
             const performedBy = a.role ?? "Participant";
-            return `- ${id} | ${a.name} | performedBy:${performedBy} | actual:${a.actualDays} | available:${a.availableDays}`;
+            return `- ${id} | ${a.name ?? "Unknown"} | performedBy:${performedBy} | actual:${a.actualDays} | available:${a.availableDays}`;
           })
     ).join("\n");
 
