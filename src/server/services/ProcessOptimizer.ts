@@ -470,6 +470,26 @@ export class ProcessOptimizer {
 
     console.log(`[extractAndDiagnose] TOTAL took ${Date.now() - startTime}ms`);
 
+    // Debug: Log node/edge counts to help diagnose diagram issues
+    console.log(
+      `[extractAndDiagnose] DIAGRAM DEBUG - Nodes: ${analysis.nodes?.length ?? 0}, Edges: ${analysis.edges?.length ?? 0}, ProcessSteps: ${analysis.processSteps?.length ?? 0}`,
+    );
+    if (analysis.nodes && analysis.nodes.length > 0) {
+      console.log(
+        `[extractAndDiagnose] First 5 nodes:`,
+        JSON.stringify(analysis.nodes.slice(0, 5), null, 2),
+      );
+    }
+    if (analysis.edges && analysis.edges.length > 0) {
+      console.log(
+        `[extractAndDiagnose] First 5 edges:`,
+        JSON.stringify(analysis.edges.slice(0, 5), null, 2),
+      );
+    }
+    console.log(
+      `[extractAndDiagnose] Mermaid length: ${currentMermaid.length} chars`,
+    );
+
     // Debug: Log SIPOC extraction
     if (analysis.documentMetadata?.sipoc) {
       console.log("[extractAndDiagnose] SIPOC extracted:");
@@ -1902,6 +1922,20 @@ PRIORITY ACTIONS:
         return jsonContent;
       }
 
+      // Handle TRUNCATED code fence (opening ``` but no closing ```)
+      // This happens when Claude's response is cut off due to max_tokens
+      const truncatedFenceMatch = /```(?:json)?\s*([\s\S]+)/i.exec(input);
+      if (truncatedFenceMatch?.[1]) {
+        const jsonContent = truncatedFenceMatch[1].trim();
+        // Check if it looks like JSON (starts with {)
+        if (jsonContent.startsWith("{")) {
+          console.log(
+            "[tryParseStructuredJSON] Found truncated code fence, attempting repair",
+          );
+          return jsonContent;
+        }
+      }
+
       // Direct JSON object starting with {
       if (trimmed.startsWith("{")) {
         // Find the matching closing brace
@@ -1921,6 +1955,10 @@ PRIORITY ACTIONS:
           );
           return trimmed.substring(0, endIndex);
         }
+        // Braces don't balance - return the whole thing for repair attempt
+        console.log(
+          "[tryParseStructuredJSON] Found unbalanced JSON, will attempt repair",
+        );
         return trimmed;
       }
 
@@ -1943,9 +1981,69 @@ PRIORITY ACTIONS:
           console.log("[tryParseStructuredJSON] Found JSON embedded in text");
           return extracted;
         }
+        // Unbalanced but starts with { - extract for repair attempt
+        const partialJson = input.substring(jsonStartIndex);
+        console.log(
+          "[tryParseStructuredJSON] Found unbalanced embedded JSON, will attempt repair",
+        );
+        return partialJson;
       }
 
       return undefined;
+    };
+
+    // Helper to attempt repairing truncated JSON
+    const repairTruncatedJson = (jsonText: string): string | undefined => {
+      // Count unbalanced braces and brackets
+      let braceCount = 0;
+      let bracketCount = 0;
+      let inString = false;
+      let escapeNext = false;
+
+      for (const char of jsonText) {
+        if (escapeNext) {
+          escapeNext = false;
+          continue;
+        }
+        if (char === "\\") {
+          escapeNext = true;
+          continue;
+        }
+        if (char === '"') {
+          inString = !inString;
+          continue;
+        }
+        if (inString) continue;
+
+        if (char === "{") braceCount++;
+        if (char === "}") braceCount--;
+        if (char === "[") bracketCount++;
+        if (char === "]") bracketCount--;
+      }
+
+      // If balanced, return as-is
+      if (braceCount === 0 && bracketCount === 0) {
+        return jsonText;
+      }
+
+      console.log(
+        `[tryParseStructuredJSON] Repairing JSON: missing ${braceCount} braces, ${bracketCount} brackets`,
+      );
+
+      // Attempt repair: close open strings, brackets, and braces
+      let repaired = jsonText;
+
+      // If we're likely in an unclosed string, try to close it
+      // Find the last quote and check if it's balanced
+      const quoteCount = (jsonText.match(/(?<!\\)"/g) ?? []).length;
+      if (quoteCount % 2 !== 0) {
+        repaired = repaired + '"';
+      }
+
+      // Close any unclosed brackets and braces using repeat
+      repaired = repaired + "]".repeat(bracketCount) + "}".repeat(braceCount);
+
+      return repaired;
     };
 
     const jsonText = extract(text);
@@ -1957,9 +2055,12 @@ PRIORITY ACTIONS:
       return undefined;
     }
 
-    try {
-      const parsedUnknown: unknown = JSON.parse(jsonText);
-      // Minimal validation with type narrowing
+    // Helper to validate and return parsed object
+    const validateAndReturn = (
+      parsedUnknown: unknown,
+    ):
+      | (ProcessAnalysis & { nodes: ProcessNode[]; edges: ProcessEdge[] })
+      | undefined => {
       if (typeof parsedUnknown === "object" && parsedUnknown !== null) {
         const obj = parsedUnknown as Record<string, unknown>;
         const hasName = typeof obj.processName === "string";
@@ -1998,11 +2099,43 @@ PRIORITY ACTIONS:
           );
         }
       }
+      return undefined;
+    };
+
+    // First attempt: parse as-is
+    try {
+      const parsedUnknown: unknown = JSON.parse(jsonText);
+      const result = validateAndReturn(parsedUnknown);
+      if (result) return result;
     } catch (e) {
       console.log(
-        "[tryParseStructuredJSON] JSON parse error:",
+        "[tryParseStructuredJSON] Initial JSON parse error:",
         e instanceof Error ? e.message : "unknown",
       );
+
+      // Second attempt: try to repair truncated JSON
+      const repairedJson = repairTruncatedJson(jsonText);
+      if (repairedJson && repairedJson !== jsonText) {
+        console.log(
+          `[tryParseStructuredJSON] Attempting parse with repaired JSON (added ${repairedJson.length - jsonText.length} chars)`,
+        );
+        try {
+          const parsedRepaired: unknown = JSON.parse(repairedJson);
+          const result = validateAndReturn(parsedRepaired);
+          if (result) {
+            console.log(
+              "[tryParseStructuredJSON] Successfully parsed repaired JSON!",
+            );
+            return result;
+          }
+        } catch (repairError) {
+          console.log(
+            "[tryParseStructuredJSON] Repaired JSON also failed to parse:",
+            repairError instanceof Error ? repairError.message : "unknown",
+          );
+        }
+      }
+
       console.log(
         `[tryParseStructuredJSON] Failed JSON preview: ${jsonText.slice(0, 300)}`,
       );

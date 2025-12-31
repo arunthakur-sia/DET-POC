@@ -33,6 +33,10 @@ export const processOptimizerRouter = createTRPCRouter({
           currentMermaid: result.currentMermaid,
         };
       } catch (error) {
+        console.error("[extractAndDiagnose] Error:", error);
+        if (error instanceof Error) {
+          console.error("[extractAndDiagnose] Stack:", error.stack);
+        }
         return {
           success: false,
           error: error instanceof Error ? error.message : "Unknown error",
