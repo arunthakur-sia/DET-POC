@@ -479,7 +479,7 @@ export default function ProcessOptimizer() {
               strokeLinejoin="round"
             />
           </svg>
-          <span className="text-sm text-gray-700">Process Optimizer</span>
+          <span className="text-sm text-gray-700">SmartFlow</span>
         </div>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
           <path
@@ -496,9 +496,7 @@ export default function ProcessOptimizer() {
 
   const renderUploadSection = () => (
     <div className="border-r border-gray-200 p-5">
-      <h2 className="mb-4 text-lg font-bold text-gray-800">
-        Agentic Process Optimizer
-      </h2>
+      <h2 className="mb-4 text-lg font-bold text-gray-800">SmartFlow</h2>
 
       <div className="mb-6">
         <h3 className="text-md mb-3 font-semibold text-gray-800">
@@ -1218,7 +1216,7 @@ export default function ProcessOptimizer() {
   return (
     <>
       <Head>
-        <title>Process Optimizer</title>
+        <title>SmartFlow</title>
         <meta
           name="description"
           content="AI-Powered Process Optimization Tool"

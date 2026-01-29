@@ -78,7 +78,7 @@ export default function Home() {
                 />
 
                 <AgentCard
-                  title="Process Optimizer"
+                  title="SmartFlow"
                   description="Optimize business processes with AI-powered analysis"
                   icon={<CogIcon className="h-6 w-6" />}
                   href="/process-optimizer"
