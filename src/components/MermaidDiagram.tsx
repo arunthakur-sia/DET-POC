@@ -16,9 +16,11 @@ mermaid.initialize({
 interface MermaidDiagramProps {
   chart: string;
   id?: string;
+  /** When true, the container will fit to the diagram's actual height instead of using minHeight */
+  fitContent?: boolean;
 }
 
-export default function MermaidDiagram({ chart, id }: MermaidDiagramProps) {
+export default function MermaidDiagram({ chart, id, fitContent }: MermaidDiagramProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const contentRef = useRef<HTMLDivElement>(null);
   const [scale, setScale] = useState(1);
@@ -147,7 +149,7 @@ export default function MermaidDiagram({ chart, id }: MermaidDiagramProps) {
       <div
         ref={containerRef}
         className="overflow-auto p-4"
-        style={{ minHeight: "300px", maxHeight: "600px" }}
+        style={fitContent ? { maxHeight: "600px" } : { minHeight: "300px", maxHeight: "600px" }}
       >
         {/* Scalable Content */}
         <div

@@ -241,7 +241,7 @@ export default function ServiceBlueprint() {
             Current State Analysis
           </h4>
           <div className="mb-4 rounded border bg-white p-4">
-            <MermaidDiagram chart={results.currentMermaid} id="current-state" />
+            <MermaidDiagram chart={results.currentMermaid} id="current-state" fitContent />
           </div>
           <details className="mb-4">
             <summary className="cursor-pointer text-sm text-cyan-600 hover:text-cyan-800">
@@ -282,6 +282,7 @@ export default function ServiceBlueprint() {
                   <MermaidDiagram
                     chart={option.mermaid}
                     id={`option-${index + 1}`}
+                    fitContent
                   />
                 </div>
 
