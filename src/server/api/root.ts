@@ -1,5 +1,4 @@
 import { postRouter } from "@/server/api/routers/post";
-import { blueprintRouter } from "@/server/api/routers/blueprint";
 import { processOptimizerRouter } from "@/server/api/routers/processOptimizer";
 import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
 
@@ -10,7 +9,6 @@ import { createCallerFactory, createTRPCRouter } from "@/server/api/trpc";
  */
 export const appRouter = createTRPCRouter({
   post: postRouter,
-  blueprint: blueprintRouter,
   processOptimizer: processOptimizerRouter,
 });
 

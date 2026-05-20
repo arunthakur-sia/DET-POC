@@ -1,93 +1,307 @@
 import Head from "next/head";
-import { DocumentTextIcon, CogIcon } from "@heroicons/react/24/outline";
-import { AgentCard } from "@/components/AgentCard";
+import Image from "next/image";
+import Link from "next/link";
+import { useEffect } from "react";
+import { useRouter } from "next/router";
+import { useAuth } from "@/contexts/AuthContext";
 
-export default function Home() {
+// SIA Blueprint Builder colour palette
+// Dark navy: #173044  |  Mid navy: #244861  |  Teal accent: #00DECC  |  White: #FFFFFF
+
+export default function LandingPage() {
+  const { user, loading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!loading && user) {
+      void router.replace("/dashboard");
+    }
+  }, [user, loading, router]);
+
   return (
     <>
       <Head>
-        <title>SIA Agents</title>
-        <meta name="description" content="SIA Agents" />
+        <title>SmartFlow AI – Dubai Economy &amp; Tourism</title>
+        <meta
+          name="description"
+          content="Internal process improvement platform for Dubai Department of Economy and Tourism"
+        />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div className="flex min-h-screen bg-gray-50">
-        {/* Sidebar */}
-        <div className="w-56 bg-gray-100 p-5">
-          {/* Logo */}
-          <div className="mb-8">
-            <img src="/assets/sia.png" alt="SIA Logo" className="h-8 w-auto" />
-          </div>
-
-          {/* Favorites */}
-          <div className="mb-2 flex cursor-pointer items-center justify-between rounded-md p-2 hover:bg-gray-200">
-            <div className="flex items-center">
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 16 16"
-                fill="none"
-                className="mr-2"
-              >
-                <path
-                  d="M7.68335 1.53C7.71257 1.47097 7.7577 1.42129 7.81365 1.38655C7.86961 1.35181 7.93416 1.3334 8.00002 1.3334C8.06588 1.3334 8.13043 1.35181 8.18639 1.38655C8.24234 1.42129 8.28747 1.47097 8.31669 1.53L9.85669 4.64933C9.95814 4.85465 10.1079 5.03223 10.2931 5.16697C10.4783 5.30167 10.6934 5.38941 10.92 5.42267L14.364 5.92667C14.4293 5.93612 14.4906 5.96365 14.541 6.00613C14.5914 6.04862 14.629 6.10437 14.6494 6.16707C14.6698 6.22978 14.6722 6.29694 14.6564 6.36096C14.6406 6.42498 14.6072 6.48333 14.56 6.52933L12.0694 8.95467C11.9051 9.11473 11.7822 9.31232 11.7112 9.53042C11.6403 9.74852 11.6234 9.98059 11.662 10.2067L12.25 13.6333C12.2615 13.6986 12.2545 13.7657 12.2297 13.8271C12.2049 13.8885 12.1633 13.9417 12.1097 13.9807C12.0561 14.0196 11.9927 14.0427 11.9266 14.0473C11.8605 14.0519 11.7945 14.0378 11.736 14.0067L8.65735 12.388C8.4545 12.2815 8.22881 12.2258 7.99997 12.2258C7.77113 12.2258 7.54544 12.2815 7.34259 12.388L4.26402 14.0067C4.20557 14.0376 4.13962 14.0515 4.07365 14.0468C4.00769 14.0421 3.94437 14.019 3.89088 13.9801C3.8374 13.9413 3.79591 13.8881 3.77112 13.8268C3.74634 13.7655 3.73926 13.6985 3.75069 13.6333L4.33802 10.2073C4.37682 9.98116 4.36001 9.74893 4.28905 9.5307C4.21808 9.31246 4.09509 9.11477 3.93069 8.95467L1.44002 6.53C1.39242 6.48402 1.35868 6.4256 1.34266 6.36138C1.32664 6.29717 1.32898 6.22975 1.34941 6.16679C1.36983 6.10384 1.40753 6.04789 1.4582 6.00532C1.50888 5.96275 1.57049 5.93527 1.63602 5.926L5.07935 5.42267C5.30619 5.38967 5.52161 5.30204 5.70708 5.16733C5.89254 5.03261 6.04249 4.85485 6.14402 4.64933L7.68335 1.53Z"
-                  stroke="#020817"
-                  strokeWidth="1.33333"
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                />
-              </svg>
-              <span className="text-sm text-gray-700">Favorites</span>
-            </div>
-            <svg width="16" height="16" viewBox="0 0 16 16" fill="none">
-              <path
-                d="M6 12L10 8L6 4"
-                stroke="#020817"
-                strokeWidth="1.33333"
-                strokeLinecap="round"
-                strokeLinejoin="round"
+      <div
+        className="flex min-h-screen flex-col"
+        style={{
+          fontFamily: "var(--font-sans)",
+          background: "var(--sf-bg)",
+        }}
+      >
+        {/* ── HEADER ──────────────────────────────────────────────────── */}
+        <header
+          className="sticky top-0 z-50"
+          style={{
+            background: "rgba(255,255,255,0.94)",
+            borderBottom: "1px solid var(--sf-border)",
+            backdropFilter: "blur(10px)",
+            boxShadow: "0 6px 14px rgba(28, 79, 122, 0.06)",
+          }}
+        >
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
+            <div className="flex items-center gap-5">
+              <Image
+                src="/assets/white-dubai-gov.svg"
+                alt="Dubai Government"
+                width={160}
+                height={56}
+                className="h-14 w-auto"
               />
-            </svg>
+              <div
+                className="hidden h-10 w-px sm:block"
+                style={{ backgroundColor: "#E2E8F0" }}
+              />
+              <Image
+                src="/assets/dubai-det-flag-logo.svg"
+                alt="Dubai Economy and Tourism"
+                width={160}
+                height={56}
+                className="hidden h-14 w-auto sm:block"
+              />
+            </div>
+
+            <nav className="hidden items-center gap-8 md:flex">
+              {["Features", "About"].map((item) => (
+                <a
+                  key={item}
+                  href={`#${item.toLowerCase()}`}
+                  className="text-sm font-medium transition-colors"
+                  style={{ color: "#475569" }}
+                  onMouseEnter={(e) => (e.currentTarget.style.color = "#1E293B")}
+                  onMouseLeave={(e) => (e.currentTarget.style.color = "#475569")}
+                >
+                  {item}
+                </a>
+              ))}
+            </nav>
           </div>
-        </div>
+        </header>
 
-        {/* Main Content */}
-        <div className="flex-1 p-8">
-          <div className="max-w-4xl">
-            <h1 className="mb-2 text-2xl font-bold text-gray-800">
-              SIA Agents Dashboard
-            </h1>
-            <p className="mb-8 text-gray-600">
-              AI-powered agents for service blueprinting, process optimization,
-              and more.
-            </p>
+        {/* ── HERO ────────────────────────────────────────────────────── */}
+        <section className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6 py-24 text-center">
+          {/* Decorative blurred circles */}
+          <div
+            className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full opacity-30"
+            style={{ background: "radial-gradient(circle, rgba(0,222,204,0.25) 0%, transparent 70%)" }}
+          />
+          <div
+            className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full opacity-20"
+            style={{ background: "radial-gradient(circle, rgba(0,134,200,0.2) 0%, transparent 70%)" }}
+          />
 
-            {/* Agents Section */}
-            <div className="mb-6">
-              <div className="mb-4">
-                <h2 className="text-lg font-bold text-gray-800">Agents</h2>
-              </div>
+          <h1 className="mb-5 text-4xl font-extrabold leading-tight tracking-tight md:text-6xl" style={{ color: "#1E293B" }}>
+            Process Improvement,
+            <br />
+            <span
+              className="relative"
+              style={{ color: "#00BFAD" }}
+            >
+              Built for Government Teams
+            </span>
+          </h1>
 
-              {/* Agent Cards */}
-              <div className="flex gap-4">
-                <AgentCard
-                  title="Service Blueprinting Tool"
-                  description="An assistant to optimise your service blueprint"
-                  icon={<DocumentTextIcon className="h-6 w-6" />}
-                  href="/blueprint"
-                />
+          <p
+            className="mb-10 max-w-xl text-lg md:text-xl"
+            style={{ color: "#475569" }}
+          >
+            Upload your current process, identify where time is being lost,
+            and generate an updated SOP your teams can use immediately.
+          </p>
 
-                <AgentCard
-                  title="SmartFlow"
-                  description="Optimize business processes with AI-powered analysis"
-                  icon={<CogIcon className="h-6 w-6" />}
-                  href="/process-optimizer"
-                />
+          <div className="flex flex-col items-center gap-4 sm:flex-row">
+            <Link
+              href="/login"
+              className="sf-button-primary inline-flex items-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold shadow-xl"
+            >
+              Open Platform
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+              </svg>
+            </Link>
+            <a
+              href="#about"
+              className="inline-flex items-center gap-2 rounded-xl border px-8 py-3.5 text-base font-medium transition-all hover:bg-slate-100"
+              style={{
+                borderColor: "#CBD5E1",
+                color: "#334155",
+              }}
+            >
+              Learn More
+            </a>
+          </div>
+        </section>
+
+        {/* ── FEATURES ────────────────────────────────────────────────── */}
+        <section
+          id="features"
+          className="px-6 py-20"
+          style={{ background: "#FFFFFF" }}
+        >
+          <div className="mx-auto max-w-6xl">
+            <div className="mb-14 text-center">
+              <p
+                className="mb-2 text-xs font-semibold tracking-widest uppercase"
+                style={{ color: "#00BFAD" }}
+              >
+                Platform Capabilities
+              </p>
+              <h2 className="text-3xl font-bold" style={{ color: "#1E293B" }}>
+                One workspace for analysis, redesign, and SOP delivery
+              </h2>
+              <p className="mt-3 text-sm" style={{ color: "#64748B" }}>
+                Start with the current process document and finish with a clear, updated operating procedure.
+              </p>
+            </div>
+
+            <div className="grid gap-6 md:grid-cols-3">
+              {features.map((f) => (
+                <div
+                  key={f.title}
+                  className="group rounded-2xl p-8 transition-all hover:-translate-y-1 hover:shadow-xl"
+                  style={{
+                    background: "#FFFFFF",
+                    border: "1px solid var(--sf-border)",
+                    boxShadow: "0 10px 24px rgba(28, 79, 122, 0.08)",
+                  }}
+                >
+                  <div
+                    className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl"
+                    style={{ background: "rgba(0,222,204,0.12)", border: "1px solid rgba(0,222,204,0.25)" }}
+                  >
+                    {f.icon}
+                  </div>
+                  <h3 className="mb-2 text-base font-semibold" style={{ color: "#1E293B" }}>
+                    {f.title}
+                  </h3>
+                  <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>
+                    {f.description}
+                  </p>
+                </div>
+              ))}
+            </div>
+          </div>
+        </section>
+
+        {/* ── ABOUT ───────────────────────────────────────────────────── */}
+        <section id="about" className="px-6 py-20" style={{ background: "var(--sf-bg-soft)" }}>
+          <div className="mx-auto max-w-4xl">
+            <div
+              className="rounded-3xl p-10 md:p-14"
+              style={{
+                background: "#FFFFFF",
+                border: "1px solid var(--sf-border)",
+                boxShadow: "0 18px 30px rgba(28, 79, 122, 0.08)",
+              }}
+            >
+              <div className="flex flex-col items-center gap-8 text-center md:flex-row md:text-left">
+                <div className="flex-1">
+                  <p
+                    className="mb-2 text-xs font-semibold tracking-widest uppercase"
+                    style={{ color: "#00BFAD" }}
+                  >
+                    About
+                  </p>
+                  <h2 className="mb-4 text-2xl font-bold md:text-3xl" style={{ color: "#1E293B" }}>
+                    Designed for Dubai Economy &amp; Tourism operations
+                  </h2>
+                  <p className="text-sm leading-relaxed" style={{ color: "#475569" }}>
+                    SmartFlow is used internally to review service processes,
+                    highlight bottlenecks, and apply practical improvements.
+                    Teams can move from process review to a publishable SOP in one flow.
+                  </p>
+                </div>
+                <div className="flex-shrink-0">
+                  <Image
+                    src="/assets/dubai-det-flag-logo.svg"
+                    alt="Dubai Economy and Tourism"
+                    width={140}
+                    height={56}
+                    className="h-14 w-auto opacity-90"
+                  />
+                </div>
               </div>
             </div>
           </div>
-        </div>
+        </section>
+
+        {/* ── FOOTER ──────────────────────────────────────────────────── */}
+        <footer
+          className="px-6 py-8"
+          style={{
+            background: "#FFFFFF",
+            borderTop: "1px solid var(--sf-border)",
+          }}
+        >
+          <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 text-center md:flex-row md:justify-between md:text-left">
+            <div className="flex items-center gap-4">
+              <Image
+                src="/assets/white-dubai-gov.svg"
+                alt="Dubai Government"
+                width={90}
+                height={30}
+                className="h-7 w-auto"
+              />
+              <span
+                className="hidden h-4 w-px sm:block"
+                style={{ backgroundColor: "#E2E8F0" }}
+              />
+              <Image
+                src="/assets/dubai-det-flag-logo.svg"
+                alt="Dubai Economy and Tourism"
+                width={90}
+                height={30}
+                className="hidden h-7 w-auto sm:block"
+              />
+            </div>
+            <p className="text-xs" style={{ color: "#94A3B8" }}>
+              © {new Date().getFullYear()} Dubai Department of Economy and Tourism. All rights reserved.
+            </p>
+          </div>
+        </footer>
       </div>
     </>
   );
 }
+
+// ─── Feature data ──────────────────────────────────────────────────────────────
+
+const features = [
+  {
+    title: "Process Diagnosis",
+    description:
+      "Upload a PDF or text process note. SmartFlow maps the steps, flags delays, and gives you a structured baseline of the current process.",
+    icon: (
+      <svg className="h-6 w-6" style={{ color: "#00BFAD" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+      </svg>
+    ),
+  },
+  {
+    title: "Smart Optimisation",
+    description:
+      "Choose quick wins or set your own improvement criteria. The platform generates a revised process flow and shows expected impact before rollout.",
+    icon: (
+      <svg className="h-6 w-6" style={{ color: "#00BFAD" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+      </svg>
+    ),
+  },
+  {
+    title: "SOP Generation",
+    description:
+      "Create a clean SOP draft from the approved changes, ready for review, download, and handover to the owning team.",
+    icon: (
+      <svg className="h-6 w-6" style={{ color: "#00BFAD" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+      </svg>
+    ),
+  },
+];

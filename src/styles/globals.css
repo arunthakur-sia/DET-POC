@@ -6,6 +6,65 @@
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
 }
 
+:root {
+  --sf-bg: #f3f8fe;
+  --sf-bg-soft: #f8fbff;
+  --sf-surface: #ffffff;
+  --sf-surface-muted: #f7fbff;
+  --sf-border: #d7e5f5;
+  --sf-text: #16324a;
+  --sf-text-muted: #53708a;
+  --sf-primary: #3aa6e8;
+  --sf-primary-strong: #1f8ecf;
+  --sf-accent: #00decc;
+  --sf-shadow: 0 12px 30px rgba(28, 79, 122, 0.1);
+}
+
+html,
+body {
+  background: radial-gradient(circle at 8% 12%, #e4f0ff 0%, transparent 45%),
+    radial-gradient(circle at 92% 88%, #def6ff 0%, transparent 42%),
+    var(--sf-bg);
+  color: var(--sf-text);
+}
+
+.sf-surface {
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+  box-shadow: var(--sf-shadow);
+}
+
+.sf-soft-surface {
+  background: var(--sf-surface-muted);
+  border: 1px solid var(--sf-border);
+}
+
+.sf-input {
+  border: 1px solid #bfd5ea;
+  background: #ffffff;
+  color: var(--sf-text);
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.sf-input:focus {
+  border-color: var(--sf-primary);
+  box-shadow: 0 0 0 3px rgba(58, 166, 232, 0.16);
+  outline: none;
+}
+
+.sf-button-primary {
+  background: linear-gradient(135deg, var(--sf-accent) 0%, #56d8ff 100%);
+  color: #0a2032;
+  border: 1px solid rgba(26, 127, 178, 0.12);
+  transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
+}
+
+.sf-button-primary:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 10px 18px rgba(35, 139, 194, 0.2);
+  filter: saturate(1.02);
+}
+
 /* Ensure text selection works on text content (not buttons/interactive elements) */
 body,
 p,
@@ -38,6 +97,21 @@ a {
   -moz-user-select: auto;
   -ms-user-select: auto;
   user-select: auto;
+}
+
+/* ── Glassmorphism utilities ───────────────────────────────────── */
+.glass {
+  background: rgba(255, 255, 255, 0.13);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
+  border: 1px solid rgba(255, 255, 255, 0.22);
+}
+
+.glass-strong {
+  background: rgba(255, 255, 255, 0.2);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  border: 1px solid rgba(255, 255, 255, 0.35);
 }
 
 /* Custom styles to match Streamlit design */
