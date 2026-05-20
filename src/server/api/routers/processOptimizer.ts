@@ -4,6 +4,7 @@ import { ProcessOptimizer } from "@/server/services/ProcessOptimizer";
 import type {
   ProcessDocumentMetadata,
   ProcessDiagnosis,
+  ProcessAnalysis,
 } from "@/server/services/ProcessOptimizer";
 
 export const processOptimizerRouter = createTRPCRouter({
@@ -198,4 +199,68 @@ export const processOptimizerRouter = createTRPCRouter({
         };
       }
     }),
+
+  // ─── Multi-process: extract all processes + parallel diagnosis ────────────
+  extractAndDiagnoseAll: publicProcedure
+    .input(
+      z.object({
+        fileContent: z.string(),
+        fileName: z.string(),
+        fileType: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const optimizer = new ProcessOptimizer();
+      try {
+        const result = await optimizer.extractAndDiagnoseAllProcesses(
+          input.fileContent,
+          input.fileName,
+          input.fileType,
+        );
+        return { success: true as const, processes: result.processes };
+      } catch (error) {
+        console.error("[extractAndDiagnoseAll] Error:", error);
+        return {
+          success: false as const,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+    }),
+
+  // ─── Optimize a specific process by its serialized analysis ──────────────
+  optimizeForProcess: publicProcedure
+    .input(
+      z.object({
+        analysisJson: z.string(),
+        optimizationCriteria: z.string(),
+      }),
+    )
+    .mutation(async ({ input }) => {
+      const optimizer = new ProcessOptimizer();
+      try {
+        const analysis = JSON.parse(input.analysisJson) as ProcessAnalysis;
+        const optimization = await optimizer.optimizeProcess(
+          analysis,
+          input.optimizationCriteria,
+        );
+        const [currentMermaid, optimizedMermaid] = await Promise.all([
+          optimizer.createCurrentProcessDiagram(analysis),
+          optimizer.createOptimizedProcessDiagram(optimization),
+        ]);
+        const results = {
+          currentAnalysis: analysis,
+          currentMermaid,
+          optimization,
+          optimizedMermaid,
+        };
+        return { success: true as const, results };
+      } catch (error) {
+        console.error("[optimizeForProcess] Error:", error);
+        return {
+          success: false as const,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+    }),
+
 });

@@ -374,12 +374,46 @@ export interface DiagnosisProcessMetrics {
   approvalLayers: number;
 }
 
+export type AutomationPathway =
+  | "AI Agent"
+  | "Classical RPA"
+  | "Manual Optimization";
+
+export interface ProcessAutomationClassification {
+  primaryClassification: AutomationPathway;
+  confidenceScore: number; // 0-100
+  keyFactors: string[];
+  hybridFlags: {
+    aiAgent: boolean;
+    classicalRpa: boolean;
+    manualOptimization: boolean;
+  };
+  pathwayScores: {
+    aiAgent: number;
+    classicalRpa: number;
+    manualOptimization: number;
+  };
+}
+
 export interface ProcessDiagnosis {
   bottlenecks: DiagnosisBottleneck[];
   redundancies: DiagnosisRedundancy[];
   quickWins: DiagnosisQuickWin[];
   priorityActions: DiagnosisPriorityAction[];
   processMetrics: DiagnosisProcessMetrics;
+  automationClassification: ProcessAutomationClassification;
+}
+
+// Multi-process support
+export interface ProcessWithDiagnosis {
+  processIndex: number;
+  analysis: ProcessAnalysis;
+  diagnosis: ProcessDiagnosis;
+  currentMermaid: string;
+}
+
+export interface MultiProcessResult {
+  processes: ProcessWithDiagnosis[];
 }
 
 export class ProcessOptimizer {
@@ -1588,6 +1622,21 @@ Analyze this process and return ONLY a valid JSON object (no markdown, no explan
     "departmentHandoffs": number,
     "approvalLayers": number
   },
+  "automationClassification": {
+    "primaryClassification": "AI Agent|Classical RPA|Manual Optimization",
+    "confidenceScore": number,
+    "keyFactors": ["top reason 1", "top reason 2"],
+    "hybridFlags": {
+      "aiAgent": true|false,
+      "classicalRpa": true|false,
+      "manualOptimization": true|false
+    },
+    "pathwayScores": {
+      "aiAgent": number,
+      "classicalRpa": number,
+      "manualOptimization": number
+    }
+  },
   "kpiAnalysis": {
     "currentTargetsRealistic": true|false,
     "suggestedAdjustments": ["If we automate X, target should increase from Y to Z"]
@@ -1644,6 +1693,13 @@ PRIORITY ACTIONS:
 - Address the constraint/bottleneck first
 - Consider implementation complexity and change management
 - Factor in quick wins that can demonstrate value early
+
+AUTOMATION CLASSIFICATION RULES:
+- AI Agent: unstructured documents, judgment-heavy decisions, exceptions handling, cross-system reasoning, language-intensive interactions.
+- Classical RPA: repetitive deterministic rules, data entry, status updates, form processing, fixed workflows with low ambiguity.
+- Manual Optimization: policy-heavy approvals, low automation feasibility, human negotiation/stakeholder alignment, process redesign needed before automation.
+- Hybrid flags can be true for multiple pathways if evidence exists; choose primaryClassification by highest pathwayScores.
+- confidenceScore should reflect separation between top two scores and evidence strength.
 `.trim();
 
     try {
@@ -1666,7 +1722,7 @@ PRIORITY ACTIONS:
             qw.performedBy ??
             this.getPerformedByForStep(qw.stepId, qw.stepName, analysis),
         }));
-        return parsed;
+        return this.ensureDiagnosisClassification(analysis, parsed);
       }
       // Fallback: build deterministic diagnosis rather than throwing
       return this.buildDeterministicDiagnosis(analysis, harvestedActivities);
@@ -2772,6 +2828,704 @@ Return ONLY the markdown for the SOP. DO NOT add fabricated sections, invented m
         : "";
     return md.trim();
   }
+
+  // ─── Multi-process extraction + parallel diagnosis ───────────────────────
+
+  /**
+   * Extracts ALL distinct processes from a document using Claude Opus with
+   * forced tool-calling, which guarantees valid structured JSON output.
+   */
+  async extractAllProcessesFromDocument(
+    base64Content: string,
+    fileType: string,
+  ): Promise<ProcessAnalysis[]> {
+    const extractionTool = {
+      name: "extract_all_processes",
+      description:
+        "Extract every distinct business process found in the document. " +
+        "A distinct process has its own title, flowchart/swimlane diagram, or activities table. " +
+        "Use ENGLISH text for every field value; store Arabic only in the dedicated Arabic fields.",
+      input_schema: {
+        type: "object" as const,
+        properties: {
+          processes: {
+            type: "array",
+            description: "All distinct processes found in the document",
+            items: {
+              type: "object",
+              properties: {
+                processName: {
+                  type: "string",
+                  description: "Process name in English",
+                },
+                processNameArabic: {
+                  type: "string",
+                  description: "Process name in Arabic if available",
+                },
+                processId: {
+                  type: "string",
+                  description: "Process identifier code",
+                },
+                processOwner: {
+                  type: "string",
+                  description: "Role or name of process owner",
+                },
+                department: {
+                  type: "string",
+                  description: "Primary department",
+                },
+                section: {
+                  type: "string",
+                  description: "Section within department",
+                },
+                description: {
+                  type: "string",
+                  description: "What this process does",
+                },
+                purpose: {
+                  type: "string",
+                  description: "Why this process exists",
+                },
+                scope: {
+                  type: "string",
+                  description: "Boundaries of the process",
+                },
+                departments: {
+                  type: "array",
+                  items: { type: "string" },
+                  description:
+                    "All departments appearing as swimlanes in this process",
+                },
+                processOwners: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      department: { type: "string" },
+                      role: { type: "string" },
+                      responsibilities: {
+                        type: "array",
+                        items: { type: "string" },
+                      },
+                    },
+                    required: ["department", "role"],
+                  },
+                },
+                nodes: {
+                  type: "array",
+                  description:
+                    "All flowchart nodes with English labels. Every rectangular task box = task, diamond = gateway, oval = start/end.",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: {
+                        type: "string",
+                        description: "Short unique node ID e.g. n1, g2, start1",
+                      },
+                      name: {
+                        type: "string",
+                        description: "English label for this node",
+                      },
+                      type: {
+                        type: "string",
+                        enum: [
+                          "start",
+                          "end",
+                          "task",
+                          "gateway",
+                          "data",
+                          "annotation",
+                        ],
+                      },
+                      department: {
+                        type: "string",
+                        description: "Which swimlane/department owns this node",
+                      },
+                      role: {
+                        type: "string",
+                        description: "Role performing this step",
+                      },
+                      systemUsed: { type: "boolean" },
+                    },
+                    required: ["id", "name", "type", "department"],
+                  },
+                },
+                edges: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      from: { type: "string" },
+                      to: { type: "string" },
+                      label: {
+                        type: "string",
+                        description: "Connector label e.g. Yes / No",
+                      },
+                    },
+                    required: ["from", "to"],
+                  },
+                },
+                activitiesTable: {
+                  type: "array",
+                  description:
+                    "Row-by-row contents of the Activities and Responsibilities table",
+                  items: {
+                    type: "object",
+                    properties: {
+                      id: {
+                        type: "string",
+                        description: "Activity ID like CS.H.3.1.01",
+                      },
+                      name: {
+                        type: "string",
+                        description: "Activity name in English",
+                      },
+                      nameArabic: { type: "string" },
+                      performedBy: {
+                        type: "string",
+                        description: "Role/department performing this activity",
+                      },
+                      actualTime: {
+                        type: "number",
+                        description: "Actual execution time (numeric)",
+                      },
+                      actualTimeUnit: {
+                        type: "string",
+                        description: "Unit: Working Days, Hours, etc.",
+                      },
+                      availableTime: {
+                        type: "number",
+                        description: "Available/allocated time (numeric)",
+                      },
+                      availableTimeUnit: { type: "string" },
+                      department: { type: "string" },
+                      systemUsed: { type: "string" },
+                    },
+                    required: [
+                      "id",
+                      "name",
+                      "performedBy",
+                      "actualTime",
+                      "actualTimeUnit",
+                      "availableTime",
+                      "availableTimeUnit",
+                    ],
+                  },
+                },
+                kpis: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      nameArabic: { type: "string" },
+                      target: { type: "string" },
+                      formula: { type: "string" },
+                      measurementFrequency: { type: "string" },
+                      dataSource: { type: "string" },
+                    },
+                    required: ["name", "target"],
+                  },
+                },
+                sipoc: {
+                  type: "object",
+                  properties: {
+                    suppliers: { type: "array", items: { type: "string" } },
+                    inputs: { type: "array", items: { type: "string" } },
+                    process: { type: "string" },
+                    outputs: { type: "array", items: { type: "string" } },
+                    customers: { type: "array", items: { type: "string" } },
+                  },
+                  required: [
+                    "suppliers",
+                    "inputs",
+                    "process",
+                    "outputs",
+                    "customers",
+                  ],
+                },
+                internalControls: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      controlId: { type: "string" },
+                      description: { type: "string" },
+                      riskMitigated: { type: "string" },
+                      controlType: { type: "string" },
+                    },
+                    required: ["description"],
+                  },
+                },
+                relatedDocuments: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      name: { type: "string" },
+                      reference: { type: "string" },
+                      type: { type: "string" },
+                    },
+                    required: ["name"],
+                  },
+                },
+                approvals: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      role: { type: "string" },
+                      name: { type: "string" },
+                      date: { type: "string" },
+                    },
+                    required: ["role"],
+                  },
+                },
+                flowchartBoxCount: {
+                  type: "number",
+                  description:
+                    "Number of rectangular task boxes counted in the flowchart",
+                },
+                activitiesTableCount: {
+                  type: "number",
+                  description: "Number of rows in the activities table",
+                },
+                stepCountDiscrepancy: { type: "boolean" },
+              },
+              required: [
+                "processName",
+                "departments",
+                "nodes",
+                "edges",
+                "activitiesTable",
+                "kpis",
+                "sipoc",
+                "internalControls",
+                "relatedDocuments",
+                "approvals",
+              ],
+            },
+          },
+        },
+        required: ["processes"],
+      },
+    };
+
+    const userText = `Analyze this document and extract ALL distinct business processes using the extract_all_processes tool.
+
+For each process extract:
+1. Complete metadata (name, owner, department, scope, purpose, description)
+2. ALL flowchart nodes with exact English labels (task boxes, gateways, start/end ovals)
+3. ALL directed edges/connections between nodes with their labels
+4. The complete Activities & Responsibilities table — every row with ID, name, performedBy, actualTime, availableTime
+5. SIPOC table
+6. KPIs with targets and formulas
+7. Internal controls
+8. Related documents and approvals
+
+CRITICAL RULES:
+- Extract EVERY distinct process found (document may contain 1 to many processes)
+- Use ENGLISH text for all name/label fields; Arabic text only in Arabic-suffixed fields
+- Include ALL nodes — every rectangular task box, diamond gateway, and oval start/end
+- Capture edge labels (Yes/No, conditions)
+- Activities table: capture every row; do NOT omit or abbreviate
+- Do NOT truncate arrays — include every item found`;
+
+    let messageContent: Anthropic.MessageParam["content"];
+
+    if (fileType === "application/pdf") {
+      messageContent = [
+        {
+          type: "document",
+          source: {
+            type: "base64",
+            media_type: "application/pdf",
+            data: base64Content,
+          },
+        } as Anthropic.DocumentBlockParam,
+        { type: "text", text: userText },
+      ];
+    } else {
+      const textContent = Buffer.from(base64Content, "base64").toString(
+        "utf-8",
+      );
+      messageContent = `${userText}\n\nDocument content:\n${textContent}`;
+    }
+
+    console.log(
+      "[extractAllProcesses] Calling Claude Opus with forced tool calling (streaming)...",
+    );
+    const startTime = Date.now();
+
+    const stream = await this.client.messages.stream({
+      model: "claude-opus-4-7",
+      max_tokens: 32000,
+      tools: [extractionTool],
+      tool_choice: { type: "tool", name: "extract_all_processes" },
+      messages: [{ role: "user", content: messageContent }],
+    });
+
+    const response = await stream.finalMessage();
+
+    console.log(
+      `[extractAllProcesses] Claude Opus took ${Date.now() - startTime}ms`,
+    );
+
+    const toolUseBlock = response.content.find((b) => b.type === "tool_use");
+    if (toolUseBlock?.type !== "tool_use") {
+      throw new Error(
+        "Extraction tool was not invoked by the model — cannot continue",
+      );
+    }
+
+    const input = toolUseBlock.input as {
+      processes: Array<Record<string, unknown>>;
+    };
+    const rawProcesses = input.processes ?? [];
+
+    console.log(
+      `[extractAllProcesses] Tool returned ${rawProcesses.length} process(es)`,
+    );
+
+    return rawProcesses.map((p) =>
+      this.mergeStructuredIntoProcessAnalysis(p as unknown as ProcessAnalysis),
+    );
+  }
+
+  /**
+   * Diagnoses a single process using forced tool-calling for guaranteed
+   * structured JSON output. Falls back to deterministic logic on error.
+   */
+  async diagnoseProcessWithToolCalling(
+    analysis: ProcessAnalysis,
+  ): Promise<ProcessDiagnosis> {
+    const diagnosisTool = {
+      name: "diagnose_process",
+      description:
+        "Analyze a business process and return a structured diagnosis identifying bottlenecks, redundancies, quick wins, priority actions, and process metrics.",
+      input_schema: {
+        type: "object" as const,
+        properties: {
+          bottlenecks: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                stepId: { type: "string" },
+                stepName: { type: "string" },
+                reason: {
+                  type: "string",
+                  description: "Why this is a bottleneck (max 100 chars)",
+                },
+                impact: { type: "string", enum: ["High", "Medium", "Low"] },
+                timingIssue: {
+                  type: "object",
+                  properties: {
+                    actualTime: { type: "number" },
+                    availableTime: { type: "number" },
+                    utilizationPercent: { type: "number" },
+                  },
+                  required: [
+                    "actualTime",
+                    "availableTime",
+                    "utilizationPercent",
+                  ],
+                },
+              },
+              required: [
+                "stepId",
+                "stepName",
+                "reason",
+                "impact",
+                "timingIssue",
+              ],
+            },
+          },
+          redundancies: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                steps: { type: "array", items: { type: "string" } },
+                reason: {
+                  type: "string",
+                  description: "Why these steps are redundant (max 100 chars)",
+                },
+                consolidationSuggestion: { type: "string" },
+              },
+              required: ["steps", "reason", "consolidationSuggestion"],
+            },
+          },
+          quickWins: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                stepId: { type: "string" },
+                stepName: { type: "string" },
+                suggestion: {
+                  type: "string",
+                  description: "Specific actionable change (max 150 chars)",
+                },
+                effort: { type: "string", enum: ["Low", "Medium", "High"] },
+                impact: { type: "string", enum: ["High", "Medium", "Low"] },
+                estimatedTimeSaving: {
+                  type: "string",
+                  description: "e.g. '5 working days'",
+                },
+                category: {
+                  type: "string",
+                  enum: [
+                    "Automation",
+                    "Consolidation",
+                    "Removal",
+                    "Parallelization",
+                    "Simplification",
+                  ],
+                },
+                performedBy: {
+                  type: "string",
+                  description: "Role/department performing this step",
+                },
+                bestPractice: {
+                  type: "string",
+                  description:
+                    "Methodology reference e.g. Lean - Eliminate waiting waste. Leave empty string if unsure.",
+                },
+              },
+              required: [
+                "stepId",
+                "stepName",
+                "suggestion",
+                "effort",
+                "impact",
+                "estimatedTimeSaving",
+                "category",
+                "performedBy",
+              ],
+            },
+          },
+          priorityActions: {
+            type: "array",
+            items: {
+              type: "object",
+              properties: {
+                action: { type: "string" },
+                rationale: { type: "string" },
+                order: { type: "number" },
+              },
+              required: ["action", "rationale", "order"],
+            },
+          },
+          processMetrics: {
+            type: "object",
+            properties: {
+              totalDuration: {
+                type: "string",
+                description: "Sum of all step lead times",
+              },
+              criticalPathSteps: {
+                type: "array",
+                items: { type: "string" },
+              },
+              departmentHandoffs: { type: "number" },
+              approvalLayers: { type: "number" },
+            },
+            required: [
+              "totalDuration",
+              "criticalPathSteps",
+              "departmentHandoffs",
+              "approvalLayers",
+            ],
+          },
+          automationClassification: {
+            type: "object",
+            properties: {
+              primaryClassification: {
+                type: "string",
+                enum: ["AI Agent", "Classical RPA", "Manual Optimization"],
+              },
+              confidenceScore: { type: "number" },
+              keyFactors: { type: "array", items: { type: "string" } },
+              hybridFlags: {
+                type: "object",
+                properties: {
+                  aiAgent: { type: "boolean" },
+                  classicalRpa: { type: "boolean" },
+                  manualOptimization: { type: "boolean" },
+                },
+                required: ["aiAgent", "classicalRpa", "manualOptimization"],
+              },
+              pathwayScores: {
+                type: "object",
+                properties: {
+                  aiAgent: { type: "number" },
+                  classicalRpa: { type: "number" },
+                  manualOptimization: { type: "number" },
+                },
+                required: ["aiAgent", "classicalRpa", "manualOptimization"],
+              },
+            },
+            required: [
+              "primaryClassification",
+              "confidenceScore",
+              "keyFactors",
+              "hybridFlags",
+              "pathwayScores",
+            ],
+          },
+        },
+        required: [
+          "bottlenecks",
+          "redundancies",
+          "quickWins",
+          "priorityActions",
+          "processMetrics",
+          "automationClassification",
+        ],
+      },
+    };
+
+    // Build step context
+    const stepLines = (
+      analysis.processSteps.length > 0
+        ? analysis.processSteps.map((s) => {
+            const actual = analysis.leadTimes?.[s.id] ?? 0;
+            const performedBy =
+              analysis.documentMetadata?.activitiesTable?.find(
+                (a) => a.id === s.id || a.name === s.name,
+              )?.performedBy ??
+              s.role ??
+              "Participant";
+            return `- ${s.id} | ${s.name} | dept:${s.department} | performedBy:${performedBy} | actualTime:${actual}`;
+          })
+        : (analysis.documentMetadata?.activitiesTable ?? []).map((a) => {
+            return `- ${a.id} | ${a.name} | performedBy:${a.performedBy} | actualTime:${a.actualTime} | availableTime:${a.availableTime}`;
+          })
+    ).join("\n");
+
+    const meta = analysis.documentMetadata;
+    const contextLines = [
+      `Process: ${analysis.processName}`,
+      `Departments: ${analysis.departments.join(", ")}`,
+      meta?.processOwner ? `Owner: ${meta.processOwner}` : "",
+      meta?.description ? `Description: ${meta.description}` : "",
+      meta?.purpose ? `Purpose: ${meta.purpose}` : "",
+      meta?.kpis?.length
+        ? `KPIs:\n${meta.kpis.map((k) => `  - ${k.name}: ${k.target}`).join("\n")}`
+        : "",
+      meta?.sipoc
+        ? `SIPOC: Suppliers=${meta.sipoc.suppliers?.join(",")} | Customers=${meta.sipoc.customers?.join(",")}`
+        : "",
+      `Steps (${analysis.processSteps.length || (meta?.activitiesTable?.length ?? 0)} total):\n${stepLines}`,
+    ]
+      .filter(Boolean)
+      .join("\n");
+
+    const promptText = `You are a process optimization expert analyzing an RTA government workflow. Use the diagnose_process tool to return your structured analysis.
+
+${contextLines}
+
+Apply:
+- Lean waste analysis (8 wastes: transport, inventory, motion, waiting, overproduction, over-processing, defects, skills underutilization)
+- Theory of Constraints (identify the single bottleneck that limits throughput)
+- Government compliance context (audit trails, Arabic/English bilingual operations)
+
+For each quick win, set performedBy to the exact role/department from the steps data above.
+For bestPractice, only cite if certain (e.g. "Lean - Eliminate waiting waste"). Leave empty string if unsure.`;
+
+    try {
+      const response = await this.client.messages.create({
+        model: "claude-sonnet-4-5-20250929",
+        max_tokens: 8000,
+        tools: [diagnosisTool],
+        tool_choice: { type: "tool", name: "diagnose_process" },
+        messages: [{ role: "user", content: promptText }],
+      });
+
+      const toolUseBlock = response.content.find((b) => b.type === "tool_use");
+      if (toolUseBlock?.type !== "tool_use") {
+        console.warn(
+          "[diagnoseProcessWithToolCalling] Tool not invoked, using fallback",
+        );
+        return this.buildDeterministicDiagnosis(analysis, []);
+      }
+
+      return this.ensureDiagnosisClassification(
+        analysis,
+        toolUseBlock.input as ProcessDiagnosis,
+      );
+    } catch (error) {
+      console.error("[diagnoseProcessWithToolCalling] Error:", error);
+      const msg = error instanceof Error ? error.message : String(error);
+      if (
+        msg.includes("overloaded_error") ||
+        msg.includes("Overloaded") ||
+        msg.includes("rate_limit")
+      ) {
+        throw error;
+      }
+      return this.buildDeterministicDiagnosis(analysis, []);
+    }
+  }
+
+  /**
+   * End-to-end: extract all processes from a document then run parallel
+   * diagnosis for each one. This is the main entry point for multi-process
+   * documents.
+   */
+  async extractAndDiagnoseAllProcesses(
+    base64Content: string,
+    _fileName: string,
+    fileType: string,
+  ): Promise<MultiProcessResult> {
+    console.log("[extractAndDiagnoseAll] Step 1: Extracting all processes…");
+    const t0 = Date.now();
+
+    const analyses = await this.extractAllProcessesFromDocument(
+      base64Content,
+      fileType,
+    );
+
+    console.log(
+      `[extractAndDiagnoseAll] Extraction done (${Date.now() - t0}ms) – found ${analyses.length} process(es)`,
+    );
+
+    if (analyses.length === 0) {
+      throw new Error(
+        "No processes were found in the document. Please ensure the file contains at least one process definition with a flowchart or activities table.",
+      );
+    }
+
+    console.log(
+      `[extractAndDiagnoseAll] Step 2: Running parallel diagnosis for ${analyses.length} process(es)…`,
+    );
+    const t1 = Date.now();
+
+    const diagnosed = await Promise.all(
+      analyses.map(async (analysis, idx) => {
+        console.log(
+          `[extractAndDiagnoseAll]   → Diagnosing [${idx + 1}/${analyses.length}]: "${analysis.processName}"`,
+        );
+        const [diagnosis, currentMermaid] = await Promise.all([
+          this.diagnoseProcessWithToolCalling(analysis),
+          this.createCurrentProcessDiagram(analysis),
+        ]);
+        return {
+          processIndex: idx,
+          analysis,
+          diagnosis,
+          currentMermaid,
+        } satisfies ProcessWithDiagnosis;
+      }),
+    );
+
+    console.log(
+      `[extractAndDiagnoseAll] All diagnoses done (${Date.now() - t1}ms). TOTAL: ${Date.now() - t0}ms`,
+    );
+
+    return { processes: diagnosed };
+  }
 }
 
 // Helper utilities and deterministic edits
@@ -3075,6 +3829,17 @@ declare module "./ProcessOptimizer" {
         availableDays: number;
       }>,
     ): ProcessDiagnosis;
+    computeAutomationClassification(
+      analysis: ProcessAnalysis,
+      diagnosis: Pick<
+        ProcessDiagnosis,
+        "bottlenecks" | "quickWins" | "processMetrics"
+      >,
+    ): ProcessAutomationClassification;
+    ensureDiagnosisClassification(
+      analysis: ProcessAnalysis,
+      diagnosis: ProcessDiagnosis,
+    ): ProcessDiagnosis;
   }
 }
 
@@ -3368,6 +4133,20 @@ ProcessOptimizer.prototype.buildDeterministicDiagnosis = function (
           },
         ];
 
+  const automationClassification = this.computeAutomationClassification(
+    analysis,
+    {
+      bottlenecks,
+      quickWins,
+      processMetrics: {
+        totalDuration: `${Number(totalDuration.toFixed(2))} days`,
+        criticalPathSteps,
+        departmentHandoffs,
+        approvalLayers,
+      },
+    },
+  );
+
   return {
     bottlenecks,
     redundancies: [],
@@ -3378,6 +4157,163 @@ ProcessOptimizer.prototype.buildDeterministicDiagnosis = function (
       criticalPathSteps,
       departmentHandoffs,
       approvalLayers,
+    },
+    automationClassification,
+  };
+};
+
+ProcessOptimizer.prototype.computeAutomationClassification = function (
+  analysis: ProcessAnalysis,
+  diagnosis: Pick<
+    ProcessDiagnosis,
+    "bottlenecks" | "quickWins" | "processMetrics"
+  >,
+): ProcessAutomationClassification {
+  const steps = analysis.processSteps ?? [];
+  const quickWins = diagnosis.quickWins ?? [];
+  const names = steps.map((s) => s.name.toLowerCase());
+
+  const aiRegex =
+    /(analy[sz]e|assess|review case|investigate|exception|complaint|dispute|interpret|recommend|decision|risk assess|language|email response|reason)/i;
+  const rpaRegex =
+    /(data entry|enter|update|create record|status update|form|register|upload|copy|paste|reconcile|validate|checklist|notification|generate report|submit)/i;
+  const manualRegex =
+    /(committee|board|policy|stakeholder|meeting|approval|authorize|governance|negotiation|coordination)/i;
+
+  let aiScore = 25;
+  let rpaScore = 25;
+  let manualScore = 25;
+  const factors: string[] = [];
+
+  const aiStepHits = names.filter((n) => aiRegex.test(n)).length;
+  const rpaStepHits = names.filter((n) => rpaRegex.test(n)).length;
+  const manualStepHits = names.filter((n) => manualRegex.test(n)).length;
+
+  aiScore += aiStepHits * 8;
+  rpaScore += rpaStepHits * 8;
+  manualScore += manualStepHits * 6;
+
+  const automationQuickWins = quickWins.filter(
+    (q) => q.category === "Automation",
+  ).length;
+  const simplificationQuickWins = quickWins.filter(
+    (q) => q.category === "Simplification" || q.category === "Consolidation",
+  ).length;
+
+  rpaScore += automationQuickWins * 6;
+  aiScore += quickWins.filter((q) => /exception|decision|risk/i.test(q.suggestion)).length * 6;
+  manualScore += simplificationQuickWins * 3;
+
+  const approvals = diagnosis.processMetrics.approvalLayers ?? 0;
+  const handoffs = diagnosis.processMetrics.departmentHandoffs ?? 0;
+  manualScore += approvals >= 3 ? 10 : 0;
+  manualScore += handoffs >= 6 ? 8 : 0;
+
+  const systemHeavy =
+    (analysis.nodes ?? []).filter((n) => n.systemUsed).length >=
+    Math.max(1, Math.floor((analysis.nodes ?? []).length / 3));
+  if (systemHeavy) {
+    rpaScore += 10;
+    factors.push("High system interaction favors deterministic automation");
+  }
+
+  if (aiStepHits > 0) {
+    factors.push("Judgment and exception-oriented steps indicate AI agent potential");
+  }
+  if (rpaStepHits > 0 || automationQuickWins > 0) {
+    factors.push("Repetitive rule-based activities are strong RPA candidates");
+  }
+  if (approvals > 0 || manualStepHits > 0) {
+    factors.push("Governance and approvals require manual optimization guardrails");
+  }
+
+  const clamp = (n: number) => Math.max(0, Math.min(100, Math.round(n)));
+  aiScore = clamp(aiScore);
+  rpaScore = clamp(rpaScore);
+  manualScore = clamp(manualScore);
+
+  const ranked: Array<{ k: AutomationPathway; v: number }> = [
+    { k: "AI Agent" as AutomationPathway, v: aiScore },
+    { k: "Classical RPA" as AutomationPathway, v: rpaScore },
+    { k: "Manual Optimization" as AutomationPathway, v: manualScore },
+  ].sort((a, b) => b.v - a.v);
+
+  const confidenceBase = 50 + (ranked[0]?.v ?? 0) * 0.35;
+  const gap = (ranked[0]?.v ?? 0) - (ranked[1]?.v ?? 0);
+  const confidenceScore = clamp(confidenceBase + gap * 0.7);
+
+  return {
+    primaryClassification: ranked[0]?.k ?? "Manual Optimization",
+    confidenceScore,
+    keyFactors: factors.slice(0, 4),
+    hybridFlags: {
+      aiAgent: aiScore >= 55,
+      classicalRpa: rpaScore >= 55,
+      manualOptimization: manualScore >= 55,
+    },
+    pathwayScores: {
+      aiAgent: aiScore,
+      classicalRpa: rpaScore,
+      manualOptimization: manualScore,
+    },
+  };
+};
+
+ProcessOptimizer.prototype.ensureDiagnosisClassification = function (
+  analysis: ProcessAnalysis,
+  diagnosis: ProcessDiagnosis,
+): ProcessDiagnosis {
+  const computed = this.computeAutomationClassification(analysis, diagnosis);
+  const existing = diagnosis.automationClassification;
+
+  const normalizePercent = (value: number): number => {
+    if (!Number.isFinite(value)) return 0;
+    // Some model outputs use 0-1 probabilities; convert to percentage scale.
+    const scaled = value <= 1 ? value * 100 : value;
+    return Math.max(0, Math.min(100, Math.round(scaled)));
+  };
+
+  if (!existing) {
+    return { ...diagnosis, automationClassification: computed };
+  }
+
+  return {
+    ...diagnosis,
+    automationClassification: {
+      primaryClassification:
+        existing.primaryClassification ?? computed.primaryClassification,
+      confidenceScore:
+        typeof existing.confidenceScore === "number"
+          ? normalizePercent(existing.confidenceScore)
+          : computed.confidenceScore,
+      keyFactors:
+        Array.isArray(existing.keyFactors) && existing.keyFactors.length > 0
+          ? existing.keyFactors
+          : computed.keyFactors,
+      hybridFlags: {
+        aiAgent: Boolean(existing.hybridFlags?.aiAgent ?? computed.hybridFlags.aiAgent),
+        classicalRpa: Boolean(
+          existing.hybridFlags?.classicalRpa ?? computed.hybridFlags.classicalRpa,
+        ),
+        manualOptimization: Boolean(
+          existing.hybridFlags?.manualOptimization ??
+            computed.hybridFlags.manualOptimization,
+        ),
+      },
+      pathwayScores: {
+        aiAgent:
+          typeof existing.pathwayScores?.aiAgent === "number"
+            ? normalizePercent(existing.pathwayScores.aiAgent)
+            : computed.pathwayScores.aiAgent,
+        classicalRpa:
+          typeof existing.pathwayScores?.classicalRpa === "number"
+            ? normalizePercent(existing.pathwayScores.classicalRpa)
+            : computed.pathwayScores.classicalRpa,
+        manualOptimization:
+          typeof existing.pathwayScores?.manualOptimization === "number"
+            ? normalizePercent(existing.pathwayScores.manualOptimization)
+            : computed.pathwayScores.manualOptimization,
+      },
     },
   };
 };
