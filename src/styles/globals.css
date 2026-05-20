@@ -4,98 +4,309 @@
   --font-sans:
     var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  --font-arabic:
+    var(--font-noto-arabic), "Noto Sans Arabic", "Segoe UI", Tahoma, Arial,
+    sans-serif;
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   DET — Dubai Department of Economy and Tourism
+   Design Token System  |  Light Mode (default)
+═══════════════════════════════════════════════════════════════════ */
 :root {
-  --sf-bg: #f3f8fe;
-  --sf-bg-soft: #f8fbff;
-  --sf-surface: #ffffff;
-  --sf-surface-muted: #f7fbff;
-  --sf-border: #d7e5f5;
-  --sf-text: #16324a;
-  --sf-text-muted: #53708a;
-  --sf-primary: #3aa6e8;
-  --sf-primary-strong: #1f8ecf;
-  --sf-accent: #00decc;
-  --sf-shadow: 0 12px 30px rgba(28, 79, 122, 0.1);
+  /* ── Brand primaries ── */
+  --det-navy:        #1b3764;   /* DET primary */
+  --det-navy-deep:   #132849;   /* darker shade */
+  --det-navy-mid:    #2e5196;   /* medium shade */
+  --det-navy-light:  #4a7ec5;   /* lighter interactive */
+  --det-gold:        #c9a84c;   /* DET gold accent */
+  --det-gold-light:  #ddb96a;   /* hover/lighter gold */
+  --det-gold-muted:  #e8d5a3;   /* very light gold tint */
+  --det-teal:        #1a9e8f;   /* success / process states */
+
+  /* ── Surface tokens ── */
+  --sf-bg:           #f4f7fb;
+  --sf-bg-soft:      #f9fbfe;
+  --sf-surface:      #ffffff;
+  --sf-surface-muted:#f5f8fc;
+  --sf-surface-alt:  #f5f8fc;
+  --sf-border:       #d8e2f0;
+  --sf-border-soft:  #e8eef7;
+
+  /* ── Text ── */
+  --sf-text:         #1b3764;
+  --sf-text-muted:   #5a6e8c;
+  --sf-text-faint:   #8fa4bd;
+
+  /* ── Interactive ── */
+  --sf-primary:      #1b3764;
+  --sf-primary-strong: #132849;
+  --sf-accent:       #c9a84c;
+  --sf-accent-hover: #ddb96a;
+
+  /* ── Shadows ── */
+  --sf-shadow:       0 12px 30px rgba(27, 55, 100, 0.10);
+  --sf-shadow-sm:    0 4px 12px rgba(27, 55, 100, 0.07);
+  --sf-shadow-lg:    0 20px 48px rgba(27, 55, 100, 0.14);
 }
 
+/* ═══════════════════════════════════════════════════════════════════
+   Dark Mode — applied via  data-theme="dark"  on <html>
+   Also respects OS preference when no explicit data-theme is set.
+═══════════════════════════════════════════════════════════════════ */
+[data-theme="dark"] {
+  --sf-bg:           #0c1929;
+  --sf-bg-soft:      #112035;
+  --sf-surface:      #16263c;
+  --sf-surface-muted:#1a2c42;
+  --sf-surface-alt:  #1a2c42;
+  --sf-border:       #1e3550;
+  --sf-border-soft:  #24405e;
+
+  --sf-text:         #e4eaf5;
+  --sf-text-muted:   #8fa4bd;
+  --sf-text-faint:   #4f6882;
+
+  --sf-primary:      #4a7ec5;
+  --sf-primary-strong: #3d6db8;
+  --sf-accent:       #c9a84c;
+  --sf-accent-hover: #ddb96a;
+
+  --sf-shadow:       0 12px 30px rgba(0, 0, 0, 0.35);
+  --sf-shadow-sm:    0 4px 12px rgba(0, 0, 0, 0.25);
+  --sf-shadow-lg:    0 20px 48px rgba(0, 0, 0, 0.45);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Base
+═══════════════════════════════════════════════════════════════════ */
 html,
 body {
-  background: radial-gradient(circle at 8% 12%, #e4f0ff 0%, transparent 45%),
-    radial-gradient(circle at 92% 88%, #def6ff 0%, transparent 42%),
-    var(--sf-bg);
+  background: var(--sf-bg);
   color: var(--sf-text);
+  transition: background 0.25s ease, color 0.25s ease;
 }
 
-.sf-surface {
+/* Light-mode radial gradient overlay */
+html:not([data-theme="dark"]) body {
+  background:
+    radial-gradient(circle at 6% 10%, rgba(201, 168, 76, 0.07) 0%, transparent 40%),
+    radial-gradient(circle at 94% 90%, rgba(27, 55, 100, 0.06) 0%, transparent 38%),
+    var(--sf-bg);
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Utility classes
+═══════════════════════════════════════════════════════════════════ */
+.det-surface {
   background: var(--sf-surface);
   border: 1px solid var(--sf-border);
   box-shadow: var(--sf-shadow);
 }
 
-.sf-soft-surface {
+.det-soft-surface {
   background: var(--sf-surface-muted);
   border: 1px solid var(--sf-border);
 }
 
+/* Gold highlight bar used on card tops */
+.det-gold-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--det-gold) 0%, var(--det-gold-light) 100%);
+}
+
+/* Navy gradient bar (alternate) */
+.det-navy-bar {
+  height: 3px;
+  background: linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 100%);
+}
+
+/* ─── Input ─── */
 .sf-input {
-  border: 1px solid #bfd5ea;
-  background: #ffffff;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-surface);
   color: var(--sf-text);
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
-
 .sf-input:focus {
-  border-color: var(--sf-primary);
-  box-shadow: 0 0 0 3px rgba(58, 166, 232, 0.16);
+  border-color: var(--det-navy-light);
+  box-shadow: 0 0 0 3px rgba(74, 126, 197, 0.18);
   outline: none;
 }
 
+/* ─── Primary CTA button  (DET Navy) ─── */
 .sf-button-primary {
-  background: linear-gradient(135deg, var(--sf-accent) 0%, #56d8ff 100%);
-  color: #0a2032;
-  border: 1px solid rgba(26, 127, 178, 0.12);
+  background: linear-gradient(135deg, var(--det-navy) 0%, var(--det-navy-mid) 100%);
+  color: #ffffff;
+  border: 1px solid rgba(19, 40, 73, 0.20);
   transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
 }
-
 .sf-button-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 18px rgba(35, 139, 194, 0.2);
-  filter: saturate(1.02);
+  box-shadow: 0 10px 22px rgba(27, 55, 100, 0.28);
+  filter: brightness(1.06);
 }
 
-/* Ensure text selection works on text content (not buttons/interactive elements) */
-body,
-p,
-div,
-span,
-h1,
-h2,
-h3,
-h4,
-h5,
-h6,
-pre,
-code,
-td,
-th,
-label {
+/* ─── Gold accent button ─── */
+.det-button-gold {
+  background: linear-gradient(135deg, var(--det-gold) 0%, var(--det-gold-light) 100%);
+  color: #1b3764;
+  border: 1px solid rgba(201, 168, 76, 0.30);
+  transition: transform 0.16s ease, box-shadow 0.16s ease;
+}
+.det-button-gold:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(201, 168, 76, 0.32);
+}
+
+/* ─── Ghost button ─── */
+.det-button-ghost {
+  background: transparent;
+  border: 1px solid var(--sf-border);
+  color: var(--sf-text-muted);
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.det-button-ghost:hover {
+  background: var(--sf-surface-muted);
+  border-color: var(--det-navy-light);
+  color: var(--sf-text);
+}
+
+/* ─── Theme toggle button ─── */
+.det-theme-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 2rem;
+  height: 2rem;
+  border-radius: 50%;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-surface);
+  color: var(--sf-text-muted);
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+.det-theme-toggle:hover {
+  background: var(--sf-surface-muted);
+  border-color: var(--det-navy-light);
+  color: var(--sf-text);
+}
+
+/* ─── Arabic bilingual text ─── */
+.det-arabic {
+  font-family: var(--font-arabic), "Noto Sans Arabic", sans-serif;
+  direction: rtl;
+  unicode-bidi: embed;
+  letter-spacing: 0;
+}
+.det-bilingual-label {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+/* ─── Language toggle button ─── */
+.det-lang-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.3rem 0.85rem;
+  border-radius: 9999px;
+  border: 1px solid var(--sf-border);
+  background: var(--sf-surface);
+  color: var(--sf-text-muted);
+  font-size: 0.72rem;
+  font-weight: 700;
+  cursor: pointer;
+  letter-spacing: 0.04em;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  white-space: nowrap;
+}
+.det-lang-toggle:hover {
+  background: var(--det-navy);
+  border-color: var(--det-navy);
+  color: #ffffff;
+}
+[data-theme="dark"] .det-lang-toggle:hover {
+  background: var(--det-navy-mid);
+  border-color: var(--det-navy-mid);
+}
+
+/* ─── Phase step indicator ─── */
+.det-phase-active {
+  color: var(--det-navy);
+  font-weight: 600;
+}
+.det-phase-done  { color: var(--det-teal); }
+.det-phase-lock  { color: var(--sf-text-faint); }
+
+/* ─── Status chips ─── */
+.det-chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.15rem 0.6rem;
+  font-size: 0.65rem;
+  font-weight: 600;
+}
+
+/* ─── Card hover lift ─── */
+.det-card {
+  background: var(--sf-surface);
+  border: 1px solid var(--sf-border);
+  box-shadow: var(--sf-shadow-sm);
+  border-radius: 1rem;
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+.det-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sf-shadow-lg);
+}
+
+/* ─── Sidebar nav item ─── */
+.det-nav-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  border-radius: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  font-size: 0.875rem;
+  color: var(--sf-text-muted);
+  transition: background 0.15s ease, color 0.15s ease;
+}
+.det-nav-item:hover {
+  background: var(--sf-surface-muted);
+  color: var(--sf-text);
+}
+.det-nav-item.active {
+  background: rgba(27, 55, 100, 0.10);
+  color: var(--det-navy);
+  font-weight: 600;
+}
+[data-theme="dark"] .det-nav-item.active {
+  background: rgba(74, 126, 197, 0.15);
+  color: var(--det-navy-light);
+}
+
+/* ─── Scrollbar styling ─── */
+::-webkit-scrollbar        { width: 6px; height: 6px; }
+::-webkit-scrollbar-track  { background: transparent; }
+::-webkit-scrollbar-thumb  { background: var(--sf-border); border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: var(--sf-text-faint); }
+
+/* ═══════════════════════════════════════════════════════════════════
+   User-select  (preserve text copyability)
+═══════════════════════════════════════════════════════════════════ */
+body, p, div, span,
+h1, h2, h3, h4, h5, h6,
+pre, code, td, th, label {
   -webkit-user-select: text;
   -moz-user-select: text;
-  -ms-user-select: text;
   user-select: text;
 }
-
-/* But allow normal behavior for buttons and inputs */
-button,
-input,
-select,
-textarea,
-a {
+button, input, select, textarea, a {
   -webkit-user-select: auto;
   -moz-user-select: auto;
-  -ms-user-select: auto;
   user-select: auto;
 }
 
@@ -245,4 +456,60 @@ details summary:hover {
     width: 100%;
     max-width: 100%;
   }
+}
+
+/* ═══════════════════════════════════════════════════════════════════
+   Arabic / RTL Mode  — activated when <html dir="rtl" lang="ar">
+═══════════════════════════════════════════════════════════════════ */
+
+/* Apply Arabic font to entire document in Arabic mode */
+[lang="ar"] body,
+[lang="ar"] input,
+[lang="ar"] textarea,
+[lang="ar"] button,
+[lang="ar"] select {
+  font-family: var(--font-arabic), "Noto Sans Arabic", Tahoma, Arial, sans-serif;
+  letter-spacing: 0;
+}
+
+/* Gold bar gradient flips for RTL */
+[dir="rtl"] .det-gold-bar {
+  background: linear-gradient(270deg, var(--det-gold) 0%, var(--det-gold-light) 100%);
+}
+[dir="rtl"] .det-navy-bar {
+  background: linear-gradient(270deg, var(--det-navy) 0%, var(--det-navy-mid) 100%);
+}
+
+/* Sidebar nav item: icon stays on the inner side in RTL */
+[dir="rtl"] .det-nav-item {
+  flex-direction: row-reverse;
+}
+
+/* Sidebar left-border active indicator flips */
+[dir="rtl"] .det-nav-item.active {
+  border-right: 3px solid var(--det-navy);
+  border-left: none;
+}
+
+/* Search icon inside input: flip position */
+[dir="rtl"] .sf-search-icon {
+  right: 0.75rem;
+  left: auto;
+}
+[dir="rtl"] .sf-search-input {
+  padding-right: 2.25rem;
+  padding-left: 1rem;
+}
+
+/* Process optimizer: in RTL the sidebar goes to the right — flex handles this
+   automatically, but we flip the border */
+[dir="rtl"] .det-sidebar-border {
+  border-right: none;
+  border-left: 1px solid var(--sf-border);
+}
+
+/* Phase active-process left border indicator */
+[dir="rtl"] .det-process-active-border {
+  border-right: 3px solid var(--det-navy-light) !important;
+  border-left: none !important;
 }

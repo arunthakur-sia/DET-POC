@@ -4,160 +4,235 @@ import Link from "next/link";
 import { useEffect } from "react";
 import { useRouter } from "next/router";
 import { useAuth } from "@/contexts/AuthContext";
-
-// SIA Blueprint Builder colour palette
-// Dark navy: #173044  |  Mid navy: #244861  |  Teal accent: #00DECC  |  White: #FFFFFF
+import { useTheme } from "@/contexts/ThemeContext";
+import { useLanguage } from "@/contexts/LanguageContext";
 
 export default function LandingPage() {
   const { user, loading } = useAuth();
+  const { theme, toggleTheme } = useTheme();
+  const { lang, setLang, t } = useLanguage();
   const router = useRouter();
+  const isDark = theme === "dark";
 
   useEffect(() => {
-    if (!loading && user) {
-      void router.replace("/dashboard");
-    }
+    if (!loading && user) void router.replace("/dashboard");
   }, [user, loading, router]);
+
+  const features = [
+    {
+      title: t("feature1Title"),
+      description: t("feature1Desc"),
+      icon: (
+        <svg className="h-6 w-6" style={{ color: "var(--det-navy)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+            d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
+        </svg>
+      ),
+    },
+    {
+      title: t("feature2Title"),
+      description: t("feature2Desc"),
+      icon: (
+        <svg className="h-6 w-6" style={{ color: "var(--det-navy)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
+        </svg>
+      ),
+    },
+    {
+      title: t("feature3Title"),
+      description: t("feature3Desc"),
+      icon: (
+        <svg className="h-6 w-6" style={{ color: "var(--det-navy)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
+            d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        </svg>
+      ),
+    },
+  ];
 
   return (
     <>
       <Head>
-        <title>SmartFlow AI – Dubai Economy &amp; Tourism</title>
+        <title>Process Excellence Platform – Dubai Economy &amp; Tourism</title>
         <meta
           name="description"
-          content="Internal process improvement platform for Dubai Department of Economy and Tourism"
+          content="منصة التميز التشغيلي | Internal process improvement platform for Dubai Department of Economy and Tourism"
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
-      <div
-        className="flex min-h-screen flex-col"
-        style={{
-          fontFamily: "var(--font-sans)",
-          background: "var(--sf-bg)",
-        }}
-      >
+      <div className="flex min-h-screen flex-col" style={{ background: "var(--sf-bg)" }}>
+
         {/* ── HEADER ──────────────────────────────────────────────────── */}
         <header
           className="sticky top-0 z-50"
           style={{
-            background: "rgba(255,255,255,0.94)",
+            background: isDark ? "rgba(22,38,60,0.97)" : "rgba(255,255,255,0.97)",
             borderBottom: "1px solid var(--sf-border)",
-            backdropFilter: "blur(10px)",
-            boxShadow: "0 6px 14px rgba(28, 79, 122, 0.06)",
+            backdropFilter: "blur(14px)",
+            boxShadow: "var(--sf-shadow-sm)",
           }}
         >
-          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-            <div className="flex items-center gap-5">
+          {/* DET brand top bar */}
+          <div
+            className="h-1"
+            style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-gold) 100%)" }}
+          />
+
+          <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
+            {/* Logos */}
+            <div className="flex items-center gap-4">
               <Image
-                src="/assets/white-dubai-gov.svg"
+                src="/assets/dubai-gov.svg"
                 alt="Dubai Government"
-                width={160}
-                height={56}
-                className="h-14 w-auto"
+                width={130}
+                height={46}
+                className="h-10 w-auto"
               />
-              <div
-                className="hidden h-10 w-px sm:block"
-                style={{ backgroundColor: "#E2E8F0" }}
-              />
+              <div className="hidden h-8 w-px sm:block" style={{ backgroundColor: "var(--sf-border)" }} />
               <Image
                 src="/assets/dubai-det-flag-logo.svg"
                 alt="Dubai Economy and Tourism"
-                width={160}
-                height={56}
-                className="hidden h-14 w-auto sm:block"
+                width={150}
+                height={52}
+                className="hidden h-11 w-auto sm:block"
               />
             </div>
 
-            <nav className="hidden items-center gap-8 md:flex">
-              {["Features", "About"].map((item) => (
-                <a
-                  key={item}
-                  href={`#${item.toLowerCase()}`}
-                  className="text-sm font-medium transition-colors"
-                  style={{ color: "#475569" }}
-                  onMouseEnter={(e) => (e.currentTarget.style.color = "#1E293B")}
-                  onMouseLeave={(e) => (e.currentTarget.style.color = "#475569")}
-                >
-                  {item}
-                </a>
-              ))}
-            </nav>
+            {/* Nav + actions */}
+            <div className="flex items-center gap-3">
+              <nav className="hidden items-center gap-7 md:flex">
+                {[
+                  [t("platformCapabilities"), "#features"],
+                  [t("about"), "#about"],
+                ].map(([label, href]) => (
+                  <a
+                    key={href}
+                    href={href}
+                    className="text-sm font-medium transition-colors"
+                    style={{ color: "var(--sf-text-muted)" }}
+                    onMouseEnter={(e) => (e.currentTarget.style.color = "var(--sf-text)")}
+                    onMouseLeave={(e) => (e.currentTarget.style.color = "var(--sf-text-muted)")}
+                  >
+                    {label}
+                  </a>
+                ))}
+              </nav>
+
+              {/* Language toggle */}
+              <button
+                onClick={() => setLang(lang === "en" ? "ar" : "en")}
+                className="det-lang-toggle"
+                title={lang === "en" ? "Switch to Arabic" : "Switch to English"}
+              >
+                {lang === "en" ? "العربية" : "English"}
+              </button>
+
+              {/* Dark mode toggle */}
+              <button
+                onClick={toggleTheme}
+                className="det-theme-toggle"
+                title={isDark ? "Switch to light mode" : "Switch to dark mode"}
+                aria-label="Toggle colour scheme"
+              >
+                {isDark ? (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
+                  </svg>
+                ) : (
+                  <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
+                  </svg>
+                )}
+              </button>
+
+            </div>
           </div>
         </header>
 
         {/* ── HERO ────────────────────────────────────────────────────── */}
-        <section className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6 py-24 text-center">
-          {/* Decorative blurred circles */}
+        <section className="relative flex flex-1 flex-col items-center justify-center overflow-hidden px-6 py-28 text-center">
+          {/* Decorative orbs */}
           <div
-            className="pointer-events-none absolute -top-32 -left-32 h-96 w-96 rounded-full opacity-30"
-            style={{ background: "radial-gradient(circle, rgba(0,222,204,0.25) 0%, transparent 70%)" }}
+            className="pointer-events-none absolute -top-40 -left-40 h-[32rem] w-[32rem] rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(201,168,76,0.09) 0%, transparent 65%)" }}
           />
           <div
-            className="pointer-events-none absolute -bottom-20 -right-20 h-80 w-80 rounded-full opacity-20"
-            style={{ background: "radial-gradient(circle, rgba(0,134,200,0.2) 0%, transparent 70%)" }}
+            className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full"
+            style={{ background: "radial-gradient(circle, rgba(27,55,100,0.09) 0%, transparent 65%)" }}
           />
 
-          <h1 className="mb-5 text-4xl font-extrabold leading-tight tracking-tight md:text-6xl" style={{ color: "#1E293B" }}>
-            Process Improvement,
+          {/* Badge */}
+          <div
+            className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-widest"
+            style={{
+              background: "rgba(201,168,76,0.12)",
+              border: "1px solid rgba(201,168,76,0.30)",
+              color: "var(--det-gold)",
+            }}
+          >
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--det-gold)" }} />
+            {t("badge")}
+          </div>
+
+          {/* Headline */}
+          <h1
+            className="mb-4 text-5xl font-extrabold leading-tight tracking-tight md:text-7xl"
+            style={{ color: "var(--sf-text)" }}
+          >
+            {t("heroHeadline")}
             <br />
-            <span
-              className="relative"
-              style={{ color: "#00BFAD" }}
-            >
-              Built for Government Teams
-            </span>
+            <span style={{ color: "var(--det-navy-light)" }}>{t("heroPlatform")}</span>
           </h1>
 
           <p
-            className="mb-10 max-w-xl text-lg md:text-xl"
-            style={{ color: "#475569" }}
+            className="mb-10 max-w-xl text-lg leading-relaxed md:text-xl"
+            style={{ color: "var(--sf-text-muted)" }}
           >
-            Upload your current process, identify where time is being lost,
-            and generate an updated SOP your teams can use immediately.
+            {t("heroDesc")}
           </p>
 
           <div className="flex flex-col items-center gap-4 sm:flex-row">
             <Link
               href="/login"
-              className="sf-button-primary inline-flex items-center gap-2 rounded-xl px-8 py-3.5 text-base font-semibold shadow-xl"
+              className="sf-button-primary inline-flex items-center gap-2.5 rounded-xl px-9 py-3.5 text-base font-semibold shadow-xl"
             >
-              Open Platform
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
+                  d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1" />
               </svg>
+              {t("openPlatform")}
             </Link>
             <a
               href="#about"
-              className="inline-flex items-center gap-2 rounded-xl border px-8 py-3.5 text-base font-medium transition-all hover:bg-slate-100"
-              style={{
-                borderColor: "#CBD5E1",
-                color: "#334155",
-              }}
+              className="det-button-ghost inline-flex items-center gap-2 rounded-xl px-8 py-3.5 text-base font-medium"
             >
-              Learn More
+              {t("learnMore")}
+              <svg className="h-4 w-4 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
             </a>
           </div>
+
         </section>
 
         {/* ── FEATURES ────────────────────────────────────────────────── */}
-        <section
-          id="features"
-          className="px-6 py-20"
-          style={{ background: "#FFFFFF" }}
-        >
+        <section id="features" className="px-6 py-20" style={{ background: "var(--sf-surface)" }}>
           <div className="mx-auto max-w-6xl">
             <div className="mb-14 text-center">
               <p
                 className="mb-2 text-xs font-semibold tracking-widest uppercase"
-                style={{ color: "#00BFAD" }}
+                style={{ color: "var(--det-gold)" }}
               >
-                Platform Capabilities
+                {t("featuresEyebrow")}
               </p>
-              <h2 className="text-3xl font-bold" style={{ color: "#1E293B" }}>
-                One workspace for analysis, redesign, and SOP delivery
+              <h2 className="text-3xl font-bold" style={{ color: "var(--sf-text)" }}>
+                {t("featuresHeading")}
               </h2>
-              <p className="mt-3 text-sm" style={{ color: "#64748B" }}>
-                Start with the current process document and finish with a clear, updated operating procedure.
+              <p className="mt-3 text-sm" style={{ color: "var(--sf-text-muted)" }}>
+                {t("featuresSub")}
               </p>
             </div>
 
@@ -165,23 +240,37 @@ export default function LandingPage() {
               {features.map((f) => (
                 <div
                   key={f.title}
-                  className="group rounded-2xl p-8 transition-all hover:-translate-y-1 hover:shadow-xl"
+                  className="group relative overflow-hidden rounded-2xl p-8 transition-all duration-300 hover:-translate-y-1"
                   style={{
-                    background: "#FFFFFF",
+                    background: "var(--sf-bg)",
                     border: "1px solid var(--sf-border)",
-                    boxShadow: "0 10px 24px rgba(28, 79, 122, 0.08)",
+                    boxShadow: "var(--sf-shadow-sm)",
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--sf-shadow-lg)";
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLDivElement).style.boxShadow = "var(--sf-shadow-sm)";
                   }}
                 >
+                  {/* Gold top bar on hover */}
+                  <div
+                    className="absolute top-0 left-0 right-0 h-0.5 opacity-0 transition-opacity group-hover:opacity-100"
+                    style={{ background: "linear-gradient(90deg, var(--det-gold), var(--det-gold-light))" }}
+                  />
                   <div
                     className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl"
-                    style={{ background: "rgba(0,222,204,0.12)", border: "1px solid rgba(0,222,204,0.25)" }}
+                    style={{
+                      background: "rgba(27,55,100,0.08)",
+                      border: "1px solid rgba(27,55,100,0.15)",
+                    }}
                   >
                     {f.icon}
                   </div>
-                  <h3 className="mb-2 text-base font-semibold" style={{ color: "#1E293B" }}>
+                  <h3 className="mb-2 text-base font-bold" style={{ color: "var(--sf-text)" }}>
                     {f.title}
                   </h3>
-                  <p className="text-sm leading-relaxed" style={{ color: "#64748B" }}>
+                  <p className="text-sm leading-relaxed" style={{ color: "var(--sf-text-muted)" }}>
                     {f.description}
                   </p>
                 </div>
@@ -194,38 +283,51 @@ export default function LandingPage() {
         <section id="about" className="px-6 py-20" style={{ background: "var(--sf-bg-soft)" }}>
           <div className="mx-auto max-w-4xl">
             <div
-              className="rounded-3xl p-10 md:p-14"
+              className="overflow-hidden rounded-3xl"
               style={{
-                background: "#FFFFFF",
+                background: "var(--sf-surface)",
                 border: "1px solid var(--sf-border)",
-                boxShadow: "0 18px 30px rgba(28, 79, 122, 0.08)",
+                boxShadow: "var(--sf-shadow)",
               }}
             >
-              <div className="flex flex-col items-center gap-8 text-center md:flex-row md:text-left">
-                <div className="flex-1">
-                  <p
-                    className="mb-2 text-xs font-semibold tracking-widest uppercase"
-                    style={{ color: "#00BFAD" }}
-                  >
-                    About
-                  </p>
-                  <h2 className="mb-4 text-2xl font-bold md:text-3xl" style={{ color: "#1E293B" }}>
-                    Designed for Dubai Economy &amp; Tourism operations
-                  </h2>
-                  <p className="text-sm leading-relaxed" style={{ color: "#475569" }}>
-                    SmartFlow is used internally to review service processes,
-                    highlight bottlenecks, and apply practical improvements.
-                    Teams can move from process review to a publishable SOP in one flow.
-                  </p>
-                </div>
-                <div className="flex-shrink-0">
-                  <Image
-                    src="/assets/dubai-det-flag-logo.svg"
-                    alt="Dubai Economy and Tourism"
-                    width={140}
-                    height={56}
-                    className="h-14 w-auto opacity-90"
-                  />
+              <div
+                className="h-1"
+                style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 50%, var(--det-gold) 100%)" }}
+              />
+
+              <div className="p-10 md:p-14">
+                <div className="flex flex-col items-center gap-10 text-center md:flex-row md:text-start">
+                  <div className="flex-1">
+                    <p
+                      className="mb-2 text-xs font-semibold tracking-widest uppercase"
+                      style={{ color: "var(--det-gold)" }}
+                    >
+                      {t("aboutEyebrow")}
+                    </p>
+                    <h2 className="mb-4 text-2xl font-bold md:text-3xl" style={{ color: "var(--sf-text)" }}>
+                      {t("aboutHeading")}
+                    </h2>
+                    <p className="text-sm leading-loose" style={{ color: "var(--sf-text-muted)" }}>
+                      {t("aboutBody")}
+                    </p>
+                  </div>
+                  <div className="flex flex-shrink-0 flex-col items-center gap-4">
+                    <Image
+                      src="/assets/dubai-det-flag-logo.svg"
+                      alt="Dubai Economy and Tourism"
+                      width={148}
+                      height={60}
+                      className="h-16 w-auto opacity-90"
+                    />
+                    <div className="h-px w-24" style={{ background: "var(--det-gold)", opacity: 0.4 }} />
+                    <Image
+                      src="/assets/dubai-gov.svg"
+                      alt="Dubai Government"
+                      width={88}
+                      height={32}
+                      className="h-7 w-auto"
+                    />
+                  </div>
                 </div>
               </div>
             </div>
@@ -236,33 +338,30 @@ export default function LandingPage() {
         <footer
           className="px-6 py-8"
           style={{
-            background: "#FFFFFF",
+            background: isDark ? "var(--sf-surface)" : "#ffffff",
             borderTop: "1px solid var(--sf-border)",
           }}
         >
-          <div className="mx-auto flex max-w-7xl flex-col items-center gap-3 text-center md:flex-row md:justify-between md:text-left">
-            <div className="flex items-center gap-4">
+          <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 text-center md:flex-row md:justify-between md:text-start">
+            <div className="flex items-center gap-3">
               <Image
-                src="/assets/white-dubai-gov.svg"
+                src="/assets/dubai-gov.svg"
                 alt="Dubai Government"
-                width={90}
-                height={30}
-                className="h-7 w-auto"
+                width={72}
+                height={26}
+                className="h-6 w-auto"
               />
-              <span
-                className="hidden h-4 w-px sm:block"
-                style={{ backgroundColor: "#E2E8F0" }}
-              />
+              <span className="hidden h-4 w-px sm:block" style={{ backgroundColor: "var(--sf-border)" }} />
               <Image
                 src="/assets/dubai-det-flag-logo.svg"
                 alt="Dubai Economy and Tourism"
-                width={90}
+                width={88}
                 height={30}
-                className="hidden h-7 w-auto sm:block"
+                className="hidden h-7 w-auto opacity-80 sm:block"
               />
             </div>
-            <p className="text-xs" style={{ color: "#94A3B8" }}>
-              © {new Date().getFullYear()} Dubai Department of Economy and Tourism. All rights reserved.
+            <p className="text-xs" style={{ color: "var(--sf-text-faint)" }}>
+              {t("copyright", { year: new Date().getFullYear() })}
             </p>
           </div>
         </footer>
@@ -270,38 +369,3 @@ export default function LandingPage() {
     </>
   );
 }
-
-// ─── Feature data ──────────────────────────────────────────────────────────────
-
-const features = [
-  {
-    title: "Process Diagnosis",
-    description:
-      "Upload a PDF or text process note. SmartFlow maps the steps, flags delays, and gives you a structured baseline of the current process.",
-    icon: (
-      <svg className="h-6 w-6" style={{ color: "#00BFAD" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
-      </svg>
-    ),
-  },
-  {
-    title: "Smart Optimisation",
-    description:
-      "Choose quick wins or set your own improvement criteria. The platform generates a revised process flow and shows expected impact before rollout.",
-    icon: (
-      <svg className="h-6 w-6" style={{ color: "#00BFAD" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
-      </svg>
-    ),
-  },
-  {
-    title: "SOP Generation",
-    description:
-      "Create a clean SOP draft from the approved changes, ready for review, download, and handover to the owning team.",
-    icon: (
-      <svg className="h-6 w-6" style={{ color: "#00BFAD" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-      </svg>
-    ),
-  },
-];
