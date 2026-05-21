@@ -93,10 +93,19 @@ export default function ProcessOptimizerPage() {
   useEffect(() => {
     if (!projectId || !user) return;
     setProjectLoading(true);
-    // Reset file state so files from a previous project don't bleed into this one
+    // Reset ALL state so a previous project never bleeds into the new one
     setStagedFiles([]);
     setProcessedFiles([]);
     setStoredDocuments([]);
+    setAllProcesses([]);
+    setSelectedProcessIdx(0);
+    setProcessOptimizations({});
+    setProcessSops({});
+    setProcessPhases({});
+    setProcessImpacts({});
+    setProcessQuickWinSelections({});
+    setProcessCriteria({});
+    setCurrentProject(null);
     getProject(projectId)
       .then((proj) => {
         if (!proj) return;
@@ -560,44 +569,114 @@ export default function ProcessOptimizerPage() {
     }
   };
 
-  // Batch run across multiple projects
+  // Batch run across multiple projects — runs diagnosis+optimization in parallel
   const handleBatchRun = async () => {
-    const projectsToRun = userProjects.filter((p) => selectedProjectIds.has(p.id));
-    if (projectsToRun.length === 0) return;
+    if (!user) return;
+    const selectedIds = selectedProjectIds;
+    if (selectedIds.size === 0) return;
     setIsBatchRunning(true);
     setError("");
-    let firstProjectId: string | null = null;
+    setBatchProgress("Fetching latest project data…");
 
-    for (const proj of projectsToRun) {
-      const processes = (proj.processes ?? []) as ProcessWithDiagnosis[];
-      if (processes.length === 0) continue;
-      const existing = (proj.optimizations ?? {}) as Record<string, unknown>;
-      const newOpts: Record<string, OptimizationResults> = Object.fromEntries(
-        Object.entries(existing).map(([k, v]) => [k, v as OptimizationResults]),
+    // Always fetch fresh data from the DB so we don't miss processes diagnosed
+    // during this session (in-memory state isn't synced back into userProjects).
+    let freshProjects: Project[];
+    try {
+      freshProjects = await getUserProjects(user.id);
+      // For the currently open project, prefer the richer in-memory allProcesses.
+      freshProjects = freshProjects.map((p) =>
+        p.id === currentProject?.id && allProcesses.length > 0
+          ? { ...p, processes: allProcesses as unknown[] }
+          : p,
       );
-      for (let i = 0; i < processes.length; i++) {
-        const proc = processes[i];
-        if (!proc || existing[String(i)]) continue;
-        setBatchProgress(`"${proj.name}" \u2014 process ${i + 1}/${processes.length}`);
-        try {
-          const result = await optimizeForProcessMutation.mutateAsync({
-            analysisJson: JSON.stringify(proc.analysis),
-            optimizationCriteria: "",
-          });
-          if (result.success && result.results) newOpts[String(i)] = result.results;
-        } catch (err) {
-          console.error(`Batch: failed process ${i} in "${proj.name}":`, err);
-        }
-      }
-      await updateProject(proj.id, { optimizations: newOpts });
-      setUserProjects((prev) => prev.map((p) => (p.id === proj.id ? { ...p, optimizations: newOpts } : p)));
-      if (!firstProjectId) firstProjectId = proj.id;
+      setUserProjects(freshProjects);
+    } catch {
+      freshProjects = userProjects;
     }
+
+    const projectsToRun = freshProjects.filter((p) => selectedIds.has(p.id));
+    if (projectsToRun.length === 0) {
+      setIsBatchRunning(false);
+      setBatchProgress("");
+      setSelectedProjectIds(new Set());
+      return;
+    }
+
+    setBatchProgress(`Running ${projectsToRun.length} project(s) in parallel…`);
+
+    // Process all selected projects in parallel.
+    await Promise.allSettled(
+      projectsToRun.map(async (proj) => {
+        try {
+          let processes = (proj.processes ?? []) as ProcessWithDiagnosis[];
+
+          // ── Step 1: run diagnosis if the project has documents but no processes ──
+          if (processes.length === 0 && (proj.documents ?? []).length > 0) {
+            const downloaded = await Promise.all(
+              (proj.documents as StoredDocument[]).map((d) => downloadDocumentFromStorage(d)),
+            );
+            const files = downloaded.filter((f): f is File => f !== null);
+            const diagResults: ProcessWithDiagnosis[] = [];
+            for (const file of files) {
+              try {
+                const fileContent = await readFileContent(file);
+                const res = await extractAndDiagnoseAllMutation.mutateAsync({
+                  fileContent,
+                  fileName: file.name,
+                  fileType: file.type,
+                });
+                if (res.success && res.processes) diagResults.push(...res.processes);
+              } catch (err) {
+                console.error(`Batch diagnosis failed for "${file.name}" in "${proj.name}":`, err);
+              }
+            }
+            if (diagResults.length > 0) {
+              processes = diagResults;
+              const phases: Record<number, 1 | 2 | 3> = {};
+              diagResults.forEach((_, i) => { phases[i] = 1; });
+              await updateProject(proj.id, { processes: diagResults, phases });
+              setUserProjects((prev) =>
+                prev.map((p) => p.id === proj.id ? { ...p, processes: diagResults, phases } : p),
+              );
+            }
+          }
+
+          if (processes.length === 0) return; // nothing to optimize
+
+          // ── Step 2: run optimization for any unoptimized processes ──────────
+          const existing = (proj.optimizations ?? {}) as Record<string, unknown>;
+          const newOpts: Record<string, OptimizationResults> = Object.fromEntries(
+            Object.entries(existing).map(([k, v]) => [k, v as OptimizationResults]),
+          );
+
+          await Promise.allSettled(
+            processes.map(async (proc, i) => {
+              if (!proc || existing[String(i)]) return;
+              try {
+                const result = await optimizeForProcessMutation.mutateAsync({
+                  analysisJson: JSON.stringify(proc.analysis),
+                  optimizationCriteria: "",
+                });
+                if (result.success && result.results) newOpts[String(i)] = result.results;
+              } catch (err) {
+                console.error(`Batch optimization failed for process ${i} in "${proj.name}":`, err);
+              }
+            }),
+          );
+
+          await updateProject(proj.id, { optimizations: newOpts });
+          setUserProjects((prev) =>
+            prev.map((p) => p.id === proj.id ? { ...p, optimizations: newOpts } : p),
+          );
+        } catch (err) {
+          console.error(`Batch run failed for "${proj.name}":`, err);
+        }
+      }),
+    );
 
     setIsBatchRunning(false);
     setBatchProgress("");
     setSelectedProjectIds(new Set());
-    if (firstProjectId) void router.push(`/process-optimizer?projectId=${firstProjectId}`);
   };
 
   // Render helpers
