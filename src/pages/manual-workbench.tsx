@@ -463,7 +463,6 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
   }, 0);
 
   const highBottlenecks = bottlenecks.filter((b: DiagnosisBottleneck) => b.impact === "High");
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   const revisedFlowSteps = useMemo(() => buildRevisedFlow(proc), [proc]);
 
   return (

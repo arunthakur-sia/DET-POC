@@ -641,7 +641,6 @@ export default function ExecutiveDashboard() {
 
                         return (
                           // React.Fragment with key is required when returning multiple sibling rows
-                          // eslint-disable-next-line react/jsx-key
                           <React.Fragment key={rowKey}>
                             <tr
                               className="cursor-pointer transition-colors"

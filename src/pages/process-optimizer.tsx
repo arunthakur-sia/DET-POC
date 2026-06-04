@@ -129,7 +129,6 @@ export default function ProcessOptimizerPage() {
       })
       .catch(console.error)
       .finally(() => setProjectLoading(false));
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [projectId, user]);
 
   // Debounced save to Supabase
@@ -199,7 +198,6 @@ export default function ProcessOptimizerPage() {
   const generateSopMutation = api.processOptimizer.generateSOP.useMutation();
 
   const isProcessing = extractAndDiagnoseAllMutation.isPending;
-  const isBusy = isProcessing || isGenerating;
 
   // Helpers
   const copyToClipboard = async (text: string) => {
@@ -372,7 +370,7 @@ export default function ProcessOptimizerPage() {
       setError(err instanceof Error ? err.message : "Failed to upload files");
       setSaveStatus("error");
     }
-  }, [currentProject, stagedFiles, storedDocuments, user]);
+  }, [currentProject, stagedFiles, storedDocuments, user, t]);
 
   const removeStagedFile = (idx: number) => {
     setStagedFiles((prev) => prev.filter((_, i) => i !== idx));
@@ -1190,9 +1188,6 @@ export default function ProcessOptimizerPage() {
 
             const activeStep = stepClassifications.find((s) => s.stepId === selectedStepCardId) ?? null;
             const activeCfg = activeStep ? getConfig(activeStep.classification) : null;
-            const activeProcessStep = activeStep ? analysis.processSteps.find((s) => s.id === activeStep.stepId) : null;
-            const activeActEntry = activeStep ? analysis.documentMetadata?.activitiesTable?.find((a) => a.id === activeStep.stepId || a.name === activeStep.stepName) : null;
-            const activeLeadTime = activeStep ? analysis.leadTimes?.[activeStep.stepId] : undefined;
             const activeRelatedQuickWins = activeStep ? (report.quickWins?.filter((q) => q.stepId === activeStep.stepId) ?? []) : [];
             const activeIsBottleneck = activeStep ? report.bottlenecks?.some((b) => b.stepId === activeStep.stepId) : false;
 
