@@ -9,11 +9,12 @@ import { useLanguage } from "@/contexts/LanguageContext";
 import { getUserProjects, type Project } from "@/lib/supabase";
 import type {
   ProcessWithDiagnosis,
-  AutomationPathway,
   DiagnosisQuickWin,
+  DiagnosisBottleneck,
 } from "@/server/services/ProcessOptimizer";
+import { StepLevelView } from "@/components/StepLevelView";
 
-// ─── Helpers ──────────────────────────────────────────────────────────────────
+// ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function parseToHours(text: string | undefined): number {
   if (!text) return 0;
@@ -47,49 +48,54 @@ function getTimeline(effort: "Low" | "Medium" | "High"): string {
   }
 }
 
-// ─── DET Internal Frameworks (static reference data) ─────────────────────────
+// ─── DET Internal Frameworks — step-level reference data ─────────────────────
 
 interface DETFramework {
-  name: string;
   tag: string;
+  name: string;
   description: string;
+  howToApply: string;
   isInternal: boolean;
 }
 
-const DET_FRAMEWORKS: DETFramework[] = [
-  {
-    name: "Dubai Government Excellence Programme (DGEP)",
-    tag: "Excellence",
-    description: "National framework for government performance and service quality improvement.",
-    isInternal: false,
-  },
-  {
-    name: "Dubai Digital Strategy",
-    tag: "Digital",
-    description: "Smart transformation and digital-first service delivery principles for Dubai government entities.",
-    isInternal: false,
-  },
-  {
-    name: "Lean Process Improvement",
+const DET_FRAMEWORKS: Record<string, DETFramework> = {
+  "Lean": {
     tag: "Lean",
+    name: "Lean Process Improvement",
     description: "Identify and eliminate muda (waste): waiting, over-processing, unnecessary transport, and defects.",
+    howToApply: "Map the value stream for this step. Ask: does this step directly add value for the end customer? If not, target it for elimination or minimization. Document current vs. target state.",
     isInternal: true,
   },
-  {
-    name: "Six Sigma DMAIC",
+  "Six Sigma": {
     tag: "Six Sigma",
+    name: "Six Sigma DMAIC",
     description: "Define → Measure → Analyse → Improve → Control. Reduce variation and defect rates in high-volume processes.",
+    howToApply: "Define the defect for this step, measure the current error or rework rate, analyse the root cause using fishbone or 5-Why, implement the fix, and set a control plan (e.g. checklist or SLA monitoring).",
     isInternal: true,
   },
-  {
-    name: "Process Excellence Toolkit — DET Internal",
+  "Excellence": {
+    tag: "Excellence",
+    name: "Dubai Government Excellence Programme (DGEP)",
+    description: "National framework for government performance and service quality improvement.",
+    howToApply: "Benchmark this step against Dubai government best practice metrics. Document a baseline KPI and set a target improvement aligned with DGEP Level 4 service quality standards.",
+    isInternal: false,
+  },
+  "Digital": {
+    tag: "Digital",
+    name: "Dubai Digital Strategy",
+    description: "Smart transformation and digital-first service delivery principles for Dubai government entities.",
+    howToApply: "Assess whether this step can be delivered digitally or via self-service. Prioritise API-driven, mobile-accessible, or proactive service alternatives aligned with the Dubai Digital Strategy 2024.",
+    isInternal: false,
+  },
+  "Internal": {
     tag: "Internal",
+    name: "Process Excellence Toolkit — DET Internal",
     description: "DET's internal guide for process review, owner assignment, and SOP publication.",
+    howToApply: "Use the DET Process Excellence Toolkit to assign a step owner, set a review cadence, and ensure this step is reflected in the current published SOP with the correct RACI mapping.",
     isInternal: true,
   },
-];
+};
 
-// Match a quickWin's bestPractice string to a framework label
 function mapBestPractice(bp: string | undefined): string | null {
   if (!bp) return null;
   const lower = bp.toLowerCase();
@@ -99,6 +105,7 @@ function mapBestPractice(bp: string | undefined): string | null {
   if (lower.includes("kaizen"))     return "Lean";
   if (lower.includes("dmaic"))      return "Six Sigma";
   if (lower.includes("dgep"))       return "Excellence";
+  if (lower.includes("digital"))    return "Digital";
   return null;
 }
 
@@ -115,129 +122,290 @@ function getQuadrant(qw: DiagnosisQuickWin): Quadrant {
   return "Defer";
 }
 
-const QUADRANT_CONFIG: Record<Quadrant, { label: string; color: string; bg: string; description: string; position: string }> = {
-  "Quick Win":  { label: "Quick Wins",  color: "#16a34a", bg: "rgba(22,163,74,0.08)",   description: "Low effort · High impact — do first", position: "top-0 left-0" },
-  "Strategic":  { label: "Strategic",   color: "#1b3764", bg: "rgba(27,55,100,0.09)",   description: "High effort · High impact — plan carefully", position: "top-0 right-0" },
-  "Fill-in":    { label: "Fill-ins",    color: "#c9a84c", bg: "rgba(201,168,76,0.10)",  description: "Low effort · Low impact — when capacity allows", position: "bottom-0 left-0" },
-  "Defer":      { label: "Defer",       color: "#dc2626", bg: "rgba(220,38,38,0.07)",   description: "High effort · Low impact — question return on investment", position: "bottom-0 right-0" },
+const QUADRANT_CONFIG: Record<Quadrant, { label: string; color: string; bg: string; description: string }> = {
+  "Quick Win":  { label: "Quick Wins",  color: "#16a34a", bg: "rgba(22,163,74,0.08)",  description: "Low effort · High impact — implement first" },
+  "Strategic":  { label: "Strategic",   color: "#1b3764", bg: "rgba(27,55,100,0.09)",  description: "High effort · High impact — plan carefully" },
+  "Fill-in":    { label: "Fill-ins",    color: "#c9a84c", bg: "rgba(201,168,76,0.10)", description: "Low effort · Low impact — when capacity allows" },
+  "Defer":      { label: "Defer",       color: "#dc2626", bg: "rgba(220,38,38,0.07)",  description: "High effort · Low impact — question ROI" },
 };
 
-// ─── Types ────────────────────────────────────────────────────────────────────
+// ─── Revised Flow Step ────────────────────────────────────────────────────────
 
-interface FlatProcess {
-  projectId: string;
-  projectName: string;
-  process: ProcessWithDiagnosis;
+interface RevisedFlowStep {
+  stepName: string;
+  action: "Remove" | "Merge" | "Parallelize" | "Simplify";
+  reason: string;
+  owner: string;
+  timeline: string;
+  frameworkTag: string | null;
 }
 
-// ─── Effort/Impact Matrix ─────────────────────────────────────────────────────
+const ACTION_CONFIG: Record<RevisedFlowStep["action"], { color: string; bg: string; icon: string }> = {
+  Remove:      { color: "#b91c1c", bg: "rgba(220,38,38,0.09)",  icon: "✕" },
+  Merge:       { color: "#0d7a6e", bg: "rgba(26,158,143,0.09)", icon: "⊕" },
+  Parallelize: { color: "#1b3764", bg: "rgba(27,55,100,0.09)",  icon: "⇉" },
+  Simplify:    { color: "#a16207", bg: "rgba(234,179,8,0.10)",  icon: "↓" },
+};
 
-function EffortImpactMatrix({ quickWins }: { quickWins: DiagnosisQuickWin[] }) {
-  if (quickWins.length === 0) {
+function buildRevisedFlow(proc: ProcessWithDiagnosis): RevisedFlowStep[] {
+  const qws = proc.diagnosis?.quickWins ?? [];
+  const activitiesTable = proc.analysis?.documentMetadata?.activitiesTable ?? [];
+  const processSteps = proc.analysis?.processSteps ?? [];
+
+  const stepMap = new Map<string, RevisedFlowStep>();
+  for (const qw of qws) {
+    const action: RevisedFlowStep["action"] | null =
+      qw.category === "Removal" ? "Remove"
+      : qw.category === "Consolidation" ? "Merge"
+      : qw.category === "Parallelization" ? "Parallelize"
+      : qw.category === "Simplification" ? "Simplify"
+      : null;
+    if (!action) continue;
+    stepMap.set(qw.stepName, {
+      stepName: qw.stepName,
+      action,
+      reason: qw.suggestion,
+      owner: qw.performedBy,
+      timeline: getTimeline(qw.effort),
+      frameworkTag: mapBestPractice(qw.bestPractice),
+    });
+  }
+
+  const allStepNames =
+    activitiesTable.length > 0
+      ? activitiesTable.map((a) => a.name)
+      : processSteps.map((s) => s.name);
+
+  const result: RevisedFlowStep[] = [];
+  for (const name of allStepNames) {
+    const matched = stepMap.get(name);
+    if (matched) result.push(matched);
+  }
+  for (const [, item] of stepMap) {
+    if (!result.find((r) => r.stepName === item.stepName)) result.push(item);
+  }
+  return result;
+}
+
+// ─── Step Improvement Card (inline framework reference) ───────────────────────
+
+function StepImprovementCard({ qw }: { qw: DiagnosisQuickWin }) {
+  const [showFramework, setShowFramework] = useState(false);
+  const fwTag = mapBestPractice(qw.bestPractice);
+  const fw = fwTag ? DET_FRAMEWORKS[fwTag] : null;
+  const quadrant = getQuadrant(qw);
+  const qc = QUADRANT_CONFIG[quadrant];
+  const isQuickWin = quadrant === "Quick Win";
+
+  return (
+    <li className="overflow-hidden rounded-xl" style={{ border: "1px solid var(--sf-border-soft)" }}>
+      <div className="p-3" style={{ background: "var(--sf-surface-muted)" }}>
+        <div className="flex items-start justify-between gap-2">
+          <div className="flex-1 min-w-0">
+            <div className="mb-1 flex flex-wrap items-center gap-1.5">
+              <span className="text-xs font-semibold" style={{ color: "var(--sf-text)" }}>{qw.stepName}</span>
+              <span className="rounded-full px-1.5 py-0.5 text-xs font-bold"
+                style={{ background: qc.bg, color: qc.color, fontSize: "0.6rem" }}>
+                {qc.label}
+              </span>
+              {isQuickWin && (
+                <span className="rounded-full px-1.5 py-0.5 text-xs font-bold"
+                  style={{ background: "rgba(22,163,74,0.12)", color: "#15803d", fontSize: "0.6rem" }}>
+                  ⚡ Quick Win
+                </span>
+              )}
+            </div>
+            <p className="text-xs leading-snug" style={{ color: "var(--sf-text-muted)" }}>{qw.suggestion}</p>
+          </div>
+          <div className="flex flex-shrink-0 flex-col items-end gap-1">
+            {qw.estimatedTimeSaving && (
+              <span className="text-xs font-bold" style={{ color: "var(--det-teal)" }}>⏱ {qw.estimatedTimeSaving}</span>
+            )}
+            <span className="text-xs" style={{ color: "var(--sf-text-faint)" }}>
+              {getTimeline(qw.effort)}
+            </span>
+          </div>
+        </div>
+
+        <div className="mt-2 flex flex-wrap items-center gap-2">
+          <span className="rounded px-1.5 py-0.5 text-xs"
+            style={{ background: "var(--sf-surface)", border: "1px solid var(--sf-border-soft)", color: "var(--sf-text-faint)", fontSize: "0.65rem" }}>
+            Effort: {qw.effort}
+          </span>
+          <span className="rounded px-1.5 py-0.5 text-xs"
+            style={{ background: "var(--sf-surface)", border: "1px solid var(--sf-border-soft)", color: "var(--sf-text-faint)", fontSize: "0.65rem" }}>
+            Impact: {qw.impact}
+          </span>
+          {qw.performedBy && (
+            <span className="text-xs" style={{ color: "var(--sf-text-faint)", fontSize: "0.65rem" }}>
+              Owner: {qw.performedBy}
+            </span>
+          )}
+          {fw && (
+            <button
+              onClick={() => setShowFramework((v) => !v)}
+              className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-semibold transition-all"
+              style={{
+                background: showFramework ? "rgba(27,55,100,0.12)" : "rgba(27,55,100,0.06)",
+                color: "var(--det-navy)",
+                border: "1px solid rgba(27,55,100,0.18)",
+                fontSize: "0.65rem",
+              }}
+              title="Click to view step-level framework guidance"
+            >
+              {fw.isInternal ? "🏛" : "📋"} {fw.tag}
+              <svg className={`h-2.5 w-2.5 transition-transform ${showFramework ? "rotate-180" : ""}`}
+                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Step-level framework guidance panel */}
+      {fw && showFramework && (
+        <div
+          className="px-3 py-3"
+          style={{
+            background: fw.isInternal ? "rgba(27,55,100,0.04)" : "rgba(201,168,76,0.05)",
+            borderTop: `1px solid ${fw.isInternal ? "rgba(27,55,100,0.12)" : "rgba(201,168,76,0.18)"}`,
+          }}
+        >
+          <div className="mb-2 flex items-center gap-2">
+            <span
+              className="rounded px-1.5 py-0.5 text-xs font-bold"
+              style={{
+                background: fw.isInternal ? "rgba(27,55,100,0.09)" : "rgba(201,168,76,0.12)",
+                color: fw.isInternal ? "var(--det-navy)" : "#8a6b18",
+                fontSize: "0.6rem",
+              }}
+            >
+              {fw.isInternal ? "DET Internal" : "External Framework"}
+            </span>
+            <span className="text-xs font-semibold" style={{ color: "var(--sf-text)" }}>{fw.name}</span>
+          </div>
+          <p className="mb-2 text-xs leading-relaxed" style={{ color: "var(--sf-text-muted)" }}>
+            {fw.description}
+          </p>
+          <div className="rounded-lg p-2" style={{ background: "var(--sf-surface)", border: "1px solid var(--sf-border-soft)" }}>
+            <p className="mb-0.5 text-xs font-bold uppercase tracking-wide"
+              style={{ color: "var(--det-navy)", fontSize: "0.6rem" }}>
+              How to Apply to This Step
+            </p>
+            <p className="text-xs leading-relaxed" style={{ color: "var(--sf-text-muted)" }}>
+              {fw.howToApply}
+            </p>
+          </div>
+        </div>
+      )}
+    </li>
+  );
+}
+
+// ─── Revised Process Flow Panel ────────────────────────────────────────────────
+
+function RevisedFlowPanel({ steps }: { steps: RevisedFlowStep[] }) {
+  if (steps.length === 0) {
     return (
-      <p className="text-xs" style={{ color: "var(--sf-text-faint)" }}>
-        No quick-win recommendations available.
+      <p className="text-xs italic" style={{ color: "var(--sf-text-faint)" }}>
+        No specific step-level changes derived — see improvement recommendations above.
       </p>
     );
   }
+  return (
+    <div className="space-y-2">
+      {steps.map((step, i) => {
+        const cfg = ACTION_CONFIG[step.action];
+        const fw = step.frameworkTag ? DET_FRAMEWORKS[step.frameworkTag] : null;
+        return (
+          <div key={i} className="flex items-start gap-3 rounded-xl p-3"
+            style={{ background: cfg.bg, border: `1px solid ${cfg.color}20` }}>
+            <span
+              className="flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
+              style={{ background: cfg.color, color: "#fff" }}
+            >
+              {cfg.icon}
+            </span>
+            <div className="flex-1 min-w-0">
+              <div className="mb-0.5 flex flex-wrap items-center gap-2">
+                <span className="text-xs font-semibold" style={{ color: "var(--sf-text)" }}>{step.stepName}</span>
+                <span className="rounded-full px-1.5 py-0.5 text-xs font-bold"
+                  style={{ background: cfg.bg, color: cfg.color, border: `1px solid ${cfg.color}30`, fontSize: "0.6rem" }}>
+                  {step.action}
+                </span>
+                {fw && (
+                  <span className="rounded px-1.5 py-0.5 text-xs font-semibold"
+                    style={{ background: "rgba(27,55,100,0.07)", color: "var(--det-navy)", fontSize: "0.6rem" }}>
+                    {fw.tag}
+                  </span>
+                )}
+              </div>
+              <p className="text-xs leading-snug" style={{ color: "var(--sf-text-muted)" }}>{step.reason}</p>
+              <div className="mt-1 flex items-center gap-3" style={{ color: "var(--sf-text-faint)", fontSize: "0.65rem" }}>
+                {step.owner && <span className="text-xs">Owner: {step.owner}</span>}
+                <span className="text-xs">Timeline: {step.timeline}</span>
+              </div>
+            </div>
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+// ─── Effort/Impact Matrix (with step-level framework inline) ──────────────────
+
+function EffortImpactMatrix({
+  quickWins,
+  wasteFilter,
+}: {
+  quickWins: DiagnosisQuickWin[];
+  wasteFilter: WasteCategory;
+}) {
+  const visibleWins =
+    wasteFilter === "All" ? quickWins : quickWins.filter((qw) => qw.category === wasteFilter);
+
+  if (quickWins.length === 0) {
+    return <p className="text-xs" style={{ color: "var(--sf-text-faint)" }}>No improvement recommendations available.</p>;
+  }
+  if (visibleWins.length === 0) {
+    return <p className="text-xs" style={{ color: "var(--sf-text-faint)" }}>No steps match the selected waste category.</p>;
+  }
 
   const grouped: Record<Quadrant, DiagnosisQuickWin[]> = {
-    "Quick Win": [],
-    "Strategic": [],
-    "Fill-in":   [],
-    "Defer":     [],
+    "Quick Win": [], "Strategic": [], "Fill-in": [], "Defer": [],
   };
-  quickWins.forEach((qw) => grouped[getQuadrant(qw)].push(qw));
+  visibleWins.forEach((qw) => grouped[getQuadrant(qw)].push(qw));
 
   return (
     <div>
-      {/* Axis labels */}
-      <div className="relative mb-1 flex items-center justify-between px-1">
-        <span className="text-xs font-semibold" style={{ color: "var(--sf-text-faint)" }}>
-          Low Effort →
-        </span>
-        <span className="text-xs font-semibold" style={{ color: "var(--sf-text-faint)" }}>
-          High Effort
-        </span>
+      <div className="mb-1 flex items-center justify-between px-1">
+        <span className="text-xs font-semibold" style={{ color: "var(--sf-text-faint)" }}>Low Effort →</span>
+        <span className="text-xs font-semibold" style={{ color: "var(--sf-text-faint)" }}>High Effort</span>
       </div>
-
-      {/* 2×2 grid */}
       <div className="grid grid-cols-2 gap-2">
         {(["Quick Win", "Strategic", "Fill-in", "Defer"] as Quadrant[]).map((q) => {
           const cfg = QUADRANT_CONFIG[q];
           const items = grouped[q];
-          const isTopRow = q === "Quick Win" || q === "Strategic";
+          const isHighImpact = q === "Quick Win" || q === "Strategic";
           return (
-            <div
-              key={q}
-              className="rounded-xl p-3"
-              style={{ background: cfg.bg, border: `1px solid ${cfg.color}22` }}
-            >
-              <div className="mb-2 flex items-center justify-between">
-                <span className="text-xs font-bold" style={{ color: cfg.color }}>
-                  {cfg.label}
-                </span>
+            <div key={q} className="rounded-xl p-3"
+              style={{ background: cfg.bg, border: `1px solid ${cfg.color}22` }}>
+              <div className="mb-1 flex items-center justify-between">
+                <span className="text-xs font-bold" style={{ color: cfg.color }}>{cfg.label}</span>
                 <span className="text-xs" style={{ color: "var(--sf-text-faint)" }}>
-                  {isTopRow ? "↑ High impact" : "↓ Low impact"}
+                  {isHighImpact ? "↑ High impact" : "↓ Low impact"}
                 </span>
               </div>
-              <p className="mb-2 text-xs italic" style={{ color: "var(--sf-text-faint)" }}>
+              <p className="mb-2 text-xs italic" style={{ color: "var(--sf-text-faint)", fontSize: "0.62rem" }}>
                 {cfg.description}
               </p>
               {items.length === 0 ? (
-                <p className="text-xs" style={{ color: "var(--sf-text-faint)" }}>
-                  None
-                </p>
+                <p className="text-xs" style={{ color: "var(--sf-text-faint)" }}>None</p>
               ) : (
-                <ul className="space-y-1.5">
-                  {items.map((qw, i) => {
-                    const bpTag = mapBestPractice(qw.bestPractice);
-                    return (
-                      <li key={i} className="rounded-lg p-2" style={{ background: "var(--sf-surface)" }}>
-                        <div className="flex items-start justify-between gap-2">
-                          <span className="flex-1 text-xs font-medium" style={{ color: "var(--sf-text)" }}>
-                            {qw.stepName}
-                          </span>
-                          <span
-                            className="flex-shrink-0 rounded-full px-1.5 py-0.5 text-xs"
-                            style={{ background: cfg.bg, color: cfg.color, fontSize: "0.6rem", fontWeight: 700 }}
-                          >
-                            {qw.category}
-                          </span>
-                        </div>
-                        <p className="mt-0.5 text-xs" style={{ color: "var(--sf-text-muted)" }}>
-                          {qw.suggestion}
-                        </p>
-                        <div className="mt-1.5 flex flex-wrap items-center gap-2 text-xs">
-                          {qw.estimatedTimeSaving && (
-                            <span className="font-semibold" style={{ color: "var(--det-teal)" }}>
-                              ⏱ {qw.estimatedTimeSaving}
-                            </span>
-                          )}
-                          <span style={{ color: "var(--sf-text-faint)" }}>
-                            Timeline: {getTimeline(qw.effort)}
-                          </span>
-                          {bpTag && (
-                            <span
-                              className="rounded px-1.5 py-0.5 font-semibold"
-                              style={{
-                                fontSize: "0.6rem",
-                                background: "rgba(27,55,100,0.08)",
-                                color: "var(--det-navy)",
-                              }}
-                            >
-                              {bpTag}
-                            </span>
-                          )}
-                          {qw.performedBy && (
-                            <span style={{ color: "var(--sf-text-faint)" }}>
-                              Owner: {qw.performedBy}
-                            </span>
-                          )}
-                        </div>
-                      </li>
-                    );
-                  })}
+                <ul className="space-y-2">
+                  {items.map((qw, i) => <StepImprovementCard key={i} qw={qw} />)}
                 </ul>
               )}
             </div>
@@ -248,42 +416,61 @@ function EffortImpactMatrix({ quickWins }: { quickWins: DiagnosisQuickWin[] }) {
   );
 }
 
-// ─── Process Workbench Card ───────────────────────────────────────────────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 
-function WorkbenchCard({ fp }: { fp: FlatProcess }) {
+interface FlatProcess {
+  projectId: string;
+  projectName: string;
+  process: ProcessWithDiagnosis;
+}
+
+type WasteCategory = "All" | "Removal" | "Consolidation" | "Simplification" | "Parallelization";
+
+const LEAN_FILTERS: Array<{ label: string; value: WasteCategory; lean: string }> = [
+  { label: "All Processes",   value: "All",             lean: "" },
+  { label: "Waste Removal",   value: "Removal",         lean: "Eliminate non-value steps" },
+  { label: "Consolidation",   value: "Consolidation",   lean: "Combine redundant activities" },
+  { label: "Simplification",  value: "Simplification",  lean: "Streamline complexity" },
+  { label: "Parallelisation", value: "Parallelization", lean: "Improve throughput" },
+];
+
+// ─── Workbench Card ────────────────────────────────────────────────────────────
+
+function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: WasteCategory }) {
   const [expanded, setExpanded] = useState(false);
   const proc = fp.process;
-  const pathway = proc.diagnosis?.automationClassification?.primaryClassification;
   const bottlenecks = proc.diagnosis?.bottlenecks ?? [];
   const quickWins = proc.diagnosis?.quickWins ?? [];
   const priorityActions = proc.diagnosis?.priorityActions ?? [];
   const dept = getDepartment(proc);
   const owner = getOwner(proc);
 
-  const totalPotentialHrs = quickWins.reduce(
-    (s, qw) => s + parseToHours(qw.estimatedTimeSaving),
-    0,
-  );
+  const activitiesTable = proc.analysis?.documentMetadata?.activitiesTable ?? [];
+  const totalPotentialHrs = quickWins.reduce((s, qw) => {
+    if (qw.category === "Removal" || qw.category === "Parallelization") {
+      const entry =
+        activitiesTable.find((a) => a.id === qw.stepId) ??
+        activitiesTable.find((a) => a.name?.toLowerCase() === qw.stepName?.toLowerCase());
+      if (entry?.actualTime) {
+        const unit = (entry.actualTimeUnit ?? "").toLowerCase();
+        const hrs = unit.includes("day") ? entry.actualTime * 8
+          : unit.includes("min") ? entry.actualTime / 60
+          : entry.actualTime;
+        return s + (qw.category === "Parallelization" ? hrs * 0.5 : hrs);
+      }
+    }
+    return s + parseToHours(qw.estimatedTimeSaving);
+  }, 0);
 
-  const highBottlenecks = bottlenecks.filter((b) => b.impact === "High");
+  const highBottlenecks = bottlenecks.filter((b: DiagnosisBottleneck) => b.impact === "High");
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const revisedFlowSteps = useMemo(() => buildRevisedFlow(proc), [proc]);
 
   return (
-    <div
-      className="rounded-2xl"
-      style={{
-        background: "var(--sf-surface)",
-        border: "1px solid var(--sf-border)",
-        boxShadow: "var(--sf-shadow-sm)",
-      }}
-    >
-      {/* Gold accent bar */}
-      <div
-        className="h-0.5 rounded-t-2xl"
-        style={{
-          background:
-            "linear-gradient(90deg, var(--det-navy) 0%, var(--det-gold) 100%)",
-        }}
-      />
+    <div className="rounded-2xl"
+      style={{ background: "var(--sf-surface)", border: "1px solid var(--sf-border)", boxShadow: "var(--sf-shadow-sm)" }}>
+      <div className="h-0.5 rounded-t-2xl"
+        style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-gold) 100%)" }} />
 
       {/* Collapsed header */}
       <button
@@ -296,25 +483,10 @@ function WorkbenchCard({ fp }: { fp: FlatProcess }) {
             <span className="truncate text-base font-bold" style={{ color: "var(--sf-text)" }}>
               {proc.analysis?.processName ?? "Unnamed Process"}
             </span>
-            {pathway && (
-              <span
-                className="rounded-full px-2 py-0.5 text-xs font-semibold"
-                style={{
-                  background:
-                    pathway === "Manual Optimization"
-                      ? "rgba(201,168,76,0.12)"
-                      : pathway === "Classical RPA"
-                        ? "rgba(26,158,143,0.09)"
-                        : "rgba(27,55,100,0.09)",
-                  color:
-                    pathway === "Manual Optimization"
-                      ? "#8a6b18"
-                      : pathway === "Classical RPA"
-                        ? "#0d7a6e"
-                        : "#1b3764",
-                }}
-              >
-                {pathway}
+            {quickWins.length > 0 && (
+              <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
+                style={{ background: "rgba(22,163,74,0.08)", color: "#16a34a" }}>
+                {quickWins.length} improvement{quickWins.length !== 1 ? "s" : ""}
               </span>
             )}
           </div>
@@ -326,13 +498,8 @@ function WorkbenchCard({ fp }: { fp: FlatProcess }) {
         </div>
         <div className="flex flex-shrink-0 items-center gap-3">
           {highBottlenecks.length > 0 && (
-            <span
-              className="rounded-full px-2 py-0.5 text-xs font-semibold"
-              style={{
-                background: "rgba(220,38,38,0.08)",
-                color: "#dc2626",
-              }}
-            >
+            <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
+              style={{ background: "rgba(220,38,38,0.08)", color: "#dc2626" }}>
               {highBottlenecks.length} critical
             </span>
           )}
@@ -341,13 +508,9 @@ function WorkbenchCard({ fp }: { fp: FlatProcess }) {
               {Math.round(totalPotentialHrs)} hrs
             </span>
           )}
-          <svg
-            className={`h-5 w-5 transition-transform ${expanded ? "rotate-180" : ""}`}
+          <svg className={`h-5 w-5 transition-transform ${expanded ? "rotate-180" : ""}`}
             style={{ color: "var(--sf-text-faint)" }}
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
+            fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
           </svg>
         </div>
@@ -355,78 +518,38 @@ function WorkbenchCard({ fp }: { fp: FlatProcess }) {
 
       {/* Expanded detail */}
       {expanded && (
-        <div
-          className="space-y-6 px-5 pb-6"
-          style={{ borderTop: "1px solid var(--sf-border-soft)" }}
-        >
-          {/* ── Pain Points ── */}
+        <div className="space-y-6 px-5 pb-6" style={{ borderTop: "1px solid var(--sf-border-soft)" }}>
+
+          {/* 1 · Current Pain Points */}
           {bottlenecks.length > 0 && (
             <section className="pt-4">
-              <h3
-                className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest"
-                style={{ color: "var(--sf-text-muted)" }}
-              >
-                <span
-                  className="inline-block h-2 w-2 rounded-full"
-                  style={{ background: "#dc2626" }}
-                />
+              <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "#dc2626" }} />
                 Current Pain Points
               </h3>
               <ul className="space-y-2">
-                {bottlenecks.map((b, i) => {
-                  const impactColor =
-                    b.impact === "High"
-                      ? "#dc2626"
-                      : b.impact === "Medium"
-                        ? "#d97706"
-                        : "#16a34a";
+                {bottlenecks.map((b: DiagnosisBottleneck, i: number) => {
+                  const ic = b.impact === "High" ? "#dc2626" : b.impact === "Medium" ? "#d97706" : "#16a34a";
                   const util = b.timingIssue?.utilizationPercent ?? 0;
                   return (
-                    <li
-                      key={i}
-                      className="rounded-xl p-3"
-                      style={{
-                        background: "var(--sf-surface-muted)",
-                        border: "1px solid var(--sf-border-soft)",
-                      }}
-                    >
+                    <li key={i} className="rounded-xl p-3"
+                      style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}>
                       <div className="flex items-start justify-between gap-2">
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>
-                            {b.stepName}
-                          </p>
-                          <p className="mt-0.5 text-xs" style={{ color: "var(--sf-text-muted)" }}>
-                            {b.reason}
-                          </p>
+                          <p className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>{b.stepName}</p>
+                          <p className="mt-0.5 text-xs" style={{ color: "var(--sf-text-muted)" }}>{b.reason}</p>
                         </div>
-                        <span
-                          className="flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold"
-                          style={{ color: impactColor, background: `${impactColor}14` }}
-                        >
-                          {b.impact}
-                        </span>
+                        <span className="flex-shrink-0 rounded-full px-2 py-0.5 text-xs font-bold"
+                          style={{ color: ic, background: `${ic}14` }}>{b.impact}</span>
                       </div>
                       {util > 0 && (
                         <div className="mt-2">
                           <div className="mb-1 flex items-center justify-between">
-                            <span className="text-xs" style={{ color: "var(--sf-text-faint)" }}>
-                              Utilisation
-                            </span>
-                            <span className="text-xs font-semibold" style={{ color: impactColor }}>
-                              {util}%
-                            </span>
+                            <span className="text-xs" style={{ color: "var(--sf-text-faint)" }}>Utilisation</span>
+                            <span className="text-xs font-semibold" style={{ color: ic }}>{util}%</span>
                           </div>
-                          <div
-                            className="h-1.5 overflow-hidden rounded-full"
-                            style={{ background: "var(--sf-border)" }}
-                          >
-                            <div
-                              className="h-full rounded-full"
-                              style={{
-                                width: `${Math.min(util, 100)}%`,
-                                background: impactColor,
-                              }}
-                            />
+                          <div className="h-1.5 overflow-hidden rounded-full" style={{ background: "var(--sf-border)" }}>
+                            <div className="h-full rounded-full" style={{ width: `${Math.min(util, 100)}%`, background: ic }} />
                           </div>
                         </div>
                       )}
@@ -437,56 +560,52 @@ function WorkbenchCard({ fp }: { fp: FlatProcess }) {
             </section>
           )}
 
-          {/* ── Effort / Impact Matrix ── */}
+          {/* 2 · Suggested Improvements (step-level framework refs) */}
           {quickWins.length > 0 && (
             <section>
-              <h3
-                className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest"
-                style={{ color: "var(--sf-text-muted)" }}
-              >
-                <span
-                  className="inline-block h-2 w-2 rounded-full"
-                  style={{ background: "var(--det-teal)" }}
-                />
-                Improvement Recommendations — Effort vs. Impact
+              <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-teal)" }} />
+                Suggested Improvements — Effort vs. Impact
               </h3>
-              <EffortImpactMatrix quickWins={quickWins} />
+              <p className="mb-3 text-xs" style={{ color: "var(--sf-text-faint)" }}>
+                Each step card includes an applicable framework tag. Click the tag to expand step-level implementation guidance (Lean, Six Sigma, or DET framework).
+              </p>
+              <EffortImpactMatrix quickWins={quickWins} wasteFilter={wasteFilter} />
             </section>
           )}
 
-          {/* ── Priority Actions with Timeline ── */}
+          {/* 3 · Revised Process Flow Suggestion */}
+          {revisedFlowSteps.length > 0 && (
+            <section>
+              <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-gold)" }} />
+                Revised Process Flow Suggestion
+              </h3>
+              <p className="mb-3 text-xs" style={{ color: "var(--sf-text-faint)" }}>
+                Proposed changes per step — remove, merge, parallelise, or simplify — with assigned owner and delivery timeline.
+              </p>
+              <RevisedFlowPanel steps={revisedFlowSteps} />
+            </section>
+          )}
+
+          {/* 4 · Priority Owner Actions */}
           {priorityActions.length > 0 && (
             <section>
-              <h3
-                className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest"
-                style={{ color: "var(--sf-text-muted)" }}
-              >
-                <span
-                  className="inline-block h-2 w-2 rounded-full"
-                  style={{ background: "var(--det-gold)" }}
-                />
+              <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-navy)" }} />
                 Priority Owner Actions
               </h3>
               <ol className="space-y-2">
                 {priorityActions.map((pa) => (
-                  <li
-                    key={pa.order}
-                    className="flex gap-3 rounded-xl p-3"
-                    style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}
-                  >
-                    <span
-                      className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                      style={{ background: "var(--det-gold)", color: "#1b3764" }}
-                    >
+                  <li key={pa.order} className="flex gap-3 rounded-xl p-3"
+                    style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}>
+                    <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
+                      style={{ background: "var(--det-gold)", color: "#1b3764" }}>
                       {pa.order}
                     </span>
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>
-                        {pa.action}
-                      </p>
-                      <p className="mt-0.5 text-xs" style={{ color: "var(--sf-text-muted)" }}>
-                        {pa.rationale}
-                      </p>
+                      <p className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>{pa.action}</p>
+                      <p className="mt-0.5 text-xs" style={{ color: "var(--sf-text-muted)" }}>{pa.rationale}</p>
                     </div>
                   </li>
                 ))}
@@ -494,55 +613,40 @@ function WorkbenchCard({ fp }: { fp: FlatProcess }) {
             </section>
           )}
 
-          {/* ── Process Metrics Summary ── */}
+          {/* 5 · Process Metrics */}
           {proc.diagnosis?.processMetrics && (
             <section>
-              <h3
-                className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest"
-                style={{ color: "var(--sf-text-muted)" }}
-              >
-                <span
-                  className="inline-block h-2 w-2 rounded-full"
-                  style={{ background: "var(--det-navy)" }}
-                />
+              <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-navy)" }} />
                 Process Metrics
               </h3>
-              <div
-                className="grid grid-cols-2 gap-2 sm:grid-cols-4"
-              >
+              <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
                 {[
                   { label: "Current Duration", value: proc.diagnosis.processMetrics.totalDuration },
-                  {
-                    label: "Dept. Handoffs",
-                    value: String(proc.diagnosis.processMetrics.departmentHandoffs ?? 0),
-                  },
-                  {
-                    label: "Approval Layers",
-                    value: String(proc.diagnosis.processMetrics.approvalLayers ?? 0),
-                  },
-                  {
-                    label: "Quick Wins",
-                    value: `${quickWins.length} identified`,
-                  },
+                  { label: "Dept. Handoffs", value: String(proc.diagnosis.processMetrics.departmentHandoffs ?? 0) },
+                  { label: "Approval Layers", value: String(proc.diagnosis.processMetrics.approvalLayers ?? 0) },
+                  { label: "Improvements", value: `${quickWins.length} identified` },
                 ].map((m) => (
-                  <div
-                    key={m.label}
-                    className="rounded-xl p-3 text-center"
-                    style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}
-                  >
-                    <p className="text-sm font-bold" style={{ color: "var(--sf-text)" }}>
-                      {m.value}
-                    </p>
-                    <p className="mt-0.5 text-xs" style={{ color: "var(--sf-text-faint)" }}>
-                      {m.label}
-                    </p>
+                  <div key={m.label} className="rounded-xl p-3 text-center"
+                    style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}>
+                    <p className="text-sm font-bold" style={{ color: "var(--sf-text)" }}>{m.value}</p>
+                    <p className="mt-0.5 text-xs" style={{ color: "var(--sf-text-faint)" }}>{m.label}</p>
                   </div>
                 ))}
               </div>
             </section>
           )}
 
-          {/* ── CTA to full optimizer ── */}
+          {/* 6 · Step-Level Detail */}
+          <section>
+            <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
+              <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-teal)" }} />
+              Step-Level Detail
+            </h3>
+            <StepLevelView process={proc} />
+          </section>
+
+          {/* CTA */}
           <div className="flex items-center justify-between pt-1">
             <Link
               href={`/process-optimizer?projectId=${fp.projectId}`}
@@ -565,13 +669,6 @@ function WorkbenchCard({ fp }: { fp: FlatProcess }) {
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
 
-const FILTER_OPTIONS: Array<{ label: string; value: AutomationPathway | "All" }> = [
-  { label: "All Pathways", value: "All" },
-  { label: "Manual Optimization", value: "Manual Optimization" },
-  { label: "AI Agent", value: "AI Agent" },
-  { label: "Classical RPA", value: "Classical RPA" },
-];
-
 export default function ManualWorkbench() {
   const { user, loading: authLoading, signOut } = useAuth();
   const { theme, toggleTheme } = useTheme();
@@ -581,9 +678,7 @@ export default function ManualWorkbench() {
 
   const [projects, setProjects] = useState<Project[]>([]);
   const [fetching, setFetching] = useState(true);
-  const [pathwayFilter, setPathwayFilter] = useState<AutomationPathway | "All">(
-    "Manual Optimization",
-  );
+  const [wasteFilter, setWasteFilter] = useState<WasteCategory>("All");
 
   useEffect(() => {
     if (!authLoading && !user) void router.replace("/login");
@@ -609,24 +704,24 @@ export default function ManualWorkbench() {
   }, [projects]);
 
   const filtered = useMemo<FlatProcess[]>(() => {
-    if (pathwayFilter === "All") return flatProcesses;
-    return flatProcesses.filter(
-      (fp) =>
-        fp.process.diagnosis?.automationClassification?.primaryClassification ===
-        pathwayFilter,
+    const manualProcesses = flatProcesses.filter((fp) => {
+      const primary = fp.process.diagnosis?.automationClassification?.primaryClassification;
+      const scores = fp.process.diagnosis?.automationClassification?.pathwayScores;
+      const manualScore = scores?.manualOptimization ?? 0;
+      const hasQW = (fp.process.diagnosis?.quickWins ?? []).length > 0;
+      return primary === "Manual Optimization" || manualScore >= 30 || hasQW;
+    });
+    if (wasteFilter === "All") return manualProcesses;
+    return manualProcesses.filter((fp) =>
+      (fp.process.diagnosis?.quickWins ?? []).some((qw) => qw.category === wasteFilter),
     );
-  }, [flatProcesses, pathwayFilter]);
+  }, [flatProcesses, wasteFilter]);
 
   if (authLoading || (!user && !authLoading)) {
     return (
-      <div
-        className="flex min-h-screen items-center justify-center"
-        style={{ background: "var(--sf-bg)" }}
-      >
-        <div
-          className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: "var(--det-navy-light)" }}
-        />
+      <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--sf-bg)" }}>
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+          style={{ borderColor: "var(--det-navy-light)" }} />
       </div>
     );
   }
@@ -634,79 +729,42 @@ export default function ManualWorkbench() {
   return (
     <>
       <Head>
-        <title>Manual & Lean Workbench – Process Excellence | DET</title>
-        <meta
-          name="description"
-          content="Lean and Six Sigma improvement recommendations for DET processes not suited to automation"
-        />
+        <title>Manual &amp; Lean Workbench – Process Excellence | DET</title>
+        <meta name="description"
+          content="Lean and Six Sigma improvement recommendations for DET processes not suited to automation" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
       <div className="flex min-h-screen flex-col" style={{ background: "var(--sf-bg)" }}>
-        {/* ── Header ────────────────────────────────────────────────── */}
-        <header
-          className="sticky top-0 z-50"
+        {/* ── Header ── */}
+        <header className="sticky top-0 z-50"
           style={{
             background: isDark ? "rgba(22,38,60,0.97)" : "rgba(255,255,255,0.97)",
             borderBottom: "1px solid var(--sf-border)",
             backdropFilter: "blur(14px)",
             boxShadow: "var(--sf-shadow-sm)",
-          }}
-        >
-          <div
-            className="h-0.5"
-            style={{
-              background:
-                "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-gold) 100%)",
-            }}
-          />
+          }}>
+          <div className="h-0.5"
+            style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-gold) 100%)" }} />
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
-                <Image
-                  src="/assets/dubai-det-flag-logo.svg"
-                  alt="Dubai Economy and Tourism"
-                  width={110}
-                  height={36}
-                  className="h-9 w-auto"
-                />
+                <Image src="/assets/dubai-det-flag-logo.svg" alt="Dubai Economy and Tourism" width={110} height={36} className="h-9 w-auto" />
               </Link>
-              <div
-                className="hidden h-5 w-px sm:block"
-                style={{ background: "var(--sf-border)" }}
-              />
-              <span
-                className="hidden text-xs font-semibold sm:block"
-                style={{ color: "var(--sf-text-muted)" }}
-              >
+              <div className="hidden h-5 w-px sm:block" style={{ background: "var(--sf-border)" }} />
+              <span className="hidden text-xs font-semibold sm:block" style={{ color: "var(--sf-text-muted)" }}>
                 Manual &amp; Lean Workbench
               </span>
             </div>
-
             <div className="flex items-center gap-2.5">
-              <Link
-                href="/executive-dashboard"
-                className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
-              >
-                Portfolio
-              </Link>
-              <Link
-                href="/dashboard"
-                className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
-              >
-                My Processes
-              </Link>
-              <button
-                onClick={() => setLang(lang === "en" ? "ar" : "en")}
-                className="det-lang-toggle"
-              >
+              <Link href="/executive-dashboard" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Portfolio</Link>
+              <Link href="/ai-use-case-library" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">AI Use Cases</Link>
+              <Link href="/rpa-blueprint" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">RPA Blueprint</Link>
+              <Link href="/dashboard" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">My Processes</Link>
+              <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="det-lang-toggle">
                 {lang === "en" ? "العربية" : "English"}
               </button>
-              <button
-                onClick={toggleTheme}
-                className="det-theme-toggle"
-                aria-label="Toggle colour scheme"
-              >
+              <button onClick={toggleTheme} className="det-theme-toggle" aria-label="Toggle colour scheme">
                 {isDark ? (
                   <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -720,9 +778,7 @@ export default function ManualWorkbench() {
                 )}
               </button>
               <button
-                onClick={() =>
-                  void signOut().then(() => void router.replace("/"))
-                }
+                onClick={() => void signOut().then(() => void router.replace("/"))}
                 className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
               >
                 {t("signOut")}
@@ -731,178 +787,80 @@ export default function ManualWorkbench() {
           </div>
         </header>
 
-        {/* ── Main ──────────────────────────────────────────────────── */}
+        {/* ── Main ── */}
         <main className="mx-auto w-full max-w-7xl flex-1 px-6 py-8">
-          {/* Title */}
           <div className="mb-6">
             <h1 className="text-2xl font-bold" style={{ color: "var(--sf-text)" }}>
               Manual &amp; Lean Optimization Workbench
             </h1>
             <p className="mt-0.5 text-sm" style={{ color: "var(--sf-text-muted)" }}>
-              Structured Lean / Six Sigma improvement recommendations for
-              processes not suited to automation. No process is left behind.
+              Structured improvement recommendations for processes not suited to automation. Framework guidance (Lean, Six Sigma, Dubai Digital) is provided at the <strong>step level</strong> — click any framework tag to expand step-specific implementation blueprints.
             </p>
           </div>
 
-          {/* Pathway filter tabs */}
-          <div className="mb-6 flex flex-wrap gap-2 border-b pb-4" style={{ borderColor: "var(--sf-border)" }}>
-            {FILTER_OPTIONS.map(({ label, value }) => (
-              <button
-                key={value}
-                onClick={() => setPathwayFilter(value)}
-                className="rounded-lg px-3 py-1.5 text-xs font-semibold transition-all"
-                style={{
-                  background:
-                    pathwayFilter === value
-                      ? "var(--det-navy)"
-                      : "var(--sf-surface)",
-                  color:
-                    pathwayFilter === value ? "#fff" : "var(--sf-text-muted)",
-                  border: `1px solid ${pathwayFilter === value ? "var(--det-navy)" : "var(--sf-border)"}`,
-                }}
-              >
-                {label}
-                {value !== "All" && (
-                  <span className="ml-1.5 opacity-70">
-                    (
-                    {
-                      flatProcesses.filter(
-                        (fp) =>
-                          fp.process.diagnosis?.automationClassification
-                            ?.primaryClassification === value,
-                      ).length
-                    }
-                    )
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          {/* Filter bar */}
+          {!fetching && (
+            <div className="mb-5 flex flex-wrap gap-2">
+              {LEAN_FILTERS.map((f) => (
+                <button
+                  key={f.value}
+                  onClick={() => setWasteFilter(f.value)}
+                  className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
+                  style={{
+                    background: wasteFilter === f.value ? "var(--det-navy)" : "var(--sf-surface)",
+                    color: wasteFilter === f.value ? "#fff" : "var(--sf-text-muted)",
+                    border: `1px solid ${wasteFilter === f.value ? "var(--det-navy)" : "var(--sf-border)"}`,
+                  }}
+                >
+                  {f.label}
+                  {f.lean && <span className="ml-1.5 hidden opacity-60 sm:inline">{f.lean}</span>}
+                </button>
+              ))}
+            </div>
+          )}
 
           {fetching ? (
             <div className="flex h-64 items-center justify-center">
-              <div
-                className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-                style={{ borderColor: "var(--det-navy-light)" }}
-              />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
+                style={{ borderColor: "var(--det-navy-light)" }} />
             </div>
           ) : filtered.length === 0 ? (
-            <div
-              className="flex h-64 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed"
-              style={{ borderColor: "var(--sf-border)" }}
-            >
+            <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed"
+              style={{ borderColor: "var(--sf-border)" }}>
               <p className="text-sm" style={{ color: "var(--sf-text-muted)" }}>
-                No{" "}
-                {pathwayFilter !== "All" ? <strong>{pathwayFilter}</strong> : ""}{" "}
-                processes found in your portfolio
+                No processes matching{" "}
+                {wasteFilter !== "All" ? <strong>{wasteFilter}</strong> : "the current"}{" "}filter found
               </p>
-              <Link
-                href="/dashboard"
-                className="sf-button-primary rounded-lg px-4 py-2 text-sm font-semibold"
-              >
+              {wasteFilter !== "All" && (
+                <button onClick={() => setWasteFilter("All")} className="text-xs font-semibold underline"
+                  style={{ color: "var(--det-teal)" }}>
+                  Clear filter
+                </button>
+              )}
+              <Link href="/dashboard" className="sf-button-primary rounded-lg px-4 py-2 text-sm font-semibold">
                 Upload &amp; Diagnose Processes
               </Link>
             </div>
           ) : (
             <div className="space-y-4">
               <p className="text-xs" style={{ color: "var(--sf-text-faint)" }}>
-                {filtered.length} {filtered.length === 1 ? "process" : "processes"} — click to expand
-                recommendations
+                {filtered.length} {filtered.length === 1 ? "process" : "processes"} — click to expand recommendations
               </p>
               {filtered.map((fp) => (
                 <WorkbenchCard
                   key={`${fp.projectId}-${fp.process.processIndex}`}
                   fp={fp}
+                  wasteFilter={wasteFilter}
                 />
               ))}
             </div>
           )}
-
-          {/* ── DET Framework References ── */}
-          <section className="mt-12">
-            <div
-              className="rounded-2xl p-6"
-              style={{
-                background: "var(--sf-surface)",
-                border: "1px solid var(--sf-border)",
-                boxShadow: "var(--sf-shadow-sm)",
-              }}
-            >
-              <div className="mb-1 flex items-center gap-2">
-                <div
-                  className="h-4 w-1 rounded-full"
-                  style={{ background: "var(--det-gold)" }}
-                />
-                <h2
-                  className="text-xs font-bold uppercase tracking-widest"
-                  style={{ color: "var(--sf-text-muted)" }}
-                >
-                  Relevant DET Frameworks &amp; Best Practices
-                </h2>
-              </div>
-              <p className="mb-5 mt-1 text-xs" style={{ color: "var(--sf-text-faint)" }}>
-                Reference materials for process excellence and lean transformation
-              </p>
-
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {DET_FRAMEWORKS.map((fw) => (
-                  <div
-                    key={fw.name}
-                    className="rounded-xl p-4"
-                    style={{
-                      background: "var(--sf-surface-muted)",
-                      border: "1px solid var(--sf-border-soft)",
-                    }}
-                  >
-                    <div className="mb-1.5 flex items-center gap-2">
-                      <span
-                        className="rounded px-1.5 py-0.5 text-xs font-bold"
-                        style={{
-                          background: fw.isInternal
-                            ? "rgba(27,55,100,0.09)"
-                            : "rgba(201,168,76,0.12)",
-                          color: fw.isInternal ? "var(--det-navy)" : "#8a6b18",
-                          fontSize: "0.6rem",
-                        }}
-                      >
-                        {fw.isInternal ? "DET Internal" : "External"}
-                      </span>
-                      <span
-                        className="rounded px-1.5 py-0.5 text-xs font-semibold"
-                        style={{
-                          background: "rgba(26,158,143,0.09)",
-                          color: "var(--det-teal)",
-                          fontSize: "0.6rem",
-                        }}
-                      >
-                        {fw.tag}
-                      </span>
-                    </div>
-                    <p
-                      className="mb-1 text-sm font-semibold leading-snug"
-                      style={{ color: "var(--sf-text)" }}
-                    >
-                      {fw.name}
-                    </p>
-                    <p className="text-xs" style={{ color: "var(--sf-text-muted)" }}>
-                      {fw.description}
-                    </p>
-                  </div>
-                ))}
-              </div>
-            </div>
-          </section>
         </main>
 
-        <footer
-          className="mt-auto px-6 py-5"
-          style={{
-            background: "var(--sf-surface)",
-            borderTop: "1px solid var(--sf-border)",
-          }}
-        >
+        <footer className="mt-auto px-6 py-5"
+          style={{ background: "var(--sf-surface)", borderTop: "1px solid var(--sf-border)" }}>
           <p className="mx-auto max-w-7xl text-xs" style={{ color: "var(--sf-text-faint)" }}>
-            Recommendations are AI-generated based on uploaded process documents. Timeline estimates are heuristic: Low effort ≈ 1–2 weeks · Medium ≈ 4–6 weeks · High ≈ 8–12 weeks. Always validate with process owners before implementing changes.
+            Recommendations are AI-generated based on uploaded process documents. Framework guidance is provided at step level to support direct application of Lean, Six Sigma, and Dubai Digital Strategy principles. Timeline estimates are heuristic: Low effort ≈ 1–2 weeks · Medium ≈ 4–6 weeks · High ≈ 8–12 weeks. Always validate with process owners before implementing changes.
           </p>
         </footer>
       </div>

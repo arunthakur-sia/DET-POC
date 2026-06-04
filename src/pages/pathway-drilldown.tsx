@@ -64,6 +64,7 @@ const ALL_PATHWAYS: AutomationPathway[] = [
   "AI Agent",
   "Classical RPA",
   "Manual Optimization",
+  "As-Is",
 ];
 
 const PATHWAY_COLORS: Record<
@@ -77,6 +78,7 @@ const PATHWAY_COLORS: Record<
     bg: "rgba(201,168,76,0.12)",
     text: "#8a6b18",
   },
+  "As-Is": { stroke: "#64748b", bg: "rgba(100,116,139,0.08)", text: "#475569" },
 };
 
 // ─── Types ────────────────────────────────────────────────────────────────────

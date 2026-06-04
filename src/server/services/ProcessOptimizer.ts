@@ -377,7 +377,8 @@ export interface DiagnosisProcessMetrics {
 export type AutomationPathway =
   | "AI Agent"
   | "Classical RPA"
-  | "Manual Optimization";
+  | "Manual Optimization"
+  | "As-Is";
 
 export interface ProcessAutomationClassification {
   primaryClassification: AutomationPathway;
@@ -395,6 +396,15 @@ export interface ProcessAutomationClassification {
   };
 }
 
+export interface StepOptimizationClassification {
+  stepId: string;
+  stepName: string;
+  classification: AutomationPathway;
+  confidenceScore: number; // 0-100
+  reason: string;
+  currentStateDescription: string; // Plain-English narrative of what this step does today and its pain points
+}
+
 export interface ProcessDiagnosis {
   bottlenecks: DiagnosisBottleneck[];
   redundancies: DiagnosisRedundancy[];
@@ -402,6 +412,7 @@ export interface ProcessDiagnosis {
   priorityActions: DiagnosisPriorityAction[];
   processMetrics: DiagnosisProcessMetrics;
   automationClassification: ProcessAutomationClassification;
+  stepClassifications?: StepOptimizationClassification[];
 }
 
 // Multi-process support
@@ -2272,53 +2283,26 @@ AUTOMATION CLASSIFICATION RULES:
       purpose: structured.purpose,
       scope: structured.scope,
       sipoc: structured.sipoc
-        ? {
-            suppliers:
-              (structured.sipoc.suppliers ??
-              (structured.sipoc as unknown as Record<string, unknown>).supplier)
-                ? [
-                    String(
-                      structured.sipoc.suppliers ??
-                        (structured.sipoc as unknown as Record<string, unknown>)
-                          .supplier,
-                    ),
-                  ]
-                : [],
-            inputs:
-              (structured.sipoc.inputs ??
-              (structured.sipoc as unknown as Record<string, unknown>).input)
-                ? [
-                    String(
-                      structured.sipoc.inputs ??
-                        (structured.sipoc as unknown as Record<string, unknown>)
-                          .input,
-                    ),
-                  ]
-                : [],
-            process: String(structured.sipoc.process ?? ""),
-            outputs:
-              (structured.sipoc.outputs ??
-              (structured.sipoc as unknown as Record<string, unknown>).output)
-                ? [
-                    String(
-                      structured.sipoc.outputs ??
-                        (structured.sipoc as unknown as Record<string, unknown>)
-                          .output,
-                    ),
-                  ]
-                : [],
-            customers:
-              (structured.sipoc.customers ??
-              (structured.sipoc as unknown as Record<string, unknown>).customer)
-                ? [
-                    String(
-                      structured.sipoc.customers ??
-                        (structured.sipoc as unknown as Record<string, unknown>)
-                          .customer,
-                    ),
-                  ]
-                : [],
-          }
+        ? (() => {
+            // Helper: ensure a SIPOC field is always a proper string array
+            const toStringArray = (
+              val: unknown,
+              fallback: unknown,
+            ): string[] => {
+              const v = val ?? fallback;
+              if (Array.isArray(v)) return v.map(String);
+              if (v != null && String(v).length > 0) return [String(v)];
+              return [];
+            };
+            const sipocRaw = structured.sipoc as unknown as Record<string, unknown>;
+            return {
+              suppliers: toStringArray(structured.sipoc.suppliers, sipocRaw.supplier),
+              inputs: toStringArray(structured.sipoc.inputs, sipocRaw.input),
+              process: String(structured.sipoc.process ?? ""),
+              outputs: toStringArray(structured.sipoc.outputs, sipocRaw.output),
+              customers: toStringArray(structured.sipoc.customers, sipocRaw.customer),
+            };
+          })()
         : undefined,
       kpis: structured.kpis ?? [],
       relatedDocuments: structured.relatedDocuments ?? [],
@@ -2351,6 +2335,16 @@ AUTOMATION CLASSIFICATION RULES:
   ): Promise<ProcessOptimization> {
     const cleanCriteria = this.cleanContent(optimizationCriteria);
 
+    // Build step-level timing context from Activities Table (source of truth for durations)
+    const activitiesTable = currentAnalysis.documentMetadata?.activitiesTable ?? [];
+    const stepTimingContext = activitiesTable.length > 0
+      ? `\nStep-Level Timing (Activities Table — source of truth for durations):\n${activitiesTable.map((a) =>
+          `  - ${a.id} | "${a.name}" | by: ${a.performedBy} | actualTime: ${a.actualTime} ${a.actualTimeUnit} | availableTime: ${a.availableTime} ${a.availableTimeUnit}`
+        ).join("\n")}`
+      : Object.keys(currentAnalysis.leadTimes ?? {}).length > 0
+        ? `\nStep Lead Times:\n${Object.entries(currentAnalysis.leadTimes ?? {}).map(([id, t]) => `  - ${id}: ${t} days`).join("\n")}`
+        : "";
+
     const prompt = `
 You are modifying a business process based on specific optimization criteria.
 
@@ -2361,6 +2355,7 @@ ${currentAnalysis.processSteps
       `- ID: ${step.id}, Name: ${step.name}, Dept: ${step.department}, Role: ${step.role}`,
   )
   .join("\n")}
+${stepTimingContext}
 
 ${
   currentAnalysis.nodes && currentAnalysis.nodes.length > 0
@@ -2379,13 +2374,14 @@ ${cleanCriteria}
 CRITICAL INSTRUCTIONS:
 1. Apply ONLY the changes specified in the optimization instructions above
 2. If removing step X: remove its node, remove all edges to/from it, reconnect predecessor to successor
-3. If merging steps A+B: remove B's node, update A's node name, reconnect B's edges to A  
+3. If merging steps A+B: remove B's node, update A's node name to the merged name, reconnect B's edges to A, sum their actual times in leadTimes  
 4. If parallelizing: adjust edge connections to enable parallel execution
-5. Preserve all unchanged steps/nodes/edges exactly as they are
+5. Preserve all unchanged steps/nodes/edges exactly as they are (with their original IDs and names)
 6. IMPORTANT: Each node in the "nodes" array MUST have a "name" field with the actual step name (not generic labels like "Step" or "Decision")
 7. Copy node names from the current graph structure above when preserving nodes
 8. Maintain process integrity: ensure no orphan nodes (all nodes must be connected)
 9. Preserve necessary control points and compliance requirements
+10. For leadTimes: remove entries for removed/merged steps; add merged step entry with combined time
 
 Return ONLY a valid JSON object with this structure (no markdown fences, no explanations):
 
@@ -2484,10 +2480,46 @@ JSON output:`;
     if (parsed) {
       // Successfully parsed structured optimization response
       const optimizedAnalysis = this.mergeStructuredIntoProcessAnalysis(parsed);
+
+      // ── Sync step-level data from original → optimized ────────────────────
+      // Build a set of step IDs that remain in the optimized process
+      const remainingStepIds = new Set(optimizedAnalysis.processSteps.map((s) => s.id));
+
+      // Preserve leadTimes from original for unchanged steps; AI may have omitted them
+      const syncedLeadTimes: Record<string, number> = {};
+      Object.entries(currentAnalysis.leadTimes ?? {}).forEach(([id, time]) => {
+        if (remainingStepIds.has(id)) syncedLeadTimes[id] = time;
+      });
+      // Override with any explicit leadTimes from the optimized result (e.g., merged steps)
+      Object.entries(optimizedAnalysis.leadTimes ?? {}).forEach(([id, time]) => {
+        syncedLeadTimes[id] = time;
+      });
+
+      // Filter original activitiesTable to only include remaining steps
+      const originalActivities = currentAnalysis.documentMetadata?.activitiesTable ?? [];
+      const syncedActivitiesTable = originalActivities.filter((a) => remainingStepIds.has(a.id));
+
+      // Merge with any new activities the AI may have introduced (e.g., merged step with new ID)
+      const existingIds = new Set(syncedActivitiesTable.map((a) => a.id));
+      const newActivities = (optimizedAnalysis.documentMetadata?.activitiesTable ?? []).filter(
+        (a) => !existingIds.has(a.id),
+      );
+      const finalActivitiesTable = [...syncedActivitiesTable, ...newActivities];
+
+      const syncedDocumentMetadata = optimizedAnalysis.documentMetadata
+        ? { ...optimizedAnalysis.documentMetadata, activitiesTable: finalActivitiesTable, activitiesTableCount: finalActivitiesTable.length }
+        : currentAnalysis.documentMetadata
+          ? { ...currentAnalysis.documentMetadata, activitiesTable: finalActivitiesTable, activitiesTableCount: finalActivitiesTable.length }
+          : undefined;
+
       return {
         originalProcess: currentAnalysis,
         optimizationCriteria: criteria,
-        optimizedProcess: optimizedAnalysis,
+        optimizedProcess: {
+          ...optimizedAnalysis,
+          leadTimes: syncedLeadTimes,
+          documentMetadata: syncedDocumentMetadata,
+        },
       };
     }
 
@@ -2733,6 +2765,14 @@ JSON output:`;
       ? `\nRelated Standards/Documents:\n${documentMetadata.relatedDocuments.map((d) => `- ${d.name}${d.reference ? ` (${d.reference})` : ""}`).join("\n")}`
       : "";
 
+    // Build step-level activities table context (source of truth for the SOP procedure section)
+    // This uses the OPTIMIZED activities table so removed/merged steps are not included
+    const activitiesTableContext = documentMetadata?.activitiesTable?.length
+      ? `\nOptimized Activities and Responsibilities (step-by-step, source of truth):\n| Step ID | Activity Name | Performed By | Actual Time | Available Time |\n|---------|--------------|--------------|-------------|----------------|\n${documentMetadata.activitiesTable.map((a) =>
+          `| ${a.id} | ${a.name} | ${a.performedBy} | ${a.actualTime} ${a.actualTimeUnit} | ${a.availableTime} ${a.availableTimeUnit} |`,
+        ).join("\n")}`
+      : `\nOriginal Process Context (summary):\n${originalContent.slice(0, 1500)}`;
+
     const today = new Date().toISOString().split("T")[0] ?? "";
     const sopPrompt = `
 You are generating an updated Standard Operating Procedure (SOP) document for RTA (Roads and Transport Authority).
@@ -2743,9 +2783,7 @@ CRITICAL RULES:
 3. If information is missing, write "NOT AVAILABLE" or omit that section entirely
 4. DO NOT generate placeholder values, example durations, or made-up metrics
 5. DO NOT invent KPI targets, activity durations, or performance numbers
-
-Original Process Information:
-${originalContent.slice(0, 2000)}
+${activitiesTableContext}
 
 Provided metadata (ONLY use what's explicitly present):
 - Process ID: ${processId ?? documentMetadata?.processId ?? "NOT AVAILABLE"}
@@ -2803,6 +2841,8 @@ ${optimizedMermaid}
 ${appliedChanges.map((c) => `| ${c.changeDescription} | ${c.performedBy ?? "N/A"} | ${c.impact ?? "N/A"} |`).join("\n")}
 
 ${impactAnalysis ? `## Impact Analysis\nSummarize the actual calculated improvements from the impact analysis data above (steps reduced, time saved, etc.). DO NOT invent numbers.\n` : ""}
+
+${documentMetadata?.activitiesTable?.length ? `## Activities and Responsibilities (Optimized)\nGenerate a table listing ONLY the steps from the "Optimized Activities and Responsibilities" table provided above. Use the exact step IDs, names, performers, and timings as given — do NOT add, remove, or modify any row.\n| Step ID | Activity Name | Performed By | Actual Time | Available Time |\n|---------|--------------|--------------|-------------|----------------|\n${documentMetadata.activitiesTable.map((a) => `| ${a.id} | ${a.name} | ${a.performedBy} | ${a.actualTime} ${a.actualTimeUnit} | ${a.availableTime} ${a.availableTimeUnit} |`).join("\n")}\n` : ""}
 
 ${controlsContext ? `## Internal Controls\nList the internal controls provided above. Note any that were affected by the optimization changes.\n` : ""}
 
@@ -3374,6 +3414,35 @@ CRITICAL RULES:
               "pathwayScores",
             ],
           },
+          stepClassifications: {
+            type: "array",
+            description: "Per-step classification of how each step can be optimized",
+            items: {
+              type: "object",
+              properties: {
+                stepId: { type: "string" },
+                stepName: { type: "string" },
+                classification: {
+                  type: "string",
+                  enum: ["AI Agent", "Classical RPA", "Manual Optimization", "As-Is"],
+                  description: "AI Agent: needs judgment/NLP/unstructured data. Classical RPA: rule-based repetitive tasks. Manual Optimization: requires human judgment or policy approval. As-Is: step is already efficient, well-designed, or mandatory as-is — no optimization warranted.",
+                },
+                confidenceScore: {
+                  type: "number",
+                  description: "0-100 confidence in this classification",
+                },
+                reason: {
+                  type: "string",
+                  description: "One concise sentence explaining why this classification applies",
+                },
+                currentStateDescription: {
+                  type: "string",
+                  description: "2-3 sentence plain-English description of what this step does today, who does it, how long it takes, and what its main pain points or inefficiencies are. Be specific and self-explanatory — no jargon.",
+                },
+              },
+              required: ["stepId", "stepName", "classification", "confidenceScore", "reason", "currentStateDescription"],
+            },
+          },
         },
         required: [
           "bottlenecks",
@@ -3382,6 +3451,7 @@ CRITICAL RULES:
           "priorityActions",
           "processMetrics",
           "automationClassification",
+          "stepClassifications",
         ],
       },
     };
@@ -3432,7 +3502,24 @@ Apply:
 - Government compliance context (audit trails, Arabic/English bilingual operations)
 
 For each quick win, set performedBy to the exact role/department from the steps data above.
-For bestPractice, only cite if certain (e.g. "Lean - Eliminate waiting waste"). Leave empty string if unsure.`;
+For bestPractice, only cite if certain (e.g. "Lean - Eliminate waiting waste"). Leave empty string if unsure.
+
+For stepClassifications, classify EVERY step listed above into one of:
+- "AI Agent": step involves unstructured data, natural language, case judgment, exception handling, or variable decision-making that requires cognitive ability
+- "Classical RPA": step involves repetitive rule-based data entry, form filling, system updates, copy/paste, or structured data validation with no judgment needed
+- "Manual Optimization": step genuinely requires human judgment, policy approval, physical presence, or stakeholder coordination — optimize the process rather than automate it
+- "As-Is": step is already efficient, well-designed, simple, or mandatory by regulation — no optimization or automation is warranted; keep it as it is
+
+SCORING RULES — be conservative and accurate:
+- NOT every step needs automation. Many steps in a government process are simple, fast, or legally required as-is.
+- Use "As-Is" for steps that: are already quick (low actual/available time ratio), are simple hand-offs or notifications, are legally required manual sign-offs with no inefficiency, or genuinely have no pain point.
+- Reserve "AI Agent" only for steps with clear evidence of unstructured data, language, or variable judgment — do NOT use it just because a step seems complex.
+- Reserve "Classical RPA" only for steps that are genuinely repetitive and rules-based with structured data.
+- Use "Manual Optimization" only for steps that need process redesign or policy change before any automation is considered.
+- confidenceScore: set to 90+ only when you are very certain. Use 60-80 for moderate confidence. Use 40-60 if the step is ambiguous.
+- Expect roughly 30-50% of steps in a typical government process to be "As-Is".
+
+Provide a confidenceScore (0-100), a concise reason (one sentence), and a currentStateDescription (2-3 sentences describing what the step does today, who performs it, how long it takes, and what its main inefficiencies are) for each step.`;
 
     try {
       const response = await this.client.messages.create({
@@ -3747,12 +3834,137 @@ ProcessOptimizer.prototype.applyDeterministicChange = function (
   analysis: ProcessAnalysis,
   criteria: string,
 ): ProcessAnalysis | undefined {
-  // Detect remove step requests
-  const removeMatch = /remove\s+(?:the\s+)?(?:step\s+)?\"?([^\"]+)\"?/i.exec(
-    criteria,
-  );
+  // ── Helper: remove a step from leadTimes and activitiesTable ──────────────
+  const removeStepFromMetadata = (
+    currentAnalysis: ProcessAnalysis,
+    removedId: string,
+    removedName: string,
+  ): { newLeadTimes: Record<string, number>; newDocumentMetadata: ProcessDocumentMetadata | undefined } => {
+    const newLeadTimes: Record<string, number> = { ...currentAnalysis.leadTimes };
+    delete newLeadTimes[removedId];
+
+    const prevTable = currentAnalysis.documentMetadata?.activitiesTable ?? [];
+    const newActivitiesTable = prevTable.filter(
+      (a) => a.id !== removedId && a.name.toLowerCase() !== removedName.toLowerCase(),
+    );
+    const newDocumentMetadata = currentAnalysis.documentMetadata
+      ? {
+          ...currentAnalysis.documentMetadata,
+          activitiesTable: newActivitiesTable,
+          activitiesTableCount: newActivitiesTable.length,
+        }
+      : undefined;
+    return { newLeadTimes, newDocumentMetadata };
+  };
+
+  // ── Try MERGE / CONSOLIDATION first ──────────────────────────────────────
+  // Pattern: Merge steps "A" and "B" into a single step: "New Name"
+  const mergeMatch = /merge steps?\s+"([^"]+)"\s+and\s+"([^"]+)"\s+into a single step:\s+"([^"]+)"/i.exec(criteria);
+  if (mergeMatch) {
+    const nameA = mergeMatch[1]?.trim() ?? "";
+    const nameB = mergeMatch[2]?.trim() ?? "";
+    const mergedName = mergeMatch[3]?.trim() ?? `${nameA} + ${nameB}`;
+    const nameBLower = nameB.toLowerCase();
+
+    if (analysis.nodes && analysis.nodes.length > 0) {
+      const nodeA = analysis.nodes.find((n) => n.name.toLowerCase() === nameA.toLowerCase() && n.type === "task");
+      const nodeB = analysis.nodes.find((n) => n.name.toLowerCase() === nameBLower && n.type === "task");
+      if (!nodeA || !nodeB) return undefined;
+
+      // Update nodeA's name to the merged name; remove nodeB; redirect nodeB's edges to nodeA
+      const updatedNodes = analysis.nodes
+        .filter((n) => n.id !== nodeB.id)
+        .map((n) => (n.id === nodeA.id ? { ...n, name: mergedName } : n));
+
+      const incomingB = (analysis.edges ?? []).filter((e) => e.to === nodeB.id);
+      const outgoingB = (analysis.edges ?? []).filter((e) => e.from === nodeB.id);
+      const redirectedEdges: ProcessEdge[] = [
+        ...incomingB.map((e) => ({ ...e, to: nodeA.id })),
+        ...outgoingB.map((e) => ({ ...e, from: nodeA.id })),
+      ];
+      const filteredEdges = (analysis.edges ?? []).filter(
+        (e) => e.from !== nodeB.id && e.to !== nodeB.id,
+      );
+      // Deduplicate edges (in case A already has edges to nodeB's successors)
+      const edgeKey = (e: ProcessEdge) => `${e.from}→${e.to}`;
+      const existingKeys = new Set(filteredEdges.map(edgeKey));
+      const newEdges = [
+        ...filteredEdges,
+        ...redirectedEdges.filter((e) => !existingKeys.has(edgeKey(e))),
+      ];
+
+      // Update processSteps: rename A, remove B
+      const updatedSteps = analysis.processSteps
+        .filter((s) => s.name.toLowerCase() !== nameBLower)
+        .map((s) => (s.name.toLowerCase() === nameA.toLowerCase() ? { ...s, name: mergedName } : s));
+
+      // Update leadTimes: merge B's time into A, remove B
+      const newLeadTimes: Record<string, number> = { ...analysis.leadTimes };
+      const stepAId = analysis.processSteps.find((s) => s.name.toLowerCase() === nameA.toLowerCase())?.id ?? nodeA.id;
+      const stepBId = analysis.processSteps.find((s) => s.name.toLowerCase() === nameBLower)?.id ?? nodeB.id;
+      const timeA = newLeadTimes[stepAId] ?? 0;
+      const timeB = newLeadTimes[stepBId] ?? 0;
+      newLeadTimes[stepAId] = timeA + timeB;
+      delete newLeadTimes[stepBId];
+
+      // Update activitiesTable: rename A's entry, remove B's entry
+      const prevTable = analysis.documentMetadata?.activitiesTable ?? [];
+      const newActivitiesTable = prevTable
+        .filter((a) => a.id !== stepBId && a.name.toLowerCase() !== nameBLower)
+        .map((a) =>
+          a.id === stepAId || a.name.toLowerCase() === nameA.toLowerCase()
+            ? { ...a, name: mergedName, actualTime: (a.actualTime ?? 0) + timeB }
+            : a,
+        );
+      const newDocumentMetadata = analysis.documentMetadata
+        ? { ...analysis.documentMetadata, activitiesTable: newActivitiesTable, activitiesTableCount: newActivitiesTable.length }
+        : undefined;
+
+      return {
+        ...analysis,
+        processSteps: updatedSteps,
+        nodes: updatedNodes,
+        edges: newEdges,
+        leadTimes: newLeadTimes,
+        documentMetadata: newDocumentMetadata,
+        analysis: `${analysis.analysis}\n\n[Applied deterministic merge of steps "${nameA}" + "${nameB}" → "${mergedName}"]`,
+      };
+    }
+
+    // Fallback merge without structured nodes
+    const idxA = analysis.processSteps.findIndex((s) => s.name.toLowerCase() === nameA.toLowerCase());
+    const idxB = analysis.processSteps.findIndex((s) => s.name.toLowerCase() === nameBLower);
+    if (idxA === -1 || idxB === -1) return undefined;
+    const stepA = analysis.processSteps[idxA]!;
+    const stepB = analysis.processSteps[idxB]!;
+    const newLeadTimesLinear = { ...analysis.leadTimes };
+    newLeadTimesLinear[stepA.id] = (newLeadTimesLinear[stepA.id] ?? 0) + (newLeadTimesLinear[stepB.id] ?? 0);
+    delete newLeadTimesLinear[stepB.id];
+    const updatedStepsLinear = analysis.processSteps
+      .filter((_, i) => i !== idxB)
+      .map((s, i) => (i === idxA ? { ...s, name: mergedName } : s));
+    const prevTableLinear = analysis.documentMetadata?.activitiesTable ?? [];
+    const newTableLinear = prevTableLinear
+      .filter((a) => a.id !== stepB.id)
+      .map((a) =>
+        a.id === stepA.id ? { ...a, name: mergedName, actualTime: (a.actualTime ?? 0) + (analysis.leadTimes?.[stepB.id] ?? 0) } : a,
+      );
+    const newMetaLinear = analysis.documentMetadata
+      ? { ...analysis.documentMetadata, activitiesTable: newTableLinear, activitiesTableCount: newTableLinear.length }
+      : undefined;
+    return {
+      ...analysis,
+      processSteps: updatedStepsLinear,
+      leadTimes: newLeadTimesLinear,
+      documentMetadata: newMetaLinear,
+      analysis: `${analysis.analysis}\n\n[Applied deterministic merge of steps "${nameA}" + "${nameB}" → "${mergedName}"]`,
+    };
+  }
+
+  // ── Try REMOVE ────────────────────────────────────────────────────────────
+  const removeMatch = /remove\s+(?:the\s+)?(?:step\s+)?[""]?([^""]+)[""]?/i.exec(criteria);
   if (!removeMatch) return undefined;
-  const nameToRemove = removeMatch[1]?.trim().toLowerCase();
+  const nameToRemove = removeMatch[1]?.trim().toLowerCase() ?? "";
 
   // If structured nodes exist, operate on them
   if (analysis.nodes && analysis.nodes.length > 0) {
@@ -3782,11 +3994,15 @@ ProcessOptimizer.prototype.applyDeterministicChange = function (
       (s) => s.name.toLowerCase() !== nameToRemove,
     );
 
+    const { newLeadTimes, newDocumentMetadata } = removeStepFromMetadata(analysis, target.id, nameToRemove);
+
     return {
       ...analysis,
       processSteps: remainingSteps,
       nodes: remainingNodes,
       edges: newEdges,
+      leadTimes: newLeadTimes,
+      documentMetadata: newDocumentMetadata,
       analysis: `${analysis.analysis}\n\n[Applied deterministic removal of step: ${target.name}]`,
     };
   }
@@ -3801,9 +4017,16 @@ ProcessOptimizer.prototype.applyDeterministicChange = function (
     ...analysis.processSteps.slice(0, idx),
     ...analysis.processSteps.slice(idx + 1),
   ];
+  const { newLeadTimes: newLeadTimesLinear2, newDocumentMetadata: newMetaLinear2 } = removeStepFromMetadata(
+    analysis,
+    removed?.id ?? "",
+    nameToRemove,
+  );
   return {
     ...analysis,
     processSteps: newSteps,
+    leadTimes: newLeadTimesLinear2,
+    documentMetadata: newMetaLinear2,
     analysis: `${analysis.analysis}\n\n[Applied deterministic removal of step: ${removed ? removed.name : ""}]`,
   };
 };
@@ -4147,6 +4370,52 @@ ProcessOptimizer.prototype.buildDeterministicDiagnosis = function (
     },
   );
 
+  // Deterministic per-step classification
+  const stepClassifications: StepOptimizationClassification[] = steps.map((s) => {
+    const lower = s.name.toLowerCase();
+    const isAI = /(analy[sz]e|assess|review case|investigate|exception|complaint|dispute|interpret|recommend|decision|risk|language|email response|reason|judgment)/i.test(lower);
+    const isRPA = /(data entry|enter|update|create record|status update|form|register|upload|copy|paste|reconcile|validate|checklist|notification|generate report|submit)/i.test(lower);
+    const isApproval = /(approv|sign|authorize|endorse|escalat|meeting|visit)/i.test(lower);
+
+    let classification: AutomationPathway;
+    let confidenceScore: number;
+    let reason: string;
+
+    const performedBy = s.role ?? s.department ?? "staff";
+    const leadTime = s.actual > 0 ? `${s.actual} day${s.actual !== 1 ? "s" : ""}` : null;
+
+    if (isAI && !isApproval) {
+      classification = "AI Agent";
+      confidenceScore = 70;
+      reason = "Step involves cognitive tasks such as analysis, assessment, or judgment that benefit from AI capabilities.";
+    } else if (isRPA && !isAI && !isApproval) {
+      classification = "Classical RPA";
+      confidenceScore = 75;
+      reason = "Step involves repetitive, rule-based data handling suitable for robotic automation.";
+    } else if (isApproval) {
+      classification = "Manual Optimization";
+      confidenceScore = 80;
+      reason = "Step requires human authorization, policy decision, or stakeholder sign-off that cannot be automated.";
+    } else {
+      classification = "Manual Optimization";
+      confidenceScore = 55;
+      reason = "Step lacks clear automation signals; process redesign and manual efficiency improvements are recommended.";
+    }
+
+    const currentStateDescription = [
+      `This step ("${s.name}") is currently performed manually by ${performedBy}${leadTime ? `, taking approximately ${leadTime}` : ""}.`,
+      isAI
+        ? "It involves judgment-based or analytical work with unstructured inputs, leading to inconsistent outputs and slow throughput."
+        : isRPA
+          ? "It consists of repetitive data handling and form-filling tasks executed by people, introducing delays and error risk."
+          : isApproval
+            ? "It requires a human decision or sign-off, often creating a wait cycle that extends the overall process lead time."
+            : "The step is performed manually without clear automation potential, contributing to overall process latency.",
+    ].join(" ");
+
+    return { stepId: s.id, stepName: s.name, classification, confidenceScore, reason, currentStateDescription };
+  });
+
   return {
     bottlenecks,
     redundancies: [],
@@ -4159,6 +4428,7 @@ ProcessOptimizer.prototype.buildDeterministicDiagnosis = function (
       approvalLayers,
     },
     automationClassification,
+    stepClassifications,
   };
 };
 
@@ -4315,5 +4585,9 @@ ProcessOptimizer.prototype.ensureDiagnosisClassification = function (
             : computed.pathwayScores.manualOptimization,
       },
     },
+    // Preserve step-level classifications if Claude returned them; they are not recomputed here
+    stepClassifications: Array.isArray(diagnosis.stepClassifications) && diagnosis.stepClassifications.length > 0
+      ? diagnosis.stepClassifications
+      : undefined,
   };
 };

@@ -33,6 +33,7 @@ import type {
   ProcessWithDiagnosis,
   DiagnosisQuickWin,
   ProcessAnalysis,
+  StepOptimizationClassification,
 } from "@/server/services/ProcessOptimizer";
 import { CheckCircleIcon, LockClosedIcon } from "@heroicons/react/24/solid";
 import ReactMarkdown from "react-markdown";
@@ -180,6 +181,7 @@ export default function ProcessOptimizerPage() {
   const [error, setError] = useState<string>("");
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingSop, setIsGeneratingSop] = useState(false);
+  const [selectedStepCardId, setSelectedStepCardId] = useState<string | null>(null);
   const [guidedMode, setGuidedMode] = useState(true);
 
   // Derived state
@@ -212,8 +214,36 @@ export default function ProcessOptimizerPage() {
   };
 
   const simulateImpact = (selected: DiagnosisQuickWin[], proc: ProcessAnalysis): ImpactAnalysis => {
-    const currentTotalSteps = proc.processSteps.length;
-    const currentDuration = Object.values(proc.leadTimes ?? {}).reduce((a, b) => a + (b ?? 0), 0);
+    const metadata = proc.documentMetadata;
+    // activitiesTable is the source of truth for step count and individual step durations
+    const activitiesTable = metadata?.activitiesTable ?? [];
+
+    // Step count: prefer activitiesTableCount (PDF source of truth) > activitiesTable.length > processSteps
+    const currentTotalSteps =
+      metadata?.activitiesTableCount ??
+      (activitiesTable.length > 0 ? activitiesTable.length : proc.processSteps.length);
+
+    // Duration: sum actual times from activitiesTable when available; fall back to leadTimes
+    const currentDuration = activitiesTable.length > 0
+      ? activitiesTable.reduce((sum, a) => sum + (a.actualTime ?? 0), 0)
+      : Object.values(proc.leadTimes ?? {}).reduce((a, b) => a + (b ?? 0), 0);
+
+    // Helper: look up step duration using multiple fallback strategies
+    const getStepTime = (stepId: string, stepName: string): number => {
+      // 1. Activities table by ID (most accurate)
+      const actById = activitiesTable.find((a) => a.id === stepId);
+      if (actById?.actualTime) return actById.actualTime;
+      // 2. Activities table by name
+      const actByName = activitiesTable.find((a) => a.name?.toLowerCase() === stepName.toLowerCase());
+      if (actByName?.actualTime) return actByName.actualTime;
+      // 3. leadTimes by ID
+      if (proc.leadTimes?.[stepId]) return proc.leadTimes[stepId]!;
+      // 4. Find processStep by name, then use its leadTime
+      const step = proc.processSteps.find((s) => s.name.toLowerCase() === stepName.toLowerCase());
+      if (step) return proc.leadTimes?.[step.id] ?? 0;
+      return 0;
+    };
+
     const currentHandoffs = (() => {
       const nodes = proc.nodes ?? [];
       const edges = proc.edges ?? [];
@@ -235,13 +265,17 @@ export default function ProcessOptimizerPage() {
     let stepsRemoved = 0;
     selected.forEach((q) => {
       if (q.category === "Removal") {
-        const step = proc.processSteps.find((s) => s.id === q.stepId);
-        if (step) { stepsRemoved += 1; timeSaved += proc.leadTimes?.[step.id] ?? 0; }
+        const stepTime = getStepTime(q.stepId, q.stepName);
+        stepsRemoved += 1;
+        timeSaved += stepTime;
       } else if (q.category === "Consolidation") {
-        stepsRemoved += 1; timeSaved += parseTimeSaving(q.estimatedTimeSaving);
+        stepsRemoved += 1;
+        // Prefer estimated time saving from quickWin; fall back to the time of the merged step
+        const estimated = parseTimeSaving(q.estimatedTimeSaving);
+        timeSaved += estimated > 0 ? estimated : getStepTime(q.stepId, q.stepName) * 0.3;
       } else if (q.category === "Parallelization") {
-        const step = proc.processSteps.find((s) => s.id === q.stepId);
-        timeSaved += (step ? (proc.leadTimes?.[step.id] ?? 0) : 0) * 0.5;
+        const stepTime = getStepTime(q.stepId, q.stepName);
+        timeSaved += stepTime * 0.5;
       } else {
         timeSaved += parseTimeSaving(q.estimatedTimeSaving);
       }
@@ -272,7 +306,9 @@ export default function ProcessOptimizerPage() {
     const lines: string[] = [];
     selected.forEach((q) => {
       if (q.category === "Removal") {
-        lines.push(`Remove "${q.stepName}"`);
+        // Include stepId so the deterministic removal handler can match exactly by ID
+        const idSuffix = q.stepId && q.stepId !== q.stepName ? ` (step ID: ${q.stepId})` : "";
+        lines.push(`Remove "${q.stepName}"${idSuffix}`);
       } else if (q.category === "Consolidation" && q.steps && q.steps.length > 1 && q.consolidationSuggestion) {
         lines.push(`Merge steps "${q.steps.join('" and "')}" into a single step: "${q.consolidationSuggestion}". Keep the earliest step's position in the flow.`);
       } else {
@@ -535,8 +571,14 @@ export default function ProcessOptimizerPage() {
     try {
       setIsGeneratingSop(true);
       const selectedQuickWins = (selectedProcess.diagnosis.quickWins ?? []).filter((_, i) => currentSelections[i]);
+      // Prefer the optimized process as the source of truth for content and metadata
+      const optimizedProcess = currentOptimization.optimization?.optimizedProcess;
+      const effectiveMetadata =
+        optimizedProcess?.documentMetadata ?? selectedProcess.analysis.documentMetadata;
       const sop = await generateSopMutation.mutateAsync({
-        originalContent: JSON.stringify(selectedProcess.analysis),
+        originalContent: optimizedProcess
+          ? JSON.stringify(optimizedProcess)
+          : JSON.stringify(selectedProcess.analysis),
         processName: selectedProcess.analysis.processName,
         optimizedMermaid: currentOptimization.optimizedMermaid,
         appliedChanges: selectedQuickWins.map((qw) => ({
@@ -546,11 +588,11 @@ export default function ProcessOptimizerPage() {
           performedBy: qw.performedBy,
         })),
         impactAnalysis: currentImpact ?? undefined,
-        processId: selectedProcess.analysis.documentMetadata?.processId,
-        processOwner: selectedProcess.analysis.documentMetadata?.processOwner,
-        department: selectedProcess.analysis.documentMetadata?.department,
-        section: selectedProcess.analysis.documentMetadata?.section,
-        documentMetadata: selectedProcess.analysis.documentMetadata,
+        processId: effectiveMetadata?.processId,
+        processOwner: effectiveMetadata?.processOwner,
+        department: effectiveMetadata?.department,
+        section: effectiveMetadata?.section,
+        documentMetadata: effectiveMetadata,
         diagnosis: selectedProcess.diagnosis,
       });
       if (sop.success) {
@@ -1042,14 +1084,6 @@ export default function ProcessOptimizerPage() {
     const totalSteps = metadata?.activitiesTableCount ?? analysis.processSteps.length;
     const totalDuration = Object.values(analysis.leadTimes ?? {}).reduce((a, b) => a + (b ?? 0), 0);
     const hasDiscrepancy = metadata?.stepCountDiscrepancy ?? false;
-    const classification = report.automationClassification;
-    const classificationTone = classification.primaryClassification === "AI Agent" ? "text-emerald-700" : classification.primaryClassification === "Classical RPA" ? "text-blue-700" : "text-amber-700";
-    const classificationBg = classification.primaryClassification === "AI Agent" ? "#D1FAE5" : classification.primaryClassification === "Classical RPA" ? "#DBEAFE" : "#FEF3C7";
-    const hybridLabels = [
-      classification.hybridFlags.aiAgent ? "AI Agent" : undefined,
-      classification.hybridFlags.classicalRpa ? "Classical RPA" : undefined,
-      classification.hybridFlags.manualOptimization ? "Manual Optimization" : undefined,
-    ].filter((v): v is string => Boolean(v));
 
     return (
       <div className="p-5">
@@ -1079,45 +1113,6 @@ export default function ProcessOptimizerPage() {
             <div className="text-xs" style={{ color: "var(--sf-text-muted)" }}>Process Owner</div>
             <div className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>{metadata?.processOwner ?? "N/A"}</div>
             {metadata?.department && <div className="text-xs" style={{ color: "var(--sf-text-faint)" }}>{metadata.department}</div>}
-          </div>
-        </div>
-
-        <div className="mb-6 rounded border p-4" style={{ background: "rgba(27,55,100,0.04)", borderColor: "rgba(27,55,100,0.20)" }}>
-          <div className="mb-3 flex flex-wrap items-center gap-2">
-            <h4 className="text-md font-semibold" style={{ color: "var(--sf-text)" }}>Automation Pathway Classification</h4>
-            <span className={`rounded px-2 py-0.5 text-xs font-semibold ${classificationTone}`} style={{ background: classificationBg }}>{classification.primaryClassification}</span>
-            <span className="rounded px-2 py-0.5 text-xs font-semibold" style={{ background: "var(--sf-surface-alt)", color: "var(--sf-text-muted)" }}>Confidence: {classification.confidenceScore}%</span>
-          </div>
-          <div className="mb-3 h-2 overflow-hidden rounded" style={{ background: "var(--sf-border)" }}>
-            <div className="h-full rounded" style={{ background: "var(--det-navy-light)", width: `${classification.confidenceScore}%` }} />
-          </div>
-          <div className="mb-4 grid grid-cols-1 gap-2 md:grid-cols-3">
-            <div className="det-card rounded-lg p-3">
-              <div className="text-xs" style={{ color: "var(--sf-text-muted)" }}>AI Agent Score</div>
-              <div className="text-base font-semibold" style={{ color: "var(--sf-text)" }}>{classification.pathwayScores.aiAgent}</div>
-            </div>
-            <div className="det-card rounded-lg p-3">
-              <div className="text-xs" style={{ color: "var(--sf-text-muted)" }}>Classical RPA Score</div>
-              <div className="text-base font-semibold" style={{ color: "var(--sf-text)" }}>{classification.pathwayScores.classicalRpa}</div>
-            </div>
-            <div className="det-card rounded-lg p-3">
-              <div className="text-xs" style={{ color: "var(--sf-text-muted)" }}>Manual Optimization Score</div>
-              <div className="text-base font-semibold" style={{ color: "var(--sf-text)" }}>{classification.pathwayScores.manualOptimization}</div>
-            </div>
-          </div>
-          <div className="mb-2 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--sf-text-muted)" }}>Hybrid Flags</div>
-          <div className="mb-4 flex flex-wrap gap-2">
-            {hybridLabels.length > 0 ? hybridLabels.map((label) => (
-              <span key={label} className="rounded px-2 py-1 text-xs font-medium" style={{ background: "var(--sf-surface-alt)", color: "var(--sf-text-muted)" }}>{label}</span>
-            )) : <span className="text-sm" style={{ color: "var(--sf-text-faint)" }}>No hybrid pathways flagged.</span>}
-          </div>
-          <div>
-            <div className="mb-1 text-xs font-semibold uppercase tracking-wide" style={{ color: "var(--sf-text-muted)" }}>Key Factors</div>
-            {classification.keyFactors.length > 0 ? (
-              <ul className="space-y-1 text-sm" style={{ color: "var(--sf-text-muted)" }}>
-                {classification.keyFactors.map((factor, i) => <li key={i} className="ml-4 list-disc">{factor}</li>)}
-              </ul>
-            ) : <p className="text-sm" style={{ color: "var(--sf-text-faint)" }}>No key factors provided.</p>}
           </div>
         </div>
 
@@ -1170,6 +1165,219 @@ export default function ProcessOptimizerPage() {
             </div>
           </div>
         )}
+
+        <div className="mb-6">
+          <h4 className="text-md mb-3 font-semibold" style={{ color: "var(--sf-text)" }}>
+            Step-Level Optimization Classification
+          </h4>
+          {(() => {
+            const stepClassifications: StepOptimizationClassification[] = report.stepClassifications ?? [];
+            if (stepClassifications.length === 0) {
+              return (
+                <div className="rounded-lg p-3 text-sm" style={{ background: "var(--sf-surface-alt)", border: "1px solid var(--sf-border)", color: "var(--sf-text-muted)" }}>
+                  Step classifications are not available for this process. Re-run diagnosis to generate them.
+                </div>
+              );
+            }
+            const getConfig = (c: StepOptimizationClassification["classification"]) => {
+              if (c === "AI Agent") return { bg: "#D1FAE5", color: "#065f46", bar: "#10B981", dot: "#059669" };
+              if (c === "Classical RPA") return { bg: "#DBEAFE", color: "#1e40af", bar: "#3B82F6", dot: "#2563EB" };
+              if (c === "As-Is") return { bg: "#F1F5F9", color: "#475569", bar: "#94A3B8", dot: "#64748b" };
+              return { bg: "#FEF3C7", color: "#92400e", bar: "#F59E0B", dot: "#D97706" };
+            };
+            const counts: Record<StepOptimizationClassification["classification"], number> = { "AI Agent": 0, "Classical RPA": 0, "Manual Optimization": 0, "As-Is": 0 };
+            stepClassifications.forEach((s) => { counts[s.classification] = (counts[s.classification] ?? 0) + 1; });
+
+            const activeStep = stepClassifications.find((s) => s.stepId === selectedStepCardId) ?? null;
+            const activeCfg = activeStep ? getConfig(activeStep.classification) : null;
+            const activeProcessStep = activeStep ? analysis.processSteps.find((s) => s.id === activeStep.stepId) : null;
+            const activeActEntry = activeStep ? analysis.documentMetadata?.activitiesTable?.find((a) => a.id === activeStep.stepId || a.name === activeStep.stepName) : null;
+            const activeLeadTime = activeStep ? analysis.leadTimes?.[activeStep.stepId] : undefined;
+            const activeRelatedQuickWins = activeStep ? (report.quickWins?.filter((q) => q.stepId === activeStep.stepId) ?? []) : [];
+            const activeIsBottleneck = activeStep ? report.bottlenecks?.some((b) => b.stepId === activeStep.stepId) : false;
+
+            const getAfterDescription = (classification: StepOptimizationClassification["classification"]): { action: string; outcome: string } => {
+              if (classification === "AI Agent") return {
+                action: "Deploy an AI agent to handle this step autonomously — processing unstructured inputs, applying contextual judgment, and generating outputs without manual intervention.",
+                outcome: "Significant reduction in handling time, elimination of human error on judgment-heavy tasks, 24/7 availability, and consistent decision quality.",
+              };
+              if (classification === "Classical RPA") return {
+                action: "Implement a software robot to execute this step — reading structured inputs from systems, applying fixed business rules, and writing outputs automatically.",
+                outcome: "Near-zero manual effort, faster cycle time, full audit trail, and elimination of data-entry errors.",
+              };
+              if (classification === "As-Is") return {
+                action: "No change required — this step is already well-designed and efficient.",
+                outcome: "Retain as-is; no optimization or automation is warranted at this stage.",
+              };
+              return {
+                action: "Redesign the step for efficiency — streamline the workflow, reduce approval layers, consolidate handoffs, and provide better tooling or templates to the human executor.",
+                outcome: "Reduced elapsed time through process simplification, clearer ownership, and removal of unnecessary wait cycles.",
+              };
+            };
+
+            return (
+              <>
+                {/* Summary badges */}
+                <div className="mb-4 flex flex-wrap gap-3">
+                  {(["AI Agent", "Classical RPA", "Manual Optimization", "As-Is"] as const).map((pathway) => {
+                    const cfg = getConfig(pathway);
+                    const count = counts[pathway];
+                    return (
+                      <div key={pathway} className="flex items-center gap-2 rounded-lg border px-3 py-2" style={{ background: cfg.bg, borderColor: cfg.bar + "55" }}>
+                        <span className="h-2.5 w-2.5 rounded-full flex-shrink-0" style={{ background: cfg.dot }} />
+                        <span className="text-xs font-semibold" style={{ color: cfg.color }}>{pathway}</span>
+                        <span className="rounded-full px-1.5 py-0.5 text-xs font-bold" style={{ background: "rgba(0,0,0,0.08)", color: cfg.color }}>{count}</span>
+                      </div>
+                    );
+                  })}
+                </div>
+
+                {/* Step cards grid — clicking opens a modal */}
+                <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+                  {stepClassifications.map((sc, i) => {
+                    const cfg = getConfig(sc.classification);
+                    const isActive = selectedStepCardId === sc.stepId;
+                    return (
+                      <button
+                        key={i}
+                        type="button"
+                        onClick={() => setSelectedStepCardId(sc.stepId)}
+                        className="w-full rounded-lg border p-3 text-left transition-all hover:shadow-md"
+                        style={{
+                          background: isActive ? cfg.bg : "var(--sf-surface)",
+                          borderColor: isActive ? cfg.bar : "var(--sf-border)",
+                          cursor: "pointer",
+                        }}
+                      >
+                        <div className="mb-2 flex items-start justify-between gap-2">
+                          <div className="min-w-0">
+                            <span className="block font-mono text-[10px] font-semibold" style={{ color: "var(--det-navy-light)" }}>{sc.stepId}</span>
+                            <span className="block truncate text-xs font-semibold leading-tight" style={{ color: "var(--sf-text)" }} title={sc.stepName}>{sc.stepName}</span>
+                          </div>
+                          <span className="flex-shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap" style={{ background: cfg.bg, color: cfg.color }}>{sc.classification}</span>
+                        </div>
+                        <div className="mb-2">
+                          <div className="mb-0.5 flex items-center justify-between">
+                            <span className="text-[10px]" style={{ color: "var(--sf-text-faint)" }}>Confidence</span>
+                            <span className="text-[10px] font-semibold" style={{ color: cfg.color }}>{sc.confidenceScore}%</span>
+                          </div>
+                          <div className="h-1.5 w-full overflow-hidden rounded-full" style={{ background: "var(--sf-border)" }}>
+                            <div className="h-full rounded-full transition-all" style={{ width: `${sc.confidenceScore}%`, background: cfg.bar }} />
+                          </div>
+                        </div>
+                        <p className="text-[11px] leading-relaxed" style={{ color: "var(--sf-text-muted)" }}>{sc.reason}</p>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Modal popup */}
+                {activeStep && activeCfg && (
+                  <div
+                    className="fixed inset-0 z-50 flex items-center justify-center p-4"
+                    style={{ background: "rgba(0,0,0,0.45)" }}
+                    onClick={() => setSelectedStepCardId(null)}
+                  >
+                    <div
+                      className="relative w-full max-w-2xl overflow-hidden rounded-2xl shadow-2xl"
+                      style={{ background: "var(--sf-surface)", border: `2px solid ${activeCfg.bar}55`, maxHeight: "85vh", overflowY: "auto" }}
+                      onClick={(e) => e.stopPropagation()}
+                    >
+                      {/* Modal header */}
+                      <div className="flex items-start justify-between gap-3 px-6 py-4" style={{ borderBottom: "1px solid var(--sf-border)", background: activeCfg.bg }}>
+                        <div className="min-w-0">
+                          <span className="block font-mono text-xs font-semibold" style={{ color: activeCfg.color }}>{activeStep.stepId}</span>
+                          <span className="block text-base font-bold leading-snug" style={{ color: "var(--sf-text)" }}>{activeStep.stepName}</span>
+                        </div>
+                        <div className="flex flex-shrink-0 items-center gap-2">
+                          <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: activeCfg.dot, color: "#fff" }}>{activeStep.classification}</span>
+                          <button
+                            onClick={() => setSelectedStepCardId(null)}
+                            className="rounded-full p-1 transition hover:opacity-70"
+                            style={{ color: "var(--sf-text-muted)" }}
+                          >
+                            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" /></svg>
+                          </button>
+                        </div>
+                      </div>
+
+                      {/* Confidence */}
+                      <div className="px-6 pt-4">
+                        <div className="mb-1 flex items-center justify-between text-xs">
+                          <span style={{ color: "var(--sf-text-muted)" }}>Confidence score</span>
+                          <span className="font-bold" style={{ color: activeCfg.color }}>{activeStep.confidenceScore}%</span>
+                        </div>
+                        <div className="mb-1 h-2 w-full overflow-hidden rounded-full" style={{ background: "var(--sf-border)" }}>
+                          <div className="h-full rounded-full" style={{ width: `${activeStep.confidenceScore}%`, background: activeCfg.bar }} />
+                        </div>
+                        <p className="mt-1 text-xs" style={{ color: "var(--sf-text-muted)" }}>{activeStep.reason}</p>
+                      </div>
+
+                      {/* Before / After columns */}
+                      <div className="grid grid-cols-1 gap-0 px-6 py-4 md:grid-cols-2 md:gap-6">
+                        {/* BEFORE */}
+                        <div className="pb-4 md:pb-0" style={{ borderBottom: "1px solid var(--sf-border)" }}>
+                          <div className="mb-3 flex items-center gap-2">
+                            <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ background: "rgba(220,38,38,0.10)", color: "#dc2626" }}>Before</span>
+                            <span className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>Current State</span>
+                          </div>
+                          <div className="space-y-3 text-sm" style={{ color: "var(--sf-text-muted)" }}>
+                            <div className="rounded-lg p-3" style={{ background: "var(--sf-surface-alt)", border: "1px solid var(--sf-border)" }}>
+                              <div className="mb-1 text-[10px] font-bold uppercase tracking-wide" style={{ color: "#dc2626" }}>How It Works Today</div>
+                              <p className="text-xs leading-relaxed">{activeStep.currentStateDescription}</p>
+                            </div>
+                            {activeIsBottleneck && (
+                              <div className="flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold" style={{ background: "rgba(220,38,38,0.08)", color: "#dc2626" }}>
+                                <svg className="h-3.5 w-3.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v2m0 4h.01M12 3a9 9 0 100 18A9 9 0 0012 3z" /></svg>
+                                Identified as a bottleneck
+                              </div>
+                            )}
+                            {activeRelatedQuickWins.length > 0 && (
+                              <div>
+                                <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--sf-text-faint)" }}>Quick wins flagged</div>
+                                {activeRelatedQuickWins.map((qw, qi) => (
+                                  <div key={qi} className="mb-1 rounded-lg px-3 py-1.5 text-xs" style={{ background: "rgba(201,168,76,0.12)", color: "var(--det-gold)" }}>{qw.suggestion}</div>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* AFTER */}
+                        <div className="pt-4 md:pt-0">
+                          <div className="mb-3 flex items-center gap-2">
+                            <span className="rounded-full px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-wide" style={{ background: activeCfg.bg, color: activeCfg.color }}>After</span>
+                            <span className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>Post-Implementation</span>
+                          </div>
+                          <div className="space-y-3 text-sm" style={{ color: "var(--sf-text-muted)" }}>
+                            {(() => {
+                              const afterDesc = getAfterDescription(activeStep.classification);
+                              return (
+                                <>
+                                  <div className="rounded-lg p-3" style={{ background: "var(--sf-surface-alt)", border: "1px solid var(--sf-border)" }}>
+                                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wide" style={{ color: activeCfg.color }}>Implementation</div>
+                                    <p className="text-xs leading-relaxed">{afterDesc.action}</p>
+                                  </div>
+                                  <div className="rounded-lg p-3" style={{ background: "var(--sf-surface-alt)", border: "1px solid var(--sf-border)" }}>
+                                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wide" style={{ color: activeCfg.color }}>Expected Outcome</div>
+                                    <p className="text-xs leading-relaxed">{afterDesc.outcome}</p>
+                                  </div>
+                                  <div className="rounded-lg px-3 py-2 text-xs font-semibold" style={{ background: activeCfg.bg, color: activeCfg.color }}>
+                                    Pathway: {activeStep.classification}
+                                  </div>
+                                </>
+                              );
+                            })()}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </>
+            );
+          })()}
+        </div>
 
         <div className="mb-6">
           <h4 className="text-md mb-2 font-semibold" style={{ color: "var(--sf-text)" }}>

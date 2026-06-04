@@ -5,7 +5,9 @@ import type {
   ProcessDocumentMetadata,
   ProcessDiagnosis,
   ProcessAnalysis,
+  ProcessWithDiagnosis,
 } from "@/server/services/ProcessOptimizer";
+import { computeEnrichedSteps } from "@/components/StepLevelView";
 
 export const processOptimizerRouter = createTRPCRouter({
   // Combined endpoint: PDF → Extract + Analyze + Diagnose in ONE Claude API call
@@ -256,6 +258,28 @@ export const processOptimizerRouter = createTRPCRouter({
         return { success: true as const, results };
       } catch (error) {
         console.error("[optimizeForProcess] Error:", error);
+        return {
+          success: false as const,
+          error: error instanceof Error ? error.message : "Unknown error",
+        };
+      }
+    }),
+
+  // ─── Step-level enrichment ────────────────────────────────────────────────
+  // Pure computation: joins activitiesTable + stepClassifications + bottlenecks
+  // + quickWins into a single enriched step list. No AI call required.
+  enrichProcessSteps: publicProcedure
+    .input(
+      z.object({
+        processJson: z.string(), // serialised ProcessWithDiagnosis
+      }),
+    )
+    .mutation(({ input }) => {
+      try {
+        const proc = JSON.parse(input.processJson) as ProcessWithDiagnosis;
+        const steps = computeEnrichedSteps(proc);
+        return { success: true as const, steps };
+      } catch (error) {
         return {
           success: false as const,
           error: error instanceof Error ? error.message : "Unknown error",

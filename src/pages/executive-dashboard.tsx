@@ -2,15 +2,13 @@ import Head from "next/head";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/router";
-import { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { useAuth } from "@/contexts/AuthContext";
 import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getUserProjects, type Project } from "@/lib/supabase";
-import type {
-  ProcessWithDiagnosis,
-  AutomationPathway,
-} from "@/server/services/ProcessOptimizer";
+import type { ProcessWithDiagnosis } from "@/server/services/ProcessOptimizer";
+import { StepLevelView } from "@/components/StepLevelView";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -27,16 +25,36 @@ function parseToHours(text: string | undefined): number {
 }
 
 function potentialHoursForProcess(proc: ProcessWithDiagnosis): number {
-  return (proc.diagnosis?.quickWins ?? []).reduce(
-    (sum, qw) => sum + parseToHours(qw.estimatedTimeSaving),
-    0,
-  );
+  const activitiesTable = proc.analysis?.documentMetadata?.activitiesTable ?? [];
+  return (proc.diagnosis?.quickWins ?? []).reduce((sum, qw) => {
+    // For removal/parallelization, prefer the numeric actualTime from activitiesTable
+    // over the AI-generated text estimate (avoids regex-parsing errors)
+    if (qw.category === "Removal" || qw.category === "Parallelization") {
+      const entry =
+        activitiesTable.find((a) => a.id === qw.stepId) ??
+        activitiesTable.find((a) => a.name?.toLowerCase() === qw.stepName?.toLowerCase());
+      if (entry?.actualTime) {
+        const unit = (entry.actualTimeUnit ?? "").toLowerCase();
+        const hrs = unit.includes("day")
+          ? entry.actualTime * 8
+          : unit.includes("min")
+            ? entry.actualTime / 60
+            : entry.actualTime; // default: hours
+        return sum + (qw.category === "Parallelization" ? hrs * 0.5 : hrs);
+      }
+    }
+    return sum + parseToHours(qw.estimatedTimeSaving);
+  }, 0);
 }
 
 function getComplexityTier(proc: ProcessWithDiagnosis): "Low" | "Medium" | "High" {
   const handoffs = proc.diagnosis?.processMetrics?.departmentHandoffs ?? 0;
   const approvals = proc.diagnosis?.processMetrics?.approvalLayers ?? 0;
-  const steps = (proc.analysis?.processSteps ?? []).length;
+  // Prefer activitiesTableCount (PDF source of truth) over processSteps array length
+  const meta = proc.analysis?.documentMetadata;
+  const steps =
+    meta?.activitiesTableCount ??
+    (meta?.activitiesTable?.length ?? (proc.analysis?.processSteps ?? []).length);
   const score = handoffs * 2 + approvals * 2 + Math.floor(steps / 5);
   if (score >= 8) return "High";
   if (score >= 4) return "Medium";
@@ -59,109 +77,12 @@ function getOwner(proc: ProcessWithDiagnosis): string {
   );
 }
 
-// ─── Constants ────────────────────────────────────────────────────────────────
-
-const PATHWAY_COLORS: Record<
-  AutomationPathway,
-  { stroke: string; bg: string; text: string }
-> = {
-  "AI Agent": { stroke: "#1b3764", bg: "rgba(27,55,100,0.09)", text: "#1b3764" },
-  "Classical RPA": { stroke: "#1a9e8f", bg: "rgba(26,158,143,0.09)", text: "#0d7a6e" },
-  "Manual Optimization": { stroke: "#c9a84c", bg: "rgba(201,168,76,0.12)", text: "#8a6b18" },
-};
-
-const ALL_PATHWAYS: AutomationPathway[] = [
-  "AI Agent",
-  "Classical RPA",
-  "Manual Optimization",
-];
-
 // ─── Flat process model ───────────────────────────────────────────────────────
 
 interface FlatProcess {
   projectId: string;
   projectName: string;
   process: ProcessWithDiagnosis;
-}
-
-// ─── SVG Donut Chart ──────────────────────────────────────────────────────────
-
-function DonutChart({
-  counts,
-  total,
-}: {
-  counts: Record<AutomationPathway, number>;
-  total: number;
-}) {
-  const r = 56;
-  const cx = 70;
-  const cy = 70;
-  const sw = 18;
-  const circ = 2 * Math.PI * r;
-
-  const bands = ALL_PATHWAYS.map((p) => ({ pathway: p, value: counts[p] }));
-  let cumDeg = 0;
-
-  if (total === 0) {
-    return (
-      <svg width="140" height="140" viewBox="0 0 140 140">
-        <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--sf-border)" strokeWidth={sw} />
-        <text x={cx} y={cy + 5} textAnchor="middle" fontSize="11" fill="var(--sf-text-faint)">
-          No data
-        </text>
-      </svg>
-    );
-  }
-
-  return (
-    <svg width="140" height="140" viewBox="0 0 140 140">
-      {/* Background ring */}
-      <circle cx={cx} cy={cy} r={r} fill="none" stroke="var(--sf-border)" strokeWidth={sw} />
-
-      {bands.map(({ pathway, value }) => {
-        if (value === 0) return null;
-        const frac = value / total;
-        const dash = frac * circ;
-        const startDeg = cumDeg;
-        cumDeg += frac * 360;
-        return (
-          <circle
-            key={pathway}
-            cx={cx}
-            cy={cy}
-            r={r}
-            fill="none"
-            stroke={PATHWAY_COLORS[pathway].stroke}
-            strokeWidth={sw}
-            strokeDasharray={`${dash} ${circ - dash}`}
-            transform={`rotate(${startDeg - 90} ${cx} ${cy})`}
-          />
-        );
-      })}
-
-      <text
-        x={cx}
-        y={cy - 6}
-        textAnchor="middle"
-        fontSize="22"
-        fontWeight="700"
-        fill="var(--sf-text)"
-      >
-        {total}
-      </text>
-      <text
-        x={cx}
-        y={cy + 12}
-        textAnchor="middle"
-        fontSize="8"
-        fontWeight="600"
-        fill="var(--sf-text-muted)"
-        letterSpacing="0.6"
-      >
-        PROCESSES
-      </text>
-    </svg>
-  );
 }
 
 // ─── Page ─────────────────────────────────────────────────────────────────────
@@ -176,9 +97,9 @@ export default function ExecutiveDashboard() {
   const [projects, setProjects] = useState<Project[]>([]);
   const [fetching, setFetching] = useState(true);
   const [aedRate, setAedRate] = useState(200);
+  const [selectedProcessKey, setSelectedProcessKey] = useState<string | null>(null);
 
   // Filters
-  const [filterPathway, setFilterPathway] = useState<AutomationPathway | "All">("All");
   const [filterDept, setFilterDept] = useState("All");
   const [filterOwner, setFilterOwner] = useState("All");
   const [filterComplexity, setFilterComplexity] = useState<"All" | "Low" | "Medium" | "High">("All");
@@ -222,33 +143,35 @@ export default function ExecutiveDashboard() {
 
   const filtered = useMemo<FlatProcess[]>(() => {
     return flatProcesses.filter((fp) => {
-      const pathway =
-        fp.process.diagnosis?.automationClassification?.primaryClassification;
-      if (filterPathway !== "All" && pathway !== filterPathway) return false;
       if (filterDept !== "All" && getDepartment(fp.process) !== filterDept) return false;
       if (filterOwner !== "All" && getOwner(fp.process) !== filterOwner) return false;
-      if (
-        filterComplexity !== "All" &&
-        getComplexityTier(fp.process) !== filterComplexity
-      )
-        return false;
+      if (filterComplexity !== "All" && getComplexityTier(fp.process) !== filterComplexity) return false;
       return true;
     });
-  }, [flatProcesses, filterPathway, filterDept, filterOwner, filterComplexity]);
+  }, [flatProcesses, filterDept, filterOwner, filterComplexity]);
 
   const agg = useMemo(() => {
     let totalHours = 0;
-    const pathwayCounts: Record<AutomationPathway, number> = {
-      "AI Agent": 0,
-      "Classical RPA": 0,
-      "Manual Optimization": 0,
-    };
+    let totalSteps = 0;
+    let totalBottlenecks = 0;
+    let criticalBottlenecks = 0;
+    let totalQuickWins = 0;
+    const complexityCounts = { Low: 0, Medium: 0, High: 0 };
     flatProcesses.forEach((fp) => {
       const proc = fp.process;
       if (!proc?.diagnosis) return;
       totalHours += potentialHoursForProcess(proc);
-      const pw = proc.diagnosis.automationClassification?.primaryClassification;
-      if (pw && pw in pathwayCounts) pathwayCounts[pw]++;
+      const c = getComplexityTier(proc);
+      complexityCounts[c]++;
+      const meta = proc.analysis?.documentMetadata;
+      totalSteps +=
+        meta?.activitiesTableCount ??
+        meta?.activitiesTable?.length ??
+        proc.analysis?.processSteps?.length ?? 0;
+      const bns = proc.diagnosis.bottlenecks ?? [];
+      totalBottlenecks += bns.length;
+      criticalBottlenecks += bns.filter((b) => b.impact === "High").length;
+      totalQuickWins += (proc.diagnosis.quickWins ?? []).length;
     });
     const roundedHours = Math.round(totalHours);
     const costAed = Math.round(totalHours * aedRate);
@@ -258,12 +181,13 @@ export default function ExecutiveDashboard() {
       totalHours: roundedHours,
       costAed,
       fteEquivalent,
-      pathwayCounts,
+      complexityCounts,
+      totalSteps,
+      totalBottlenecks,
+      criticalBottlenecks,
+      totalQuickWins,
     };
   }, [flatProcesses, aedRate]);
-
-  const pctOf = (count: number) =>
-    agg.totalProcesses > 0 ? Math.round((count / agg.totalProcesses) * 100) : 0;
 
   const fmtAed = (n: number) =>
     n >= 1_000_000
@@ -511,7 +435,7 @@ export default function ExecutiveDashboard() {
                 ))}
               </div>
 
-              {/* ── Pathway Distribution ────────────────────────────── */}
+              {/* ── Portfolio Health Overview ──────────────────────── */}
               <div
                 className="mb-8 rounded-2xl p-6"
                 style={{
@@ -524,87 +448,73 @@ export default function ExecutiveDashboard() {
                   className="mb-5 text-xs font-bold uppercase tracking-widest"
                   style={{ color: "var(--sf-text-muted)" }}
                 >
-                  Pathway Distribution — click a pathway to drill through
+                  Portfolio Health Overview
                 </h2>
 
-                <div className="flex flex-col gap-6 sm:flex-row sm:items-center">
-                  {/* Donut */}
-                  <div className="flex-shrink-0">
-                    <DonutChart counts={agg.pathwayCounts} total={agg.totalProcesses} />
+                {/* Complexity distribution bar */}
+                <div className="mb-5">
+                  <div className="mb-1.5 flex items-center justify-between text-xs" style={{ color: "var(--sf-text-muted)" }}>
+                    <span>Process Complexity Distribution</span>
+                    <span>{agg.totalProcesses} processes</span>
                   </div>
+                  <div className="flex h-4 w-full overflow-hidden rounded-full" style={{ background: "var(--sf-border)" }}>
+                    {agg.totalProcesses > 0 && (
+                      <>
+                        <div
+                          className="h-full transition-all"
+                          style={{
+                            width: `${Math.round((agg.complexityCounts.High / agg.totalProcesses) * 100)}%`,
+                            background: "#dc2626",
+                          }}
+                          title={`High: ${agg.complexityCounts.High}`}
+                        />
+                        <div
+                          className="h-full transition-all"
+                          style={{
+                            width: `${Math.round((agg.complexityCounts.Medium / agg.totalProcesses) * 100)}%`,
+                            background: "#f59e0b",
+                          }}
+                          title={`Medium: ${agg.complexityCounts.Medium}`}
+                        />
+                        <div
+                          className="h-full transition-all"
+                          style={{
+                            width: `${Math.round((agg.complexityCounts.Low / agg.totalProcesses) * 100)}%`,
+                            background: "#16a34a",
+                          }}
+                          title={`Low: ${agg.complexityCounts.Low}`}
+                        />
+                      </>
+                    )}
+                  </div>
+                  <div className="mt-1.5 flex gap-4 text-xs" style={{ color: "var(--sf-text-muted)" }}>
+                    <span><span style={{ color: "#dc2626" }}>■</span> High ({agg.complexityCounts.High})</span>
+                    <span><span style={{ color: "#f59e0b" }}>■</span> Medium ({agg.complexityCounts.Medium})</span>
+                    <span><span style={{ color: "#16a34a" }}>■</span> Low ({agg.complexityCounts.Low})</span>
+                  </div>
+                </div>
 
-                  {/* Pathway tiles */}
-                  <div className="flex flex-1 flex-col gap-2.5">
-                    {ALL_PATHWAYS.map((pathway) => {
-                      const count = agg.pathwayCounts[pathway];
-                      const pct = pctOf(count);
-                      const cfg = PATHWAY_COLORS[pathway];
-                      return (
-                        <Link
-                          key={pathway}
-                          href={`/pathway-drilldown?pathway=${encodeURIComponent(pathway)}`}
-                          className="group flex items-center gap-3 rounded-xl px-4 py-3 transition-all duration-150"
-                          style={{ background: cfg.bg }}
-                          onMouseEnter={(e) =>
-                            ((e.currentTarget as HTMLAnchorElement).style.outline = `1.5px solid ${cfg.stroke}`)
-                          }
-                          onMouseLeave={(e) =>
-                            ((e.currentTarget as HTMLAnchorElement).style.outline = "none")
-                          }
-                        >
-                          <span
-                            className="h-3 w-3 flex-shrink-0 rounded-full"
-                            style={{ background: cfg.stroke }}
-                          />
-                          <div className="flex-1 min-w-0">
-                            <div className="flex items-center justify-between mb-1.5">
-                              <span
-                                className="text-sm font-semibold"
-                                style={{ color: cfg.text }}
-                              >
-                                {pathway}
-                              </span>
-                              <span
-                                className="text-sm font-bold"
-                                style={{ color: cfg.text }}
-                              >
-                                {pct}%
-                              </span>
-                            </div>
-                            <div
-                              className="h-1.5 w-full overflow-hidden rounded-full"
-                              style={{ background: "var(--sf-border)" }}
-                            >
-                              <div
-                                className="h-full rounded-full"
-                                style={{ width: `${pct}%`, background: cfg.stroke }}
-                              />
-                            </div>
-                          </div>
-                          <span
-                            className="w-8 text-right text-xs font-semibold"
-                            style={{ color: "var(--sf-text-faint)" }}
-                          >
-                            {count}
-                          </span>
-                          <svg
-                            className="h-4 w-4 opacity-0 transition-opacity group-hover:opacity-100"
-                            style={{ color: cfg.stroke }}
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                          >
-                            <path
-                              strokeLinecap="round"
-                              strokeLinejoin="round"
-                              strokeWidth={2}
-                              d="M9 5l7 7-7 7"
-                            />
-                          </svg>
-                        </Link>
-                      );
-                    })}
-                  </div>
+                {/* Health metric tiles */}
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
+                  {[
+                    { label: "Total Steps", value: agg.totalSteps, color: "var(--det-navy)" },
+                    { label: "Critical Issues", value: agg.criticalBottlenecks, color: "#dc2626" },
+                    { label: "Quick Wins", value: agg.totalQuickWins, color: "#16a34a" },
+                    {
+                      label: "Avg Steps / Process",
+                      value: agg.totalProcesses > 0 ? (agg.totalSteps / agg.totalProcesses).toFixed(1) : "—",
+                      color: "var(--det-teal)",
+                    },
+                  ].map((tile) => (
+                    <div
+                      key={tile.label}
+                      className="rounded-xl px-4 py-3"
+                      style={{ background: "var(--sf-bg)", border: "1px solid var(--sf-border)" }}
+                    >
+                      <p className="text-xs" style={{ color: "var(--sf-text-muted)" }}>{tile.label}</p>
+                      <p className="mt-1 text-xl font-bold" style={{ color: tile.color }}>{tile.value}</p>
+                    </div>
+                  ))}
                 </div>
               </div>
 
@@ -612,13 +522,6 @@ export default function ExecutiveDashboard() {
               <div className="mb-4 flex flex-wrap items-center gap-3">
                 {(
                   [
-                    {
-                      label: "Pathway",
-                      value: filterPathway,
-                      options: ["All", ...ALL_PATHWAYS],
-                      set: (v: string) =>
-                        setFilterPathway(v as AutomationPathway | "All"),
-                    },
                     {
                       label: "Department",
                       value: filterDept,
@@ -662,13 +565,11 @@ export default function ExecutiveDashboard() {
                     </select>
                   </div>
                 ))}
-                {(filterPathway !== "All" ||
-                  filterDept !== "All" ||
+                {(filterDept !== "All" ||
                   filterOwner !== "All" ||
                   filterComplexity !== "All") && (
                   <button
                     onClick={() => {
-                      setFilterPathway("All");
                       setFilterDept("All");
                       setFilterOwner("All");
                       setFilterComplexity("All");
@@ -708,17 +609,15 @@ export default function ExecutiveDashboard() {
                 >
                   <table className="w-full min-w-[700px] text-sm">
                     <thead>
-                      <tr
-                        style={{ borderBottom: "1px solid var(--sf-border)" }}
-                      >
+                      <tr style={{ borderBottom: "1px solid var(--sf-border)" }}>
                         {[
                           "Process",
                           "Project",
-                          "Pathway",
                           "Department",
                           "Owner",
                           "Complexity",
                           "Potential Saving",
+                          "",
                         ].map((h) => (
                           <th
                             key={h}
@@ -733,87 +632,155 @@ export default function ExecutiveDashboard() {
                     <tbody>
                       {filtered.map((fp, i) => {
                         const proc = fp.process;
-                        const pathway =
-                          proc.diagnosis?.automationClassification
-                            ?.primaryClassification;
                         const dept = getDepartment(proc);
                         const owner = getOwner(proc);
                         const complexity = getComplexityTier(proc);
                         const hours = potentialHoursForProcess(proc);
-                        const cfg = pathway ? PATHWAY_COLORS[pathway] : null;
+                        const rowKey = `${fp.projectId}-${proc.processIndex}`;
+                        const isExpanded = selectedProcessKey === rowKey;
 
                         return (
-                          <tr
-                            key={`${fp.projectId}-${proc.processIndex}`}
-                            style={{
-                              borderBottom:
-                                i < filtered.length - 1
-                                  ? "1px solid var(--sf-border-soft)"
-                                  : "none",
-                            }}
-                          >
-                            <td className="px-4 py-3">
-                              <Link
-                                href={`/process-optimizer?projectId=${fp.projectId}`}
-                                className="font-medium hover:underline"
-                                style={{ color: "var(--det-navy)" }}
-                              >
-                                {proc.analysis?.processName ?? "Unnamed"}
-                              </Link>
-                            </td>
-                            <td
-                              className="max-w-[140px] truncate px-4 py-3 text-xs"
-                              style={{ color: "var(--sf-text-muted)" }}
+                          // React.Fragment with key is required when returning multiple sibling rows
+                          // eslint-disable-next-line react/jsx-key
+                          <React.Fragment key={rowKey}>
+                            <tr
+                              className="cursor-pointer transition-colors"
+                              onClick={() =>
+                                setSelectedProcessKey(isExpanded ? null : rowKey)
+                              }
+                              style={{
+                                borderBottom:
+                                  !isExpanded && i < filtered.length - 1
+                                    ? "1px solid var(--sf-border-soft)"
+                                    : "none",
+                                background: isExpanded
+                                  ? "rgba(27,55,100,0.04)"
+                                  : undefined,
+                              }}
                             >
-                              {fp.projectName}
-                            </td>
-                            <td className="px-4 py-3">
-                              {cfg ? (
+                              <td className="px-4 py-3">
                                 <span
-                                  className="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold"
+                                  className="font-semibold"
+                                  style={{ color: "var(--det-navy)" }}
+                                >
+                                  {proc.analysis?.processName ?? "Unnamed"}
+                                </span>
+                              </td>
+                              <td
+                                className="max-w-[140px] truncate px-4 py-3 text-xs"
+                                style={{ color: "var(--sf-text-muted)" }}
+                              >
+                                {fp.projectName}
+                              </td>
+                              <td
+                                className="px-4 py-3 text-xs"
+                                style={{ color: "var(--sf-text-muted)" }}
+                              >
+                                {dept}
+                              </td>
+                              <td
+                                className="px-4 py-3 text-xs"
+                                style={{ color: "var(--sf-text-muted)" }}
+                              >
+                                {owner}
+                              </td>
+                              <td className="px-4 py-3">
+                                <span
+                                  className="text-xs font-semibold"
+                                  style={{ color: complexityColor(complexity) }}
+                                >
+                                  {complexity}
+                                </span>
+                              </td>
+                              <td
+                                className="px-4 py-3 text-xs font-semibold"
+                                style={{ color: "var(--det-teal)" }}
+                              >
+                                {hours > 0 ? `${Math.round(hours)} hrs` : "—"}
+                              </td>
+                              <td className="px-4 py-3 text-right">
+                                <svg
+                                  className={`inline-block h-4 w-4 transition-transform ${isExpanded ? "rotate-180" : ""}`}
+                                  style={{ color: "var(--sf-text-faint)" }}
+                                  fill="none"
+                                  viewBox="0 0 24 24"
+                                  stroke="currentColor"
+                                >
+                                  <path
+                                    strokeLinecap="round"
+                                    strokeLinejoin="round"
+                                    strokeWidth={2}
+                                    d="M19 9l-7 7-7-7"
+                                  />
+                                </svg>
+                              </td>
+                            </tr>
+
+                            {/* ── Step-level expansion row ── */}
+                            {isExpanded && (
+                              <tr
+                                style={{
+                                  borderBottom:
+                                    i < filtered.length - 1
+                                      ? "1px solid var(--sf-border)"
+                                      : "none",
+                                }}
+                              >
+                                <td
+                                  colSpan={7}
                                   style={{
-                                    color: cfg.text,
-                                    background: cfg.bg,
+                                    padding: 0,
+                                    background: "var(--sf-bg)",
                                   }}
                                 >
-                                  {pathway}
-                                </span>
-                              ) : (
-                                <span
-                                  className="text-xs"
-                                  style={{ color: "var(--sf-text-faint)" }}
-                                >
-                                  —
-                                </span>
-                              )}
-                            </td>
-                            <td
-                              className="px-4 py-3 text-xs"
-                              style={{ color: "var(--sf-text-muted)" }}
-                            >
-                              {dept}
-                            </td>
-                            <td
-                              className="px-4 py-3 text-xs"
-                              style={{ color: "var(--sf-text-muted)" }}
-                            >
-                              {owner}
-                            </td>
-                            <td className="px-4 py-3">
-                              <span
-                                className="text-xs font-semibold"
-                                style={{ color: complexityColor(complexity) }}
-                              >
-                                {complexity}
-                              </span>
-                            </td>
-                            <td
-                              className="px-4 py-3 text-xs font-semibold"
-                              style={{ color: "var(--det-teal)" }}
-                            >
-                              {hours > 0 ? `${Math.round(hours)} hrs` : "—"}
-                            </td>
-                          </tr>
+                                  <div className="px-5 py-5">
+                                    {/* Process summary header */}
+                                    <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+                                      <div>
+                                        <h3
+                                          className="text-sm font-bold"
+                                          style={{ color: "var(--sf-text)" }}
+                                        >
+                                          {proc.analysis?.processName ?? "Process"} — Step Detail
+                                        </h3>
+                                        <p
+                                          className="mt-0.5 text-xs"
+                                          style={{ color: "var(--sf-text-faint)" }}
+                                        >
+                                          {fp.projectName}
+                                          {dept !== "—" && ` · ${dept}`}
+                                          {owner !== "—" && ` · ${owner}`}
+                                        </p>
+                                      </div>
+                                      <Link
+                                        href={`/process-optimizer?projectId=${fp.projectId}`}
+                                        onClick={(e) => e.stopPropagation()}
+                                        className="sf-button-primary inline-flex items-center gap-2 rounded-lg px-3 py-2 text-xs font-semibold"
+                                      >
+                                        Open in Optimizer
+                                        <svg
+                                          className="h-3.5 w-3.5"
+                                          fill="none"
+                                          viewBox="0 0 24 24"
+                                          stroke="currentColor"
+                                        >
+                                          <path
+                                            strokeLinecap="round"
+                                            strokeLinejoin="round"
+                                            strokeWidth={2}
+                                            d="M9 5l7 7-7 7"
+                                          />
+                                        </svg>
+                                      </Link>
+                                    </div>
+
+                                    {/* Step-level view */}
+                                    <StepLevelView process={proc} />
+                                  </div>
+                                </td>
+                              </tr>
+                            )}
+                          </React.Fragment>
                         );
                       })}
                     </tbody>
@@ -833,7 +800,7 @@ export default function ExecutiveDashboard() {
           }}
         >
           <p className="mx-auto max-w-7xl text-xs" style={{ color: "var(--sf-text-faint)" }}>
-            * Potential savings are calculated from all quick-win recommendations per diagnosed process. AED cost savings are estimates based on the configured hourly rate. FTE equivalent assumes 2,080 working hours per year.
+            * Potential savings are calculated from all quick-win recommendations per diagnosed process. AED cost savings are estimates based on the configured hourly rate. FTE equivalent assumes 2,080 working hours per year. Click any process row to expand step-level detail.
           </p>
         </footer>
       </div>
