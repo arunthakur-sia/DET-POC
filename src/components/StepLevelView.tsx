@@ -262,9 +262,9 @@ function StepCard({ step, index }: { step: EnrichedStep; index: number }) {
           {/* All fields grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
             {[
-              { label: "Step ID", value: step.id || "—" },
-              { label: "Performed By", value: step.performedBy || "—" },
-              { label: "Department", value: step.department || "—" },
+              { label: "Step ID", value: step.id ?? "—" },
+              { label: "Performed By", value: step.performedBy ?? "—" },
+              { label: "Department", value: step.department ?? "—" },
               {
                 label: "Actual Time",
                 value: step.actualTime > 0 ? `${step.actualTime} ${step.actualTimeUnit}` : "—",
@@ -273,7 +273,7 @@ function StepCard({ step, index }: { step: EnrichedStep; index: number }) {
                 label: "Available Time",
                 value: step.availableTime > 0 ? `${step.availableTime} ${step.availableTimeUnit}` : "—",
               },
-              { label: "System Used", value: step.systemUsed || "Manual / None" },
+                { label: "System Used", value: step.systemUsed ?? "Manual / None" },
             ].map((f) => (
               <div
                 key={f.label}

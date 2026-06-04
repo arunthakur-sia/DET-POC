@@ -2291,7 +2291,10 @@ AUTOMATION CLASSIFICATION RULES:
             ): string[] => {
               const v = val ?? fallback;
               if (Array.isArray(v)) return v.map(String);
-              if (v != null && String(v).length > 0) return [String(v)];
+              if (v != null && typeof v !== "object" && typeof v !== "symbol") {
+                const str = String(v as string | number | boolean | bigint);
+                if (str.length > 0) return [str];
+              }
               return [];
             };
             const sipocRaw = structured.sipoc as unknown as Record<string, unknown>;
@@ -3197,7 +3200,7 @@ CRITICAL RULES:
     );
     const startTime = Date.now();
 
-    const stream = await this.client.messages.stream({
+    const stream = this.client.messages.stream({
       model: "claude-opus-4-7",
       max_tokens: 32000,
       tools: [extractionTool],

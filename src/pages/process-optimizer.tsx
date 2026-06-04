@@ -124,7 +124,7 @@ export default function ProcessOptimizerPage() {
         }
         if (proj.criteria) setProcessCriteria(proj.criteria as Record<number, string>);
         if (Array.isArray(proj.documents) && proj.documents.length > 0) {
-          setStoredDocuments(proj.documents as StoredDocument[]);
+          setStoredDocuments(proj.documents);
         }
       })
       .catch(console.error)
@@ -237,7 +237,7 @@ export default function ProcessOptimizerPage() {
       const actByName = activitiesTable.find((a) => a.name?.toLowerCase() === stepName.toLowerCase());
       if (actByName?.actualTime) return actByName.actualTime;
       // 3. leadTimes by ID
-      if (proc.leadTimes?.[stepId]) return proc.leadTimes[stepId]!;
+      if (proc.leadTimes?.[stepId]) return proc.leadTimes[stepId];
       // 4. Find processStep by name, then use its leadTime
       const step = proc.processSteps.find((s) => s.name.toLowerCase() === stepName.toLowerCase());
       if (step) return proc.leadTimes?.[step.id] ?? 0;
@@ -506,7 +506,7 @@ export default function ProcessOptimizerPage() {
   };
 
   const { getRootProps, getInputProps, isDragActive } = useDropzone({
-    onDrop,
+    onDrop: (acceptedFiles: File[]) => { void onDrop(acceptedFiles); },
     accept: { "application/pdf": [".pdf"], "text/plain": [".txt"] },
     multiple: true,
   });
@@ -655,7 +655,7 @@ export default function ProcessOptimizerPage() {
           // ── Step 1: run diagnosis if the project has documents but no processes ──
           if (processes.length === 0 && (proj.documents ?? []).length > 0) {
             const downloaded = await Promise.all(
-              (proj.documents as StoredDocument[]).map((d) => downloadDocumentFromStorage(d)),
+              proj.documents.map((d) => downloadDocumentFromStorage(d)),
             );
             const files = downloaded.filter((f): f is File => f !== null);
             const diagResults: ProcessWithDiagnosis[] = [];
@@ -686,7 +686,7 @@ export default function ProcessOptimizerPage() {
           if (processes.length === 0) return; // nothing to optimize
 
           // ── Step 2: run optimization for any unoptimized processes ──────────
-          const existing = (proj.optimizations ?? {}) as Record<string, unknown>;
+          const existing = proj.optimizations ?? {};
           const newOpts: Record<string, OptimizationResults> = Object.fromEntries(
             Object.entries(existing).map(([k, v]) => [k, v as OptimizationResults]),
           );

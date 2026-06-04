@@ -48,14 +48,14 @@ export async function getUserProjects(userId: string): Promise<Project[]> {
 }
 
 export async function getProject(id: string): Promise<Project | null> {
-  const { data, error } = await supabase
+  const response = await supabase
     .from("projects")
     .select("*")
     .eq("id", id)
     .single();
 
-  if (error) throw error;
-  return data as Project | null;
+  if (response.error) throw response.error;
+  return response.data as Project | null;
 }
 
 export async function createProject(
@@ -64,7 +64,7 @@ export async function createProject(
   fileName: string | null,
   processes: unknown[],
 ): Promise<Project> {
-  const { data, error } = await supabase
+  const response = await supabase
     .from("projects")
     .insert({
       user_id: userId,
@@ -81,8 +81,8 @@ export async function createProject(
     .select()
     .single();
 
-  if (error) throw error;
-  return data as Project;
+  if (response.error) throw response.error;
+  return response.data as Project;
 }
 
 export async function updateProject(
