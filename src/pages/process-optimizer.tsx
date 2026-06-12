@@ -181,6 +181,8 @@ export default function ProcessOptimizerPage() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [isGeneratingSop, setIsGeneratingSop] = useState(false);
   const [selectedStepCardId, setSelectedStepCardId] = useState<string | null>(null);
+  const [showBoilerplate, setShowBoilerplate] = useState(false);
+  const [boilerplateCopied, setBoilerplateCopied] = useState(false);
   const [guidedMode, setGuidedMode] = useState(true);
 
   // Derived state
@@ -1210,6 +1212,289 @@ export default function ProcessOptimizerPage() {
               };
             };
 
+            const getBoilerplate = (step: StepOptimizationClassification): string => {
+              const sn = step.stepName;
+              const sid = step.stepId;
+
+              if (step.classification === "AI Agent") {
+                return `// AI Agent: ${sn} (${sid})
+// Starter config — fill in TODOs before deploying
+
+import Anthropic from "@anthropic-ai/sdk";
+
+const client = new Anthropic();
+
+const TOOLS: Anthropic.Tool[] = [
+  {
+    name: "read_input",
+    description: "Read and parse the step's input document or data",
+    input_schema: {
+      type: "object",
+      properties: {
+        source: { type: "string", description: "Document path or system ref" },
+      },
+      required: ["source"],
+    },
+  },
+  {
+    name: "query_registry",
+    description: "Retrieve entity data from the relevant registry or database",
+    input_schema: {
+      type: "object",
+      properties: {
+        entityId: { type: "string" },
+        fields:   { type: "array", items: { type: "string" } },
+      },
+      required: ["entityId"],
+    },
+  },
+  {
+    name: "validate_rules",
+    description: "Validate payload against configured business rules",
+    input_schema: {
+      type: "object",
+      properties: {
+        data:      { type: "object" },
+        ruleSetId: { type: "string" },
+      },
+      required: ["data", "ruleSetId"],
+    },
+  },
+  {
+    name: "write_output",
+    description: "Persist structured output to the target system",
+    input_schema: {
+      type: "object",
+      properties: {
+        target:  { type: "string" },
+        payload: { type: "object" },
+      },
+      required: ["target", "payload"],
+    },
+  },
+  {
+    name: "notify_stakeholders",
+    description: "Send notifications to relevant parties",
+    input_schema: {
+      type: "object",
+      properties: {
+        recipients: { type: "array", items: { type: "string" } },
+        subject:    { type: "string" },
+        body:       { type: "string" },
+      },
+      required: ["recipients", "subject", "body"],
+    },
+  },
+];
+
+const SYSTEM_PROMPT = \`
+You are an autonomous AI agent for the "${sn}" step.
+Process all inputs, apply business rules, and produce structured outputs.
+Escalate to a human only when confidence is below 70% or an edge case arises.
+Log every decision with a brief rationale.
+\`;
+
+async function runAgent(input: Record<string, unknown>) {
+  const messages: Anthropic.MessageParam[] = [
+    { role: "user", content: JSON.stringify(input, null, 2) },
+  ];
+
+  // Agentic loop
+  while (true) {
+    const res = await client.messages.create({
+      model:      "claude-opus-4-8",
+      max_tokens: 4096,
+      system:     SYSTEM_PROMPT,
+      tools:      TOOLS,
+      messages,
+    });
+
+    messages.push({ role: "assistant", content: res.content });
+
+    if (res.stop_reason === "end_turn") break;
+
+    const toolResults = await Promise.all(
+      res.content
+        .filter((b): b is Anthropic.ToolUseBlock => b.type === "tool_use")
+        .map(async (b) => ({
+          type:        "tool_result" as const,
+          tool_use_id: b.id,
+          content:     JSON.stringify(await dispatchTool(b.name, b.input)),
+        }))
+    );
+    messages.push({ role: "user", content: toolResults });
+  }
+  return messages;
+}
+
+async function dispatchTool(name: string, input: unknown): Promise<unknown> {
+  // TODO: implement each handler against your real systems
+  switch (name) {
+    case "read_input":          return { status: "ok", data: {} };
+    case "query_registry":      return { status: "ok", entity: {} };
+    case "validate_rules":      return { valid: true, errors: [] };
+    case "write_output":        return { success: true, recordId: "NEW_ID" };
+    case "notify_stakeholders": return { sent: true };
+    default: throw new Error(\`Unknown tool: \${name}\`);
+  }
+}`;
+              }
+
+              if (step.classification === "Classical RPA") {
+                return `// Classical RPA Bot: ${sn} (${sid})
+// Starter config — replace all CAPS placeholders before deploying
+
+export const BOT_CONFIG = {
+  name:            "${sid}_Bot",
+  trigger:         "event-driven",   // "scheduled" | "event-driven" | "manual"
+  schedule:         null,            // cron e.g. "0 8 * * 1-5" = weekdays at 08:00
+  retryPolicy:     { maxAttempts: 3, backoffMs: 5_000 },
+  auditLog:         true,
+  notifyOnFailure: "PROCESS_OWNER_EMAIL",
+};
+
+export const WORKFLOW = [
+  {
+    id:     "open_app",
+    action: "navigate",
+    params: { url: "TARGET_SYSTEM_URL", waitForSelector: "#MAIN_CONTENT" },
+  },
+  {
+    id:     "read_input",
+    action: "extract_data",
+    params: { source: "INPUT_QUEUE_OR_FORM", format: "structured_json" },
+  },
+  {
+    id:     "validate",
+    action: "apply_rules",
+    params: {
+      rules: [
+        // TODO: replace with your actual field validations
+        { field: "requestId",   required: true },
+        { field: "requestDate", type: "date" },
+        { field: "amount",      type: "number", min: 0 },
+      ],
+    },
+  },
+  {
+    id:     "transform",
+    action: "map_fields",
+    params: {
+      // TODO: map source fields to output fields (JSONPath notation)
+      mapping: {
+        "output.field1": "$.input.sourceField1",
+        "output.field2": "$.input.sourceField2",
+      },
+    },
+  },
+  {
+    id:     "write_output",
+    action: "submit",
+    params: {
+      target:           "OUTPUT_SYSTEM_URL",
+      createAuditEntry: true,
+      attachScreenshot: true,
+    },
+  },
+  {
+    id:     "notify",
+    action: "send_email",
+    params: {
+      template:   "completion_notification",
+      recipients: ["STAKEHOLDER_EMAIL"],
+    },
+  },
+  {
+    id:         "on_error",
+    action:     "escalate",
+    runOnError: true,
+    params: {
+      escalateTo:        "PROCESS_OWNER_EMAIL",
+      includeScreenshot: true,
+    },
+  },
+];`;
+              }
+
+              if (step.classification === "Manual Optimization") {
+                return `# SOP: ${sn}
+# Process ID: ${sid}
+# Version: 1.0  |  Status: DRAFT  |  Owner: [ROLE / TEAM]
+
+---
+
+## 1. Purpose
+[One sentence — what this step achieves and why it matters in the overall process]
+
+## 2. Trigger & Frequency
+- **Triggered by:** [upstream step completion / system event / scheduled run]
+- **Frequency:** [daily / per-request / weekly]
+- **Target duration:** [X min]  ← optimised from current [Y min]
+
+## 3. Prerequisites
+Before starting, confirm all items:
+- [ ] Input document / data available at [LOCATION / SYSTEM]
+- [ ] Access to [SYSTEM NAME] confirmed
+- [ ] Upstream step [PREV_STEP_ID] marked complete
+
+## 4. Instructions
+
+| # | Action | Decision / Rule | Expected Output |
+|---|--------|-----------------|-----------------|
+| 1 | Open [SYSTEM] and load the relevant record | — | Record displayed |
+| 2 | Validate all required fields are present | Missing field → request re-submission | Validated record |
+| 3 | Apply business logic: [describe rule] | If X → do Y, else do Z | Processed result |
+| 4 | Record outcome / update status | — | Audit entry created |
+| 5 | Notify the next step owner | — | Handoff confirmed |
+
+## 5. Quality Checklist
+- [ ] All mandatory fields completed and verified
+- [ ] Data cross-checked against source system
+- [ ] Required approvals obtained (if applicable)
+- [ ] Downstream team / system notified
+- [ ] Transaction logged in audit trail
+
+## 6. Escalation Matrix
+
+| Condition | Escalate To | Within |
+|-----------|-------------|--------|
+| Cannot complete in target time | [MANAGER ROLE] | [X hrs] |
+| Data discrepancy found | [DATA OWNER] | Immediately |
+| System unavailable | IT Helpdesk | 30 min |
+
+## 7. KPIs to Track
+
+| Metric | Current Baseline | Optimised Target |
+|--------|-----------------|------------------|
+| Cycle time | [X min] | [Y min] |
+| Error / rework rate | [X%] | < [Y%] |
+| First-pass yield | [X%] | > [Y%] |`;
+              }
+
+              // As-Is
+              return `// As-Is: ${sn} (${sid})
+// This step is already well-optimised — no automation change required.
+
+/*
+  Recommended actions:
+  1. Formalise the current process as a reference SOP (see Manual template).
+  2. Add lightweight monitoring to catch KPI drift early.
+  3. Re-evaluate in the next optimisation cycle (quarterly recommended).
+     Flag for automation if volume grows > 20% or error rate increases.
+*/
+
+export const MONITORING_CONFIG = {
+  stepId:   "${sid}",
+  stepName: "${sn}",
+  kpis: [
+    { metric: "cycle_time_minutes", alertIfAbove: 0  /* TODO: set baseline */ },
+    { metric: "error_rate_percent", alertIfAbove: 0  /* TODO: set baseline */ },
+    { metric: "daily_volume",       alertIfAbove: 0  /* TODO: set threshold */ },
+  ],
+  reviewCadence: "quarterly",
+};`;
+            };
+
             return (
               <>
                 {/* Summary badges */}
@@ -1236,7 +1521,7 @@ export default function ProcessOptimizerPage() {
                       <button
                         key={i}
                         type="button"
-                        onClick={() => setSelectedStepCardId(sc.stepId)}
+                        onClick={() => { setSelectedStepCardId(sc.stepId); setShowBoilerplate(false); }}
                         className="w-full rounded-lg border p-3 text-left transition-all hover:shadow-md"
                         style={{
                           background: isActive ? cfg.bg : "var(--sf-surface)",
@@ -1271,7 +1556,7 @@ export default function ProcessOptimizerPage() {
                   <div
                     className="fixed inset-0 z-50 flex items-center justify-center p-4"
                     style={{ background: "rgba(0,0,0,0.45)" }}
-                    onClick={() => setSelectedStepCardId(null)}
+                    onClick={() => { setSelectedStepCardId(null); setShowBoilerplate(false); }}
                   >
                     <div
                       className="relative w-full max-w-2xl overflow-hidden rounded-2xl shadow-2xl"
@@ -1287,7 +1572,7 @@ export default function ProcessOptimizerPage() {
                         <div className="flex flex-shrink-0 items-center gap-2">
                           <span className="rounded-full px-3 py-1 text-xs font-bold" style={{ background: activeCfg.dot, color: "#fff" }}>{activeStep.classification}</span>
                           <button
-                            onClick={() => setSelectedStepCardId(null)}
+                            onClick={() => { setSelectedStepCardId(null); setShowBoilerplate(false); }}
                             className="rounded-full p-1 transition hover:opacity-70"
                             style={{ color: "var(--sf-text-muted)" }}
                           >
@@ -1349,8 +1634,28 @@ export default function ProcessOptimizerPage() {
                               const afterDesc = getAfterDescription(activeStep.classification);
                               return (
                                 <>
-                                  <div className="rounded-lg p-3" style={{ background: "var(--sf-surface-alt)", border: "1px solid var(--sf-border)" }}>
-                                    <div className="mb-1 text-[10px] font-bold uppercase tracking-wide" style={{ color: activeCfg.color }}>Implementation</div>
+                                  <div className="rounded-lg p-3" style={{ background: "var(--sf-surface-alt)", border: `1px solid ${showBoilerplate ? activeCfg.bar : "var(--sf-border)"}` }}>
+                                    <div className="mb-1 flex items-center justify-between gap-2">
+                                      <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: activeCfg.color }}>Implementation</div>
+                                      <button
+                                        type="button"
+                                        onClick={() => setShowBoilerplate(!showBoilerplate)}
+                                        className="flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold transition hover:opacity-80"
+                                        style={{ background: activeCfg.bg, color: activeCfg.color, border: `1px solid ${activeCfg.bar}55` }}
+                                      >
+                                        {showBoilerplate ? (
+                                          <>
+                                            <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                                            Hide template
+                                          </>
+                                        ) : (
+                                          <>
+                                            <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16M4 9h16M4 15h16" /></svg>
+                                            Get starter code
+                                          </>
+                                        )}
+                                      </button>
+                                    </div>
                                     <p className="text-xs leading-relaxed">{afterDesc.action}</p>
                                   </div>
                                   <div className="rounded-lg p-3" style={{ background: "var(--sf-surface-alt)", border: "1px solid var(--sf-border)" }}>
@@ -1366,6 +1671,49 @@ export default function ProcessOptimizerPage() {
                           </div>
                         </div>
                       </div>
+
+                      {/* Boilerplate panel */}
+                      {showBoilerplate && (
+                        <div className="border-t px-6 pb-6 pt-4" style={{ borderColor: activeCfg.bar + "44" }}>
+                          <div className="mb-3 flex items-center justify-between gap-3">
+                            <div className="flex items-center gap-2">
+                              <span className="text-xs font-bold" style={{ color: activeCfg.color }}>Starter Boilerplate</span>
+                              <span className="rounded px-2 py-0.5 font-mono text-[10px] font-semibold" style={{ background: activeCfg.bg, color: activeCfg.color }}>
+                                {activeStep.classification === "Manual Optimization" ? "markdown" : "typescript"}
+                              </span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => {
+                                void navigator.clipboard.writeText(getBoilerplate(activeStep)).then(() => {
+                                  setBoilerplateCopied(true);
+                                  setTimeout(() => setBoilerplateCopied(false), 2000);
+                                });
+                              }}
+                              className="flex flex-shrink-0 items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold transition hover:opacity-80"
+                              style={{ background: activeCfg.bg, color: activeCfg.color, border: `1px solid ${activeCfg.bar}55` }}
+                            >
+                              {boilerplateCopied ? (
+                                <>
+                                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" /></svg>
+                                  Copied!
+                                </>
+                              ) : (
+                                <>
+                                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 16H6a2 2 0 01-2-2V6a2 2 0 012-2h8a2 2 0 012 2v2m-6 12h8a2 2 0 002-2v-8a2 2 0 00-2-2h-8a2 2 0 00-2 2v8a2 2 0 002 2z" /></svg>
+                                  Copy
+                                </>
+                              )}
+                            </button>
+                          </div>
+                          <pre
+                            className="overflow-auto rounded-xl p-4 font-mono text-xs leading-relaxed"
+                            style={{ background: "#0f172a", color: "#e2e8f0", maxHeight: "360px", tabSize: 2 }}
+                          >
+                            <code>{getBoilerplate(activeStep)}</code>
+                          </pre>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
