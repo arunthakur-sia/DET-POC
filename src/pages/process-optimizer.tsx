@@ -1637,24 +1637,26 @@ export const MONITORING_CONFIG = {
                                   <div className="rounded-lg p-3" style={{ background: "var(--sf-surface-alt)", border: `1px solid ${showBoilerplate ? activeCfg.bar : "var(--sf-border)"}` }}>
                                     <div className="mb-1 flex items-center justify-between gap-2">
                                       <div className="text-[10px] font-bold uppercase tracking-wide" style={{ color: activeCfg.color }}>Implementation</div>
-                                      <button
-                                        type="button"
-                                        onClick={() => setShowBoilerplate(!showBoilerplate)}
-                                        className="flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold transition hover:opacity-80"
-                                        style={{ background: activeCfg.bg, color: activeCfg.color, border: `1px solid ${activeCfg.bar}55` }}
-                                      >
-                                        {showBoilerplate ? (
-                                          <>
-                                            <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
-                                            Hide template
-                                          </>
-                                        ) : (
-                                          <>
-                                            <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16M4 9h16M4 15h16" /></svg>
-                                            Get starter code
-                                          </>
-                                        )}
-                                      </button>
+                                      {(activeStep.classification === "AI Agent" || activeStep.classification === "Classical RPA") && (
+                                        <button
+                                          type="button"
+                                          onClick={() => setShowBoilerplate(!showBoilerplate)}
+                                          className="flex items-center gap-1 rounded-md px-2 py-0.5 text-[10px] font-semibold transition hover:opacity-80"
+                                          style={{ background: activeCfg.bg, color: activeCfg.color, border: `1px solid ${activeCfg.bar}55` }}
+                                        >
+                                          {showBoilerplate ? (
+                                            <>
+                                              <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 15l7-7 7 7" /></svg>
+                                              Hide template
+                                            </>
+                                          ) : (
+                                            <>
+                                              <svg className="h-2.5 w-2.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 20l4-16M4 9h16M4 15h16" /></svg>
+                                              Get starter code
+                                            </>
+                                          )}
+                                        </button>
+                                      )}
                                     </div>
                                     <p className="text-xs leading-relaxed">{afterDesc.action}</p>
                                   </div>
@@ -1672,8 +1674,8 @@ export const MONITORING_CONFIG = {
                         </div>
                       </div>
 
-                      {/* Boilerplate panel */}
-                      {showBoilerplate && (
+                      {/* Boilerplate panel — only for code-based pathways */}
+                      {showBoilerplate && (activeStep.classification === "AI Agent" || activeStep.classification === "Classical RPA") && (
                         <div className="border-t px-6 pb-6 pt-4" style={{ borderColor: activeCfg.bar + "44" }}>
                           <div className="mb-3 flex items-center justify-between gap-3">
                             <div className="flex items-center gap-2">
