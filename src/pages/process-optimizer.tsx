@@ -1026,9 +1026,29 @@ export default function ProcessOptimizerPage() {
                 )}
                 <div className="mt-1.5 flex flex-wrap gap-1">
                   <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: "var(--sf-surface-alt)", color: "var(--sf-text-muted)" }}>{stepCount} steps</span>
-                  {classification && (
-                    <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: "rgba(201,168,76,0.15)", color: "var(--det-gold)" }}>{classification}</span>
-                  )}
+                  {(() => {
+                    const sc = proc.diagnosis.stepClassifications;
+                    if (!sc || sc.length === 0) return null;
+                    const counts: Partial<Record<string, number>> = {};
+                    sc.forEach(s => { counts[s.classification] = (counts[s.classification] ?? 0) + 1; });
+                    const styles: Record<string, { bg: string; color: string; dot: string }> = {
+                      "AI Agent":            { bg: "#D1FAE5", color: "#065f46",  dot: "#10B981" },
+                      "Classical RPA":       { bg: "#DBEAFE", color: "#1e40af",  dot: "#3B82F6" },
+                      "Manual Optimization": { bg: "#FEF3C7", color: "#92400e",  dot: "#F59E0B" },
+                      "As-Is":               { bg: "#F1F5F9", color: "#475569",  dot: "#94A3B8" },
+                    };
+                    return (["AI Agent", "Classical RPA", "Manual Optimization", "As-Is"] as const)
+                      .filter(p => counts[p])
+                      .map(p => {
+                        const st = styles[p]!;
+                        return (
+                          <span key={p} className="flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: st.bg, color: st.color }}>
+                            <span className="h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: st.dot }} />
+                            {p} {counts[p]}
+                          </span>
+                        );
+                      });
+                  })()}
                   {isOptimized && <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: "rgba(27,55,100,0.12)", color: "var(--det-navy-mid)" }}>Optimised</span>}
                   {processSops[idx] && <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: "rgba(5,150,105,0.10)", color: "#065f46" }}>SOP Ready</span>}
                 </div>
@@ -1681,7 +1701,7 @@ export const MONITORING_CONFIG = {
                             <div className="flex items-center gap-2">
                               <span className="text-xs font-bold" style={{ color: activeCfg.color }}>Starter Boilerplate</span>
                               <span className="rounded px-2 py-0.5 font-mono text-[10px] font-semibold" style={{ background: activeCfg.bg, color: activeCfg.color }}>
-                                {activeStep.classification === "Manual Optimization" ? "markdown" : "typescript"}
+                                typescript
                               </span>
                             </div>
                             <button
