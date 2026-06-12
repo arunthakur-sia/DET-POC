@@ -4,7 +4,6 @@ import Link from "next/link";
 import { useRouter } from "next/router";
 import { useEffect, useState, useMemo, useCallback } from "react";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import { getUserProjects, updateProject, type Project } from "@/lib/supabase";
 import type {
@@ -412,10 +411,8 @@ function downloadCSV(fps: FlatProcess[], pathway: string) {
 
 export default function PathwayDrilldown() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const { lang, setLang, t } = useLanguage();
   const router = useRouter();
-  const isDark = theme === "dark";
 
   const rawPathway = router.query.pathway;
   const pathway = (
@@ -543,7 +540,7 @@ export default function PathwayDrilldown() {
         <header
           className="sticky top-0 z-50 print:hidden"
           style={{
-            background: isDark ? "rgba(22,38,60,0.97)" : "rgba(255,255,255,0.97)",
+            background: "rgba(255,255,255,0.97)",
             borderBottom: "1px solid var(--sf-border)",
             backdropFilter: "blur(14px)",
             boxShadow: "var(--sf-shadow-sm)",
@@ -617,23 +614,6 @@ export default function PathwayDrilldown() {
                 className="det-lang-toggle"
               >
                 {lang === "en" ? "العربية" : "English"}
-              </button>
-              <button
-                onClick={toggleTheme}
-                className="det-theme-toggle"
-                aria-label="Toggle colour scheme"
-              >
-                {isDark ? (
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364 6.364l-.707-.707M6.343 6.343l-.707-.707m12.728 0l-.707.707M6.343 17.657l-.707.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" />
-                  </svg>
-                ) : (
-                  <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
-                      d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" />
-                  </svg>
-                )}
               </button>
               <button
                 onClick={() =>

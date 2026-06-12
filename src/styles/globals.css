@@ -50,32 +50,6 @@
   --sf-shadow-lg:    0 20px 48px rgba(27, 55, 100, 0.14);
 }
 
-/* ═══════════════════════════════════════════════════════════════════
-   Dark Mode — applied via  data-theme="dark"  on <html>
-   Also respects OS preference when no explicit data-theme is set.
-═══════════════════════════════════════════════════════════════════ */
-[data-theme="dark"] {
-  --sf-bg:           #0c1929;
-  --sf-bg-soft:      #112035;
-  --sf-surface:      #16263c;
-  --sf-surface-muted:#1a2c42;
-  --sf-surface-alt:  #1a2c42;
-  --sf-border:       #1e3550;
-  --sf-border-soft:  #24405e;
-
-  --sf-text:         #e4eaf5;
-  --sf-text-muted:   #8fa4bd;
-  --sf-text-faint:   #4f6882;
-
-  --sf-primary:      #4a7ec5;
-  --sf-primary-strong: #3d6db8;
-  --sf-accent:       #c9a84c;
-  --sf-accent-hover: #ddb96a;
-
-  --sf-shadow:       0 12px 30px rgba(0, 0, 0, 0.35);
-  --sf-shadow-sm:    0 4px 12px rgba(0, 0, 0, 0.25);
-  --sf-shadow-lg:    0 20px 48px rgba(0, 0, 0, 0.45);
-}
 
 /* ═══════════════════════════════════════════════════════════════════
    Base
@@ -87,8 +61,8 @@ body {
   transition: background 0.25s ease, color 0.25s ease;
 }
 
-/* Light-mode radial gradient overlay */
-html:not([data-theme="dark"]) body {
+/* Radial gradient overlay */
+body {
   background:
     radial-gradient(circle at 6% 10%, rgba(201, 168, 76, 0.07) 0%, transparent 40%),
     radial-gradient(circle at 94% 90%, rgba(27, 55, 100, 0.06) 0%, transparent 38%),
@@ -172,25 +146,6 @@ html:not([data-theme="dark"]) body {
   color: var(--sf-text);
 }
 
-/* ─── Theme toggle button ─── */
-.det-theme-toggle {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 2rem;
-  height: 2rem;
-  border-radius: 50%;
-  border: 1px solid var(--sf-border);
-  background: var(--sf-surface);
-  color: var(--sf-text-muted);
-  cursor: pointer;
-  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
-}
-.det-theme-toggle:hover {
-  background: var(--sf-surface-muted);
-  border-color: var(--det-navy-light);
-  color: var(--sf-text);
-}
 
 /* ─── Arabic bilingual text ─── */
 .det-arabic {
@@ -226,10 +181,6 @@ html:not([data-theme="dark"]) body {
   background: var(--det-navy);
   border-color: var(--det-navy);
   color: #ffffff;
-}
-[data-theme="dark"] .det-lang-toggle:hover {
-  background: var(--det-navy-mid);
-  border-color: var(--det-navy-mid);
 }
 
 /* ─── Phase step indicator ─── */
@@ -282,10 +233,6 @@ html:not([data-theme="dark"]) body {
   background: rgba(27, 55, 100, 0.10);
   color: var(--det-navy);
   font-weight: 600;
-}
-[data-theme="dark"] .det-nav-item.active {
-  background: rgba(74, 126, 197, 0.15);
-  color: var(--det-navy-light);
 }
 
 /* ─── Scrollbar styling ─── */

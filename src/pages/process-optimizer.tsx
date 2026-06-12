@@ -7,7 +7,6 @@ import { useState, useCallback, useEffect, useRef } from "react";
 import { useDropzone } from "react-dropzone";
 import { api } from "@/utils/api";
 import { useAuth } from "@/contexts/AuthContext";
-import { useTheme } from "@/contexts/ThemeContext";
 import { useLanguage } from "@/contexts/LanguageContext";
 import {
   getProject,
@@ -73,9 +72,7 @@ interface ImpactAnalysis {
 
 export default function ProcessOptimizerPage() {
   const { user, loading: authLoading, signOut } = useAuth();
-  const { theme, toggleTheme } = useTheme();
   const { lang, setLang, t, isRTL } = useLanguage();
-  const isDark = theme === "dark";
   const router = useRouter();
   const { projectId } = router.query as { projectId?: string };
 
@@ -750,13 +747,6 @@ export default function ProcessOptimizerPage() {
               title={lang === "en" ? "Switch to Arabic" : "Switch to English"}
             >
               {lang === "en" ? "العربية" : "English"}
-            </button>
-            <button onClick={toggleTheme} className="det-theme-toggle" title="Toggle dark/light mode">
-              {isDark ? (
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 3v1m0 16v1m9-9h-1M4 12H3m15.364-6.364l-.707.707M6.343 17.657l-.707.707M17.657 17.657l-.707-.707M6.343 6.343l-.707-.707M16 12a4 4 0 11-8 0 4 4 0 018 0z" /></svg>
-              ) : (
-                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M20.354 15.354A9 9 0 018.646 3.646 9.003 9.003 0 0012 21a9.003 9.003 0 008.354-5.646z" /></svg>
-              )}
             </button>
           </div>
         </div>
