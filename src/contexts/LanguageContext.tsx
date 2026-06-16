@@ -19,7 +19,7 @@ const translations: Record<Lang, Record<string, string>> = {
     platformCapabilities: "Platform Capabilities",
     about: "About",
     dashboard: "Dashboard",
-    newProcess: "New Process",
+    newProcess: "New Project",
 
     // Landing — hero
     badge: "Department of Economy and Tourism — Internal Platform",
@@ -70,29 +70,29 @@ const translations: Record<Lang, Record<string, string>> = {
     signingIn: "Signing in…",
 
     // Dashboard
-    myProcesses: "My Processes",
+    myProcesses: "My Projects",
     myProcessesSub:
-      "All your process analysis & optimisation runs, isolated to your account.",
-    searchPlaceholder: "Search processes…",
-    openProcess: "Open Process",
-    noMatchSearch: "No processes match your search.",
-    noProcessesTitle: "No processes yet",
+      "All your project analysis & optimisation runs, isolated to your account.",
+    searchPlaceholder: "Search projects…",
+    openProcess: "Open Project",
+    noMatchSearch: "No projects match your search.",
+    noProcessesTitle: "No projects yet",
     noProcessesBody:
-      'Click "New Process" to upload and analyse your first process document.',
+      'Click "New Project" to upload and analyse your first project document.',
     statusSopReady: "SOP Ready",
     statusOptimised: "Optimised",
     statusDiagnosed: "Diagnosed",
     statusEmpty: "Empty",
-    confirmDelete: "Delete this process? This cannot be undone.",
-    failedDelete: "Failed to delete process.",
+    confirmDelete: "Delete this project? This cannot be undone.",
+    failedDelete: "Failed to delete project.",
     processesLabel: "processes",
 
     // Process Optimizer — create form
-    createNewProcess: "Create New Process",
-    createNewProcessSub: "Give your process a name to get started",
-    processNameLabel: "Process Name",
+    createNewProcess: "Create New Project",
+    createNewProcessSub: "Give your project a name to get started",
+    processNameLabel: "Project Name",
     processNamePlaceholder: "e.g. Vendor Onboarding, License Renewal…",
-    createProcess: "Create Process",
+    createProcess: "Create Project",
     creating: "Creating…",
 
     // Process Optimizer — upload panel

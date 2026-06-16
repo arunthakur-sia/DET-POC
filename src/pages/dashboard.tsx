@@ -75,7 +75,7 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>My Processes – Process Excellence Platform | DET</title>
+        <title>My Projects – Process Excellence Platform | DET</title>
         <meta name="description" content="DET Process Excellence Dashboard" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
