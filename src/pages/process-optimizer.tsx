@@ -1203,6 +1203,41 @@ export default function ProcessOptimizerPage() {
             const activeRelatedQuickWins = activeStep ? (report.quickWins?.filter((q) => q.stepId === activeStep.stepId) ?? []) : [];
             const activeIsBottleneck = activeStep ? report.bottlenecks?.some((b) => b.stepId === activeStep.stepId) : false;
 
+            const getClassificationRationale = (classification: StepOptimizationClassification["classification"]): { signals: string[] } => {
+              if (classification === "AI Agent") return {
+                signals: [
+                  "Inputs are unstructured — documents, free-text, or context-dependent data that can't be processed by fixed rules",
+                  "Decision-making requires contextual judgment, interpretation, or nuanced reasoning",
+                  "Output quality depends on language understanding rather than deterministic logic",
+                  "A rule-engine approach would require hundreds of branches and still miss edge cases",
+                ],
+              };
+              if (classification === "Classical RPA") return {
+                signals: [
+                  "Step operates on structured, predictable data — forms, spreadsheets, or system fields",
+                  "Logic follows deterministic, unchanging rules with no ambiguity or edge-case judgment",
+                  "Actions are high-volume and repetitive, executed identically every time",
+                  "Correct output is always derivable from input without interpretation",
+                ],
+              };
+              if (classification === "As-Is") return {
+                signals: [
+                  "Step is already efficient — minimal waste, delay, or rework observed",
+                  "Human oversight here adds genuine value that automation would degrade",
+                  "Automation complexity would outweigh any time or quality gains",
+                  "Low frequency or volume makes investment in change unwarranted",
+                ],
+              };
+              return {
+                signals: [
+                  "Step has clear inefficiencies but human judgment or relationships are inherent to its purpose",
+                  "Structured human interaction, approval, or accountability cannot be removed",
+                  "Process redesign, better tooling, or templates can reduce effort without full automation",
+                  "Automation is not yet viable; manual throughput can be substantially improved",
+                ],
+              };
+            };
+
             const getAfterDescription = (classification: StepOptimizationClassification["classification"]): { action: string; outcome: string } => {
               if (classification === "AI Agent") return {
                 action: "Deploy an AI agent to handle this step autonomously — processing unstructured inputs, applying contextual judgment, and generating outputs without manual intervention.",
@@ -1600,7 +1635,36 @@ export const MONITORING_CONFIG = {
                         <div className="mb-1 h-2 w-full overflow-hidden rounded-full" style={{ background: "var(--sf-border)" }}>
                           <div className="h-full rounded-full" style={{ width: `${activeStep.confidenceScore}%`, background: activeCfg.bar }} />
                         </div>
-                        <p className="mt-1 text-xs" style={{ color: "var(--sf-text-muted)" }}>{activeStep.reason}</p>
+                      </div>
+
+                      {/* Classification Rationale */}
+                      <div className="px-6 pb-4 pt-2">
+                        <div
+                          className="rounded-xl p-4"
+                          style={{ background: activeCfg.bg, border: `1px solid ${activeCfg.bar}44` }}
+                        >
+                          <div className="mb-2.5 flex items-center gap-2">
+                            <svg className="h-3.5 w-3.5 flex-shrink-0" style={{ color: activeCfg.color }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.344.346a3.001 3.001 0 00-.877 2.119V19a2 2 0 01-2 2h-1a2 2 0 01-2-2v-.535c0-.795-.316-1.558-.877-2.12l-.344-.344z" />
+                            </svg>
+                            <span className="text-[10px] font-bold uppercase tracking-wide" style={{ color: activeCfg.color }}>
+                              Why {activeStep.classification}?
+                            </span>
+                          </div>
+                          {activeStep.reason && (
+                            <p className="mb-3 text-xs leading-relaxed font-medium" style={{ color: activeCfg.color }}>
+                              {activeStep.reason}
+                            </p>
+                          )}
+                          <div className="space-y-1.5">
+                            {getClassificationRationale(activeStep.classification).signals.map((signal, si) => (
+                              <div key={si} className="flex items-start gap-2 text-xs leading-relaxed" style={{ color: activeCfg.color, opacity: 0.85 }}>
+                                <span className="mt-1.5 h-1 w-1 flex-shrink-0 rounded-full" style={{ background: activeCfg.bar }} />
+                                {signal}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
                       </div>
 
                       {/* Before / After columns */}
