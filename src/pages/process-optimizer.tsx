@@ -1133,8 +1133,6 @@ export default function ProcessOptimizerPage() {
               {metadata?.kpis?.map((kpi, i) => (
                 <div key={i} className="det-card rounded-lg p-3">
                   <div className="text-sm font-medium" style={{ color: "var(--sf-text-muted)" }}>{kpi.name}</div>
-                  <div className="text-base font-semibold" style={{ color: "var(--det-navy-light)" }}>{kpi.target}</div>
-                  {kpi.formula && <div className="text-xs" style={{ color: "var(--sf-text-faint)" }}>Formula: {kpi.formula}</div>}
                 </div>
               ))}
             </div>
