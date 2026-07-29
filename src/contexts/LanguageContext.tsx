@@ -22,7 +22,7 @@ const translations: Record<Lang, Record<string, string>> = {
     newProcess: "New Project",
 
     // Landing — hero
-    badge: "Department of Economy and Tourism — Internal Platform",
+    badge: "Hafeet Rail — Internal Platform",
     heroHeadline: "Process Excellence",
     heroPlatform: "Platform",
     heroDesc:
@@ -52,20 +52,20 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Landing — about
     aboutEyebrow: "About",
-    aboutHeading: "Built for Dubai Economy & Tourism Operations",
+    aboutHeading: "Built for Hafeet Rail Operations",
     aboutBody:
-      "This platform enables DET teams to review service processes, surface operational bottlenecks, and apply evidence-based improvements. Move from document upload to a publishable, executive-ready SOP in a single integrated workflow.",
+      "This platform enables Hafeet Rail teams to review service processes, surface operational bottlenecks, and apply evidence-based improvements. Move from document upload to a publishable, executive-ready SOP in a single integrated workflow.",
 
     // Footer
     copyright:
-      "© {year} Dubai Department of Economy and Tourism. All rights reserved.",
+      "© {year} Hafeet Rail. All rights reserved.",
 
     // Login
     loginTitle: "Process Excellence Platform",
-    loginDeptLine: "Dubai Department of Economy and Tourism",
+    loginDeptLine: "Hafeet Rail",
     emailLabel: "Email Address",
     passwordLabel: "Password",
-    emailPlaceholder: "you@det.gov.ae",
+    emailPlaceholder: "you@hafeetrail.ae",
     passwordPlaceholder: "••••••••",
     signingIn: "Signing in…",
 
@@ -162,7 +162,7 @@ const translations: Record<Lang, Record<string, string>> = {
     newProcess: "عملية جديدة",
 
     // Landing — hero
-    badge: "دائرة الاقتصاد والسياحة — منصة داخلية",
+    badge: "حفيت للسكك الحديدية — منصة داخلية",
     heroHeadline: "التميز التشغيلي",
     heroPlatform: "المنصة",
     heroDesc:
@@ -192,20 +192,20 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Landing — about
     aboutEyebrow: "حول المنصة",
-    aboutHeading: "مُصمَّمة لعمليات دائرة الاقتصاد والسياحة في دبي",
+    aboutHeading: "مُصمَّمة لعمليات حفيت للسكك الحديدية",
     aboutBody:
-      "تُمكِّن هذه المنصة فرق الدائرة من مراجعة عمليات الخدمة وكشف الاختناقات التشغيلية وتطبيق التحسينات المبنية على الأدلة. انتقل من رفع الوثيقة إلى إجراء تشغيل جاهز للتنفيذ في سير عمل متكامل واحد.",
+      "تُمكِّن هذه المنصة فرق حفيت للسكك الحديدية من مراجعة عمليات الخدمة وكشف الاختناقات التشغيلية وتطبيق التحسينات المبنية على الأدلة. انتقل من رفع الوثيقة إلى إجراء تشغيل جاهز للتنفيذ في سير عمل متكامل واحد.",
 
     // Footer
     copyright:
-      "© {year} دائرة الاقتصاد والسياحة – دبي. جميع الحقوق محفوظة.",
+      "© {year} حفيت للسكك الحديدية. جميع الحقوق محفوظة.",
 
     // Login
     loginTitle: "منصة التميز التشغيلي",
-    loginDeptLine: "دائرة الاقتصاد والسياحة – دبي",
+    loginDeptLine: "حفيت للسكك الحديدية",
     emailLabel: "البريد الإلكتروني",
     passwordLabel: "كلمة المرور",
-    emailPlaceholder: "you@det.gov.ae",
+    emailPlaceholder: "you@hafeetrail.ae",
     passwordPlaceholder: "••••••••",
     signingIn: "جارٍ تسجيل الدخول…",
 
@@ -316,7 +316,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
   const [lang, setLangState] = useState<Lang>("en");
 
   useEffect(() => {
-    const stored = localStorage.getItem("det-lang") as Lang | null;
+    const stored = localStorage.getItem("hr-lang") as Lang | null;
     const initial: Lang = stored === "ar" ? "ar" : "en";
     setLangState(initial);
     applyLangToDOM(initial);
@@ -324,7 +324,7 @@ export function LanguageProvider({ children }: { children: ReactNode }) {
 
   const setLang = (l: Lang) => {
     setLangState(l);
-    localStorage.setItem("det-lang", l);
+    localStorage.setItem("hr-lang", l);
     applyLangToDOM(l);
   };
 

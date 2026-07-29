@@ -114,7 +114,7 @@ CREATE POLICY "Users can delete their own process documents"
 -- ============================================================
 -- Seed: Create a demo user (run ONCE via Supabase Auth API or
 -- use the snippet below in the Supabase SQL Editor)
--- Email:    demo@smartflow.ae
+-- Email:    demo@smartflow.com
 -- Password: SmartFlow@2024
 -- ============================================================
 -- NOTE: Supabase Auth users cannot be inserted directly via SQL.
@@ -122,7 +122,7 @@ CREATE POLICY "Users can delete their own process documents"
 -- OR call the signup endpoint once from your browser:
 --
 --   POST https://ytirbjkxooboydytivlr.supabase.co/auth/v1/signup
---   { "email": "demo@smartflow.ae", "password": "SmartFlow@2024" }
+--   { "email": "demo@smartflow.com", "password": "SmartFlow@2024" }
 --
 -- You can also use the seed API route added to the app:
 --   GET /api/seed-demo-user  (only works in development)

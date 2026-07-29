@@ -149,7 +149,7 @@ function StepCard({ step, index }: { step: EnrichedStep; index: number }) {
         {/* Step number badge */}
         <span
           className="flex-shrink-0 h-6 w-6 rounded-full flex items-center justify-center text-xs font-bold"
-          style={{ background: "var(--det-navy)", color: "#fff" }}
+          style={{ background: "var(--hr-navy)", color: "#fff" }}
         >
           {index}
         </span>
@@ -318,7 +318,7 @@ function StepCard({ step, index }: { step: EnrichedStep; index: number }) {
                   className="h-full rounded-full transition-all"
                   style={{
                     width: `${Math.min(util, 100)}%`,
-                    background: utilColor ?? "var(--det-teal)",
+                    background: utilColor ?? "var(--hr-teal)",
                   }}
                 />
               </div>
@@ -440,7 +440,7 @@ function StepCard({ step, index }: { step: EnrichedStep; index: number }) {
                         <strong style={{ color: "var(--sf-text-muted)" }}>{qw.impact}</strong>
                       </span>
                       {qw.estimatedTimeSaving && (
-                        <span style={{ color: "var(--det-teal)", fontWeight: 600 }}>
+                        <span style={{ color: "var(--hr-teal)", fontWeight: 600 }}>
                           ⏱ {qw.estimatedTimeSaving}
                         </span>
                       )}
@@ -449,7 +449,7 @@ function StepCard({ step, index }: { step: EnrichedStep; index: number }) {
                           className="rounded px-1.5 py-0.5 font-bold"
                           style={{
                             background: "rgba(27,55,100,0.08)",
-                            color: "var(--det-navy)",
+                            color: "var(--hr-navy)",
                             fontSize: "0.6rem",
                           }}
                         >

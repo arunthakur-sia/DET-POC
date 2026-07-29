@@ -10,7 +10,7 @@ export default function LoginPage() {
   const { signIn, user, loading } = useAuth();
   const { lang, setLang, t } = useLanguage();
   const router = useRouter();
-  const [email, setEmail] = useState("demo@smartflow.ae");
+  const [email, setEmail] = useState("demo@smartflow.com");
   const [password, setPassword] = useState("SmartFlow@2024");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -38,8 +38,8 @@ export default function LoginPage() {
   return (
     <>
       <Head>
-        <title>Sign In – Process Excellence Platform | DET</title>
-        <meta name="description" content="تسجيل الدخول | Sign in to the DET Process Excellence Platform" />
+        <title>Sign In – Process Excellence Platform | Hafeet Rail</title>
+        <meta name="description" content="تسجيل الدخول | Sign in to the Hafeet Rail Process Excellence Platform" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -50,7 +50,7 @@ export default function LoginPage() {
         {/* Top gradient bar */}
         <div
           className="fixed top-0 left-0 right-0 z-50 h-1"
-          style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-gold) 100%)" }}
+          style={{ background: "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 55%, var(--hr-gold) 100%)" }}
         />
 
         {/* Top-right controls */}
@@ -58,7 +58,7 @@ export default function LoginPage() {
           {/* Language toggle */}
           <button
             onClick={() => setLang(lang === "en" ? "ar" : "en")}
-            className="det-lang-toggle"
+            className="hr-lang-toggle"
             title={lang === "en" ? "Switch to Arabic" : "Switch to English"}
           >
             {lang === "en" ? "العربية" : "English"}
@@ -79,8 +79,8 @@ export default function LoginPage() {
         {/* Logo cluster */}
         <div className="mb-8 flex flex-col items-center gap-2">
           <Image
-            src="/assets/dubai-det-flag-logo.svg"
-            alt="Dubai Economy and Tourism"
+            src="/assets/hafeet-rail-logo.png"
+            alt="Hafeet Rail"
             width={180}
             height={64}
             className="h-16 w-auto"
@@ -100,7 +100,7 @@ export default function LoginPage() {
           <div
             className="px-8 py-7"
             style={{
-              background: "linear-gradient(135deg, var(--det-navy) 0%, var(--det-navy-mid) 100%)",
+              background: "linear-gradient(135deg, var(--hr-navy) 0%, var(--hr-navy-mid) 100%)",
             }}
           >
             <h1 className="text-xl font-bold text-white">{t("loginTitle")}</h1>
@@ -128,7 +128,7 @@ export default function LoginPage() {
                   autoComplete="email"
                   className="sf-input w-full rounded-lg px-4 py-3 text-sm"
                   placeholder={t("emailPlaceholder")}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "var(--det-navy-light)")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "var(--hr-navy-light)")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "var(--sf-border)")}
                 />
               </div>
@@ -149,7 +149,7 @@ export default function LoginPage() {
                   autoComplete="current-password"
                   className="sf-input w-full rounded-lg px-4 py-3 text-sm"
                   placeholder={t("passwordPlaceholder")}
-                  onFocus={(e) => (e.currentTarget.style.borderColor = "var(--det-navy-light)")}
+                  onFocus={(e) => (e.currentTarget.style.borderColor = "var(--hr-navy-light)")}
                   onBlur={(e) => (e.currentTarget.style.borderColor = "var(--sf-border)")}
                 />
               </div>

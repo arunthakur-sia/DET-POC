@@ -251,7 +251,7 @@ function UseCaseMatrix({ useCases }: { useCases: UseCaseEntry[] }) {
       }}
     >
       <div className="mb-1 flex items-center gap-2">
-        <div className="h-4 w-1 rounded-full" style={{ background: "var(--det-navy)" }} />
+        <div className="h-4 w-1 rounded-full" style={{ background: "var(--hr-navy)" }} />
         <h2 className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
           Savings vs. Complexity Matrix
         </h2>
@@ -350,7 +350,7 @@ function UseCaseCard({ uc, aedRate }: { uc: UseCaseEntry; aedRate: number }) {
       {/* Navy accent bar */}
       <div
         className="h-0.5 rounded-t-2xl"
-        style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 60%, var(--det-teal) 100%)" }}
+        style={{ background: "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 60%, var(--hr-teal) 100%)" }}
       />
 
       {/* Header row (always visible) */}
@@ -394,7 +394,7 @@ function UseCaseCard({ uc, aedRate }: { uc: UseCaseEntry; aedRate: number }) {
             {uc.readiness} Readiness
           </span>
           {uc.potentialHrs > 0 && (
-            <span className="text-sm font-bold" style={{ color: "var(--det-teal)" }}>
+            <span className="text-sm font-bold" style={{ color: "var(--hr-teal)" }}>
               {uc.potentialHrs} hrs
             </span>
           )}
@@ -417,7 +417,7 @@ function UseCaseCard({ uc, aedRate }: { uc: UseCaseEntry; aedRate: number }) {
           {/* ── What the Agent Does ── */}
           <section className="pt-4">
             <h3 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
-              <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-navy)" }} />
+              <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--hr-navy)" }} />
               What the Agent Does
             </h3>
             <p className="rounded-xl p-3 text-sm leading-relaxed" style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)", color: "var(--sf-text)" }}>
@@ -428,7 +428,7 @@ function UseCaseCard({ uc, aedRate }: { uc: UseCaseEntry; aedRate: number }) {
           {/* ── Process Linkage ── */}
           <section>
             <h3 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
-              <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-teal)" }} />
+              <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--hr-teal)" }} />
               Processes Replaced / Augmented
             </h3>
             <div className="rounded-xl p-3" style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}>
@@ -438,7 +438,7 @@ function UseCaseCard({ uc, aedRate }: { uc: UseCaseEntry; aedRate: number }) {
               <div className="flex flex-wrap gap-1.5">
                 {[
                   { label: `${uc.totalStepCount} total steps`, color: "var(--sf-text-faint)" },
-                  { label: `${uc.aiStepCount} AI-automatable`, color: "var(--det-navy)" },
+                  { label: `${uc.aiStepCount} AI-automatable`, color: "var(--hr-navy)" },
                   { label: `${proc.diagnosis?.processMetrics?.departmentHandoffs ?? 0} dept. handoffs`, color: "var(--sf-text-faint)" },
                 ].map((b) => (
                   <span key={b.label} className="rounded-full px-2 py-0.5 text-xs" style={{ background: "var(--sf-surface)", border: "1px solid var(--sf-border-soft)", color: b.color }}>
@@ -450,7 +450,7 @@ function UseCaseCard({ uc, aedRate }: { uc: UseCaseEntry; aedRate: number }) {
                 <ul className="mt-2 space-y-1">
                   {aiSteps.map((s, i) => (
                     <li key={i} className="flex items-start gap-2 text-xs" style={{ color: "var(--sf-text-muted)" }}>
-                      <span className="mt-0.5 h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: "var(--det-navy)" }} />
+                      <span className="mt-0.5 h-1.5 w-1.5 flex-shrink-0 rounded-full" style={{ background: "var(--hr-navy)" }} />
                       <span><strong>{s.stepName}</strong>{s.currentStateDescription ? ` — ${s.currentStateDescription}` : ""}</span>
                     </li>
                   ))}
@@ -462,7 +462,7 @@ function UseCaseCard({ uc, aedRate }: { uc: UseCaseEntry; aedRate: number }) {
           {/* ── Data Inputs / Outputs ── */}
           <section>
             <h3 className="mb-2 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
-              <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-gold)" }} />
+              <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--hr-gold)" }} />
               Data Inputs &amp; Outputs
             </h3>
             <div className="grid gap-3 sm:grid-cols-2">
@@ -509,7 +509,7 @@ function UseCaseCard({ uc, aedRate }: { uc: UseCaseEntry; aedRate: number }) {
               <div className="flex flex-wrap gap-2">
                 {uc.technologyFit.map((f, i) => (
                   <span key={i} className="rounded-lg px-2.5 py-1 text-xs font-medium"
-                    style={{ background: "rgba(27,55,100,0.07)", color: "var(--det-navy)", border: "1px solid rgba(27,55,100,0.15)" }}>
+                    style={{ background: "rgba(27,55,100,0.07)", color: "var(--hr-navy)", border: "1px solid rgba(27,55,100,0.15)" }}>
                     {f}
                   </span>
                 ))}
@@ -626,7 +626,7 @@ export default function AIUseCaseLibrary() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `det-ai-use-case-catalogue-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `hr-ai-use-case-catalogue-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -634,7 +634,7 @@ export default function AIUseCaseLibrary() {
   if (authLoading || (!user && !authLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--sf-bg)" }}>
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: "var(--det-navy-light)" }} />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: "var(--hr-navy-light)" }} />
       </div>
     );
   }
@@ -642,8 +642,8 @@ export default function AIUseCaseLibrary() {
   return (
     <>
       <Head>
-        <title>AI Use Case Library – Agentic Pathway | DET</title>
-        <meta name="description" content="Curated AI Agent use cases mapped to DET processes with savings vs. complexity positioning" />
+        <title>AI Use Case Library – Agentic Pathway | Hafeet Rail</title>
+        <meta name="description" content="Curated AI Agent use cases mapped to Hafeet Rail processes with savings vs. complexity positioning" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -658,11 +658,11 @@ export default function AIUseCaseLibrary() {
             boxShadow: "var(--sf-shadow-sm)",
           }}
         >
-          <div className="h-0.5" style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-teal) 100%)" }} />
+          <div className="h-0.5" style={{ background: "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 55%, var(--hr-teal) 100%)" }} />
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
-                <Image src="/assets/dubai-det-flag-logo.svg" alt="Dubai Economy and Tourism" width={110} height={36} className="h-9 w-auto" />
+                <Image src="/assets/hafeet-rail-logo.png" alt="Hafeet Rail" width={110} height={36} className="h-9 w-auto" />
               </Link>
               <div className="hidden h-5 w-px sm:block" style={{ background: "var(--sf-border)" }} />
               <span className="hidden text-xs font-semibold sm:block" style={{ color: "var(--sf-text-muted)" }}>
@@ -670,14 +670,14 @@ export default function AIUseCaseLibrary() {
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <Link href="/executive-dashboard" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Portfolio</Link>
-              <Link href="/rpa-blueprint" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">RPA Blueprint</Link>
-              <Link href="/manual-workbench" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Lean Workbench</Link>
-              <Link href="/dashboard" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">My Processes</Link>
-              <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="det-lang-toggle">
+              <Link href="/executive-dashboard" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Portfolio</Link>
+              <Link href="/rpa-blueprint" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">RPA Blueprint</Link>
+              <Link href="/manual-workbench" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Lean Workbench</Link>
+              <Link href="/dashboard" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">My Processes</Link>
+              <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="hr-lang-toggle">
                 {lang === "en" ? "العربية" : "English"}
               </button>
-              <button onClick={() => void signOut().then(() => void router.replace("/"))} className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">
+              <button onClick={() => void signOut().then(() => void router.replace("/"))} className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">
                 {t("signOut")}
               </button>
             </div>
@@ -698,7 +698,7 @@ export default function AIUseCaseLibrary() {
               onClick={handleExport}
               disabled={allUseCases.length === 0}
               className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold transition-all disabled:opacity-40"
-              style={{ background: "var(--det-navy)", color: "#fff" }}
+              style={{ background: "var(--hr-navy)", color: "#fff" }}
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -709,7 +709,7 @@ export default function AIUseCaseLibrary() {
 
           {fetching ? (
             <div className="flex h-64 items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: "var(--det-navy-light)" }} />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: "var(--hr-navy-light)" }} />
             </div>
           ) : allUseCases.length === 0 ? (
             <div
@@ -770,9 +770,9 @@ export default function AIUseCaseLibrary() {
                     onClick={() => setFilterROI(tier)}
                     className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
                     style={{
-                      background: filterROI === tier ? "var(--det-navy)" : "var(--sf-surface)",
+                      background: filterROI === tier ? "var(--hr-navy)" : "var(--sf-surface)",
                       color: filterROI === tier ? "#fff" : "var(--sf-text-muted)",
-                      border: `1px solid ${filterROI === tier ? "var(--det-navy)" : "var(--sf-border)"}`,
+                      border: `1px solid ${filterROI === tier ? "var(--hr-navy)" : "var(--sf-border)"}`,
                     }}
                   >
                     {tier === "All" ? "All ROI" : `${tier} ROI`}
@@ -787,8 +787,8 @@ export default function AIUseCaseLibrary() {
                     className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
                     style={{
                       background: filterReadiness === tier ? "rgba(27,55,100,0.12)" : "var(--sf-surface)",
-                      color: filterReadiness === tier ? "var(--det-navy)" : "var(--sf-text-muted)",
-                      border: `1px solid ${filterReadiness === tier ? "var(--det-navy)" : "var(--sf-border)"}`,
+                      color: filterReadiness === tier ? "var(--hr-navy)" : "var(--sf-text-muted)",
+                      border: `1px solid ${filterReadiness === tier ? "var(--hr-navy)" : "var(--sf-border)"}`,
                     }}
                   >
                     {tier === "All" ? "All Readiness" : `${tier} Ready`}

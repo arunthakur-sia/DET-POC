@@ -47,9 +47,9 @@ function getTimeline(effort: "Low" | "Medium" | "High"): string {
   }
 }
 
-// ─── DET Internal Frameworks — step-level reference data ─────────────────────
+// ─── Hafeet Rail Internal Frameworks — step-level reference data ─────────────
 
-interface DETFramework {
+interface HRFramework {
   tag: string;
   name: string;
   description: string;
@@ -57,7 +57,7 @@ interface DETFramework {
   isInternal: boolean;
 }
 
-const DET_FRAMEWORKS: Record<string, DETFramework> = {
+const HR_FRAMEWORKS: Record<string, HRFramework> = {
   "Lean": {
     tag: "Lean",
     name: "Lean Process Improvement",
@@ -74,23 +74,23 @@ const DET_FRAMEWORKS: Record<string, DETFramework> = {
   },
   "Excellence": {
     tag: "Excellence",
-    name: "Dubai Government Excellence Programme (DGEP)",
-    description: "National framework for government performance and service quality improvement.",
-    howToApply: "Benchmark this step against Dubai government best practice metrics. Document a baseline KPI and set a target improvement aligned with DGEP Level 4 service quality standards.",
+    name: "Rail Operations Excellence Programme (ROEP)",
+    description: "Framework for rail operator performance and service quality improvement.",
+    howToApply: "Benchmark this step against rail industry best practice metrics. Document a baseline KPI and set a target improvement aligned with ROEP Level 4 service quality standards.",
     isInternal: false,
   },
   "Digital": {
     tag: "Digital",
-    name: "Dubai Digital Strategy",
-    description: "Smart transformation and digital-first service delivery principles for Dubai government entities.",
-    howToApply: "Assess whether this step can be delivered digitally or via self-service. Prioritise API-driven, mobile-accessible, or proactive service alternatives aligned with the Dubai Digital Strategy 2024.",
+    name: "Hafeet Rail Digital Strategy",
+    description: "Smart transformation and digital-first service delivery principles for Hafeet Rail operations.",
+    howToApply: "Assess whether this step can be delivered digitally or via self-service. Prioritise API-driven, mobile-accessible, or proactive service alternatives aligned with the Hafeet Rail Digital Strategy.",
     isInternal: false,
   },
   "Internal": {
     tag: "Internal",
-    name: "Process Excellence Toolkit — DET Internal",
-    description: "DET's internal guide for process review, owner assignment, and SOP publication.",
-    howToApply: "Use the DET Process Excellence Toolkit to assign a step owner, set a review cadence, and ensure this step is reflected in the current published SOP with the correct RACI mapping.",
+    name: "Process Excellence Toolkit — Hafeet Rail Internal",
+    description: "Hafeet Rail's internal guide for process review, owner assignment, and SOP publication.",
+    howToApply: "Use the Hafeet Rail Process Excellence Toolkit to assign a step owner, set a review cadence, and ensure this step is reflected in the current published SOP with the correct RACI mapping.",
     isInternal: true,
   },
 };
@@ -103,7 +103,7 @@ function mapBestPractice(bp: string | undefined): string | null {
   if (lower.includes("5s"))         return "Lean";
   if (lower.includes("kaizen"))     return "Lean";
   if (lower.includes("dmaic"))      return "Six Sigma";
-  if (lower.includes("dgep"))       return "Excellence";
+  if (lower.includes("roep"))       return "Excellence";
   if (lower.includes("digital"))    return "Digital";
   return null;
 }
@@ -191,7 +191,7 @@ function buildRevisedFlow(proc: ProcessWithDiagnosis): RevisedFlowStep[] {
 function StepImprovementCard({ qw }: { qw: DiagnosisQuickWin }) {
   const [showFramework, setShowFramework] = useState(false);
   const fwTag = mapBestPractice(qw.bestPractice);
-  const fw = fwTag ? DET_FRAMEWORKS[fwTag] : null;
+  const fw = fwTag ? HR_FRAMEWORKS[fwTag] : null;
   const quadrant = getQuadrant(qw);
   const qc = QUADRANT_CONFIG[quadrant];
   const isQuickWin = quadrant === "Quick Win";
@@ -218,7 +218,7 @@ function StepImprovementCard({ qw }: { qw: DiagnosisQuickWin }) {
           </div>
           <div className="flex flex-shrink-0 flex-col items-end gap-1">
             {qw.estimatedTimeSaving && (
-              <span className="text-xs font-bold" style={{ color: "var(--det-teal)" }}>⏱ {qw.estimatedTimeSaving}</span>
+              <span className="text-xs font-bold" style={{ color: "var(--hr-teal)" }}>⏱ {qw.estimatedTimeSaving}</span>
             )}
             <span className="text-xs" style={{ color: "var(--sf-text-faint)" }}>
               {getTimeline(qw.effort)}
@@ -246,7 +246,7 @@ function StepImprovementCard({ qw }: { qw: DiagnosisQuickWin }) {
               className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-semibold transition-all"
               style={{
                 background: showFramework ? "rgba(27,55,100,0.12)" : "rgba(27,55,100,0.06)",
-                color: "var(--det-navy)",
+                color: "var(--hr-navy)",
                 border: "1px solid rgba(27,55,100,0.18)",
                 fontSize: "0.65rem",
               }}
@@ -276,11 +276,11 @@ function StepImprovementCard({ qw }: { qw: DiagnosisQuickWin }) {
               className="rounded px-1.5 py-0.5 text-xs font-bold"
               style={{
                 background: fw.isInternal ? "rgba(27,55,100,0.09)" : "rgba(201,168,76,0.12)",
-                color: fw.isInternal ? "var(--det-navy)" : "#8a6b18",
+                color: fw.isInternal ? "var(--hr-navy)" : "#8a6b18",
                 fontSize: "0.6rem",
               }}
             >
-              {fw.isInternal ? "DET Internal" : "External Framework"}
+              {fw.isInternal ? "Hafeet Rail Internal" : "External Framework"}
             </span>
             <span className="text-xs font-semibold" style={{ color: "var(--sf-text)" }}>{fw.name}</span>
           </div>
@@ -289,7 +289,7 @@ function StepImprovementCard({ qw }: { qw: DiagnosisQuickWin }) {
           </p>
           <div className="rounded-lg p-2" style={{ background: "var(--sf-surface)", border: "1px solid var(--sf-border-soft)" }}>
             <p className="mb-0.5 text-xs font-bold uppercase tracking-wide"
-              style={{ color: "var(--det-navy)", fontSize: "0.6rem" }}>
+              style={{ color: "var(--hr-navy)", fontSize: "0.6rem" }}>
               How to Apply to This Step
             </p>
             <p className="text-xs leading-relaxed" style={{ color: "var(--sf-text-muted)" }}>
@@ -316,7 +316,7 @@ function RevisedFlowPanel({ steps }: { steps: RevisedFlowStep[] }) {
     <div className="space-y-2">
       {steps.map((step, i) => {
         const cfg = ACTION_CONFIG[step.action];
-        const fw = step.frameworkTag ? DET_FRAMEWORKS[step.frameworkTag] : null;
+        const fw = step.frameworkTag ? HR_FRAMEWORKS[step.frameworkTag] : null;
         return (
           <div key={i} className="flex items-start gap-3 rounded-xl p-3"
             style={{ background: cfg.bg, border: `1px solid ${cfg.color}20` }}>
@@ -335,7 +335,7 @@ function RevisedFlowPanel({ steps }: { steps: RevisedFlowStep[] }) {
                 </span>
                 {fw && (
                   <span className="rounded px-1.5 py-0.5 text-xs font-semibold"
-                    style={{ background: "rgba(27,55,100,0.07)", color: "var(--det-navy)", fontSize: "0.6rem" }}>
+                    style={{ background: "rgba(27,55,100,0.07)", color: "var(--hr-navy)", fontSize: "0.6rem" }}>
                     {fw.tag}
                   </span>
                 )}
@@ -468,7 +468,7 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
     <div className="rounded-2xl"
       style={{ background: "var(--sf-surface)", border: "1px solid var(--sf-border)", boxShadow: "var(--sf-shadow-sm)" }}>
       <div className="h-0.5 rounded-t-2xl"
-        style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-gold) 100%)" }} />
+        style={{ background: "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-gold) 100%)" }} />
 
       {/* Collapsed header */}
       <button
@@ -502,7 +502,7 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
             </span>
           )}
           {totalPotentialHrs > 0 && (
-            <span className="text-xs font-semibold" style={{ color: "var(--det-teal)" }}>
+            <span className="text-xs font-semibold" style={{ color: "var(--hr-teal)" }}>
               {Math.round(totalPotentialHrs)} hrs
             </span>
           )}
@@ -562,11 +562,11 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
           {quickWins.length > 0 && (
             <section>
               <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-teal)" }} />
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--hr-teal)" }} />
                 Suggested Improvements — Effort vs. Impact
               </h3>
               <p className="mb-3 text-xs" style={{ color: "var(--sf-text-faint)" }}>
-                Each step card includes an applicable framework tag. Click the tag to expand step-level implementation guidance (Lean, Six Sigma, or DET framework).
+                Each step card includes an applicable framework tag. Click the tag to expand step-level implementation guidance (Lean, Six Sigma, or Hafeet Rail framework).
               </p>
               <EffortImpactMatrix quickWins={quickWins} wasteFilter={wasteFilter} />
             </section>
@@ -576,7 +576,7 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
           {revisedFlowSteps.length > 0 && (
             <section>
               <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-gold)" }} />
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--hr-gold)" }} />
                 Revised Process Flow Suggestion
               </h3>
               <p className="mb-3 text-xs" style={{ color: "var(--sf-text-faint)" }}>
@@ -590,7 +590,7 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
           {priorityActions.length > 0 && (
             <section>
               <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-navy)" }} />
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--hr-navy)" }} />
                 Priority Owner Actions
               </h3>
               <ol className="space-y-2">
@@ -598,7 +598,7 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
                   <li key={pa.order} className="flex gap-3 rounded-xl p-3"
                     style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}>
                     <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                      style={{ background: "var(--det-gold)", color: "#1b3764" }}>
+                      style={{ background: "var(--hr-gold)", color: "#1b3764" }}>
                       {pa.order}
                     </span>
                     <div className="flex-1 min-w-0">
@@ -615,7 +615,7 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
           {proc.diagnosis?.processMetrics && (
             <section>
               <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
-                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-navy)" }} />
+                <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--hr-navy)" }} />
                 Process Metrics
               </h3>
               <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
@@ -638,7 +638,7 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
           {/* 6 · Step-Level Detail */}
           <section>
             <h3 className="mb-3 flex items-center gap-2 text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>
-              <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--det-teal)" }} />
+              <span className="inline-block h-2 w-2 rounded-full" style={{ background: "var(--hr-teal)" }} />
               Step-Level Detail
             </h3>
             <StepLevelView process={proc} />
@@ -717,7 +717,7 @@ export default function ManualWorkbench() {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--sf-bg)" }}>
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: "var(--det-navy-light)" }} />
+          style={{ borderColor: "var(--hr-navy-light)" }} />
       </div>
     );
   }
@@ -725,9 +725,9 @@ export default function ManualWorkbench() {
   return (
     <>
       <Head>
-        <title>Manual &amp; Lean Workbench – Process Excellence | DET</title>
+        <title>Manual &amp; Lean Workbench – Process Excellence | Hafeet Rail</title>
         <meta name="description"
-          content="Lean and Six Sigma improvement recommendations for DET processes not suited to automation" />
+          content="Lean and Six Sigma improvement recommendations for Hafeet Rail processes not suited to automation" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -741,11 +741,11 @@ export default function ManualWorkbench() {
             boxShadow: "var(--sf-shadow-sm)",
           }}>
           <div className="h-0.5"
-            style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-gold) 100%)" }} />
+            style={{ background: "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 55%, var(--hr-gold) 100%)" }} />
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
-                <Image src="/assets/dubai-det-flag-logo.svg" alt="Dubai Economy and Tourism" width={110} height={36} className="h-9 w-auto" />
+                <Image src="/assets/hafeet-rail-logo.png" alt="Hafeet Rail" width={110} height={36} className="h-9 w-auto" />
               </Link>
               <div className="hidden h-5 w-px sm:block" style={{ background: "var(--sf-border)" }} />
               <span className="hidden text-xs font-semibold sm:block" style={{ color: "var(--sf-text-muted)" }}>
@@ -753,16 +753,16 @@ export default function ManualWorkbench() {
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <Link href="/executive-dashboard" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Portfolio</Link>
-              <Link href="/ai-use-case-library" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">AI Use Cases</Link>
-              <Link href="/rpa-blueprint" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">RPA Blueprint</Link>
-              <Link href="/dashboard" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">My Processes</Link>
-              <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="det-lang-toggle">
+              <Link href="/executive-dashboard" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Portfolio</Link>
+              <Link href="/ai-use-case-library" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">AI Use Cases</Link>
+              <Link href="/rpa-blueprint" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">RPA Blueprint</Link>
+              <Link href="/dashboard" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">My Processes</Link>
+              <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="hr-lang-toggle">
                 {lang === "en" ? "العربية" : "English"}
               </button>
               <button
                 onClick={() => void signOut().then(() => void router.replace("/"))}
-                className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
+                className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
               >
                 {t("signOut")}
               </button>
@@ -777,7 +777,7 @@ export default function ManualWorkbench() {
               Manual &amp; Lean Optimization Workbench
             </h1>
             <p className="mt-0.5 text-sm" style={{ color: "var(--sf-text-muted)" }}>
-              Structured improvement recommendations for processes not suited to automation. Framework guidance (Lean, Six Sigma, Dubai Digital) is provided at the <strong>step level</strong> — click any framework tag to expand step-specific implementation blueprints.
+              Structured improvement recommendations for processes not suited to automation. Framework guidance (Lean, Six Sigma, Hafeet Rail Digital) is provided at the <strong>step level</strong> — click any framework tag to expand step-specific implementation blueprints.
             </p>
           </div>
 
@@ -790,9 +790,9 @@ export default function ManualWorkbench() {
                   onClick={() => setWasteFilter(f.value)}
                   className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
                   style={{
-                    background: wasteFilter === f.value ? "var(--det-navy)" : "var(--sf-surface)",
+                    background: wasteFilter === f.value ? "var(--hr-navy)" : "var(--sf-surface)",
                     color: wasteFilter === f.value ? "#fff" : "var(--sf-text-muted)",
-                    border: `1px solid ${wasteFilter === f.value ? "var(--det-navy)" : "var(--sf-border)"}`,
+                    border: `1px solid ${wasteFilter === f.value ? "var(--hr-navy)" : "var(--sf-border)"}`,
                   }}
                 >
                   {f.label}
@@ -805,7 +805,7 @@ export default function ManualWorkbench() {
           {fetching ? (
             <div className="flex h-64 items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-                style={{ borderColor: "var(--det-navy-light)" }} />
+                style={{ borderColor: "var(--hr-navy-light)" }} />
             </div>
           ) : filtered.length === 0 ? (
             <div className="flex h-64 flex-col items-center justify-center gap-3 rounded-2xl border-2 border-dashed"
@@ -816,7 +816,7 @@ export default function ManualWorkbench() {
               </p>
               {wasteFilter !== "All" && (
                 <button onClick={() => setWasteFilter("All")} className="text-xs font-semibold underline"
-                  style={{ color: "var(--det-teal)" }}>
+                  style={{ color: "var(--hr-teal)" }}>
                   Clear filter
                 </button>
               )}
@@ -843,7 +843,7 @@ export default function ManualWorkbench() {
         <footer className="mt-auto px-6 py-5"
           style={{ background: "var(--sf-surface)", borderTop: "1px solid var(--sf-border)" }}>
           <p className="mx-auto max-w-7xl text-xs" style={{ color: "var(--sf-text-faint)" }}>
-            Recommendations are AI-generated based on uploaded process documents. Framework guidance is provided at step level to support direct application of Lean, Six Sigma, and Dubai Digital Strategy principles. Timeline estimates are heuristic: Low effort ≈ 1–2 weeks · Medium ≈ 4–6 weeks · High ≈ 8–12 weeks. Always validate with process owners before implementing changes.
+            Recommendations are AI-generated based on uploaded process documents. Framework guidance is provided at step level to support direct application of Lean, Six Sigma, and Hafeet Rail Digital Strategy principles. Timeline estimates are heuristic: Low effort ≈ 1–2 weeks · Medium ≈ 4–6 weeks · High ≈ 8–12 weeks. Always validate with process owners before implementing changes.
           </p>
         </footer>
       </div>

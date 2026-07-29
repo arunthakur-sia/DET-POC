@@ -20,7 +20,7 @@ export default function LandingPage() {
       title: t("feature1Title"),
       description: t("feature1Desc"),
       icon: (
-        <svg className="h-6 w-6" style={{ color: "var(--det-navy)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="h-6 w-6" style={{ color: "var(--hr-navy)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
             d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4" />
         </svg>
@@ -30,7 +30,7 @@ export default function LandingPage() {
       title: t("feature2Title"),
       description: t("feature2Desc"),
       icon: (
-        <svg className="h-6 w-6" style={{ color: "var(--det-navy)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="h-6 w-6" style={{ color: "var(--hr-navy)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M13 10V3L4 14h7v7l9-11h-7z" />
         </svg>
       ),
@@ -39,7 +39,7 @@ export default function LandingPage() {
       title: t("feature3Title"),
       description: t("feature3Desc"),
       icon: (
-        <svg className="h-6 w-6" style={{ color: "var(--det-navy)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg className="h-6 w-6" style={{ color: "var(--hr-navy)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
             d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
         </svg>
@@ -50,10 +50,10 @@ export default function LandingPage() {
   return (
     <>
       <Head>
-        <title>Process Excellence Platform – Dubai Economy &amp; Tourism</title>
+        <title>Process Excellence Platform – Hafeet Rail</title>
         <meta
           name="description"
-          content="منصة التميز التشغيلي | Internal process improvement platform for Dubai Department of Economy and Tourism"
+          content="منصة التميز التشغيلي | Internal process improvement platform for Hafeet Rail"
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -70,29 +70,21 @@ export default function LandingPage() {
             boxShadow: "var(--sf-shadow-sm)",
           }}
         >
-          {/* DET brand top bar */}
+          {/* Hafeet Rail brand top bar */}
           <div
             className="h-1"
-            style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-gold) 100%)" }}
+            style={{ background: "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 55%, var(--hr-gold) 100%)" }}
           />
 
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-3">
-            {/* Logos */}
+            {/* Logo */}
             <div className="flex items-center gap-4">
               <Image
-                src="/assets/dubai-gov.svg"
-                alt="Dubai Government"
-                width={130}
-                height={46}
-                className="h-10 w-auto"
-              />
-              <div className="hidden h-8 w-px sm:block" style={{ backgroundColor: "var(--sf-border)" }} />
-              <Image
-                src="/assets/dubai-det-flag-logo.svg"
-                alt="Dubai Economy and Tourism"
+                src="/assets/hafeet-rail-logo.png"
+                alt="Hafeet Rail"
                 width={150}
                 height={52}
-                className="hidden h-11 w-auto sm:block"
+                className="h-11 w-auto"
               />
             </div>
 
@@ -119,7 +111,7 @@ export default function LandingPage() {
               {/* Language toggle */}
               <button
                 onClick={() => setLang(lang === "en" ? "ar" : "en")}
-                className="det-lang-toggle"
+                className="hr-lang-toggle"
                 title={lang === "en" ? "Switch to Arabic" : "Switch to English"}
               >
                 {lang === "en" ? "العربية" : "English"}
@@ -148,10 +140,10 @@ export default function LandingPage() {
             style={{
               background: "rgba(201,168,76,0.12)",
               border: "1px solid rgba(201,168,76,0.30)",
-              color: "var(--det-gold)",
+              color: "var(--hr-gold)",
             }}
           >
-            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--det-gold)" }} />
+            <span className="h-1.5 w-1.5 rounded-full" style={{ background: "var(--hr-gold)" }} />
             {t("badge")}
           </div>
 
@@ -162,7 +154,7 @@ export default function LandingPage() {
           >
             {t("heroHeadline")}
             <br />
-            <span style={{ color: "var(--det-navy-light)" }}>{t("heroPlatform")}</span>
+            <span style={{ color: "var(--hr-navy-light)" }}>{t("heroPlatform")}</span>
           </h1>
 
           <p
@@ -185,7 +177,7 @@ export default function LandingPage() {
             </Link>
             <a
               href="#about"
-              className="det-button-ghost inline-flex items-center gap-2 rounded-xl px-8 py-3.5 text-base font-medium"
+              className="hr-button-ghost inline-flex items-center gap-2 rounded-xl px-8 py-3.5 text-base font-medium"
             >
               {t("learnMore")}
               <svg className="h-4 w-4 rtl:rotate-180" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -202,7 +194,7 @@ export default function LandingPage() {
             <div className="mb-14 text-center">
               <p
                 className="mb-2 text-xs font-semibold tracking-widest uppercase"
-                style={{ color: "var(--det-gold)" }}
+                style={{ color: "var(--hr-gold)" }}
               >
                 {t("featuresEyebrow")}
               </p>
@@ -234,7 +226,7 @@ export default function LandingPage() {
                   {/* Gold top bar on hover */}
                   <div
                     className="absolute top-0 left-0 right-0 h-0.5 opacity-0 transition-opacity group-hover:opacity-100"
-                    style={{ background: "linear-gradient(90deg, var(--det-gold), var(--det-gold-light))" }}
+                    style={{ background: "linear-gradient(90deg, var(--hr-gold), var(--hr-gold-light))" }}
                   />
                   <div
                     className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl"
@@ -270,7 +262,7 @@ export default function LandingPage() {
             >
               <div
                 className="h-1"
-                style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 50%, var(--det-gold) 100%)" }}
+                style={{ background: "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 50%, var(--hr-gold) 100%)" }}
               />
 
               <div className="p-10 md:p-14">
@@ -278,7 +270,7 @@ export default function LandingPage() {
                   <div className="flex-1">
                     <p
                       className="mb-2 text-xs font-semibold tracking-widest uppercase"
-                      style={{ color: "var(--det-gold)" }}
+                      style={{ color: "var(--hr-gold)" }}
                     >
                       {t("aboutEyebrow")}
                     </p>
@@ -291,19 +283,11 @@ export default function LandingPage() {
                   </div>
                   <div className="flex flex-shrink-0 flex-col items-center gap-4">
                     <Image
-                      src="/assets/dubai-det-flag-logo.svg"
-                      alt="Dubai Economy and Tourism"
+                      src="/assets/hafeet-rail-logo.png"
+                      alt="Hafeet Rail"
                       width={148}
                       height={60}
                       className="h-16 w-auto opacity-90"
-                    />
-                    <div className="h-px w-24" style={{ background: "var(--det-gold)", opacity: 0.4 }} />
-                    <Image
-                      src="/assets/dubai-gov.svg"
-                      alt="Dubai Government"
-                      width={88}
-                      height={32}
-                      className="h-7 w-auto"
                     />
                   </div>
                 </div>
@@ -323,19 +307,11 @@ export default function LandingPage() {
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 text-center md:flex-row md:justify-between md:text-start">
             <div className="flex items-center gap-3">
               <Image
-                src="/assets/dubai-gov.svg"
-                alt="Dubai Government"
-                width={72}
-                height={26}
-                className="h-6 w-auto"
-              />
-              <span className="hidden h-4 w-px sm:block" style={{ backgroundColor: "var(--sf-border)" }} />
-              <Image
-                src="/assets/dubai-det-flag-logo.svg"
-                alt="Dubai Economy and Tourism"
+                src="/assets/hafeet-rail-logo.png"
+                alt="Hafeet Rail"
                 width={88}
                 height={30}
-                className="hidden h-7 w-auto opacity-80 sm:block"
+                className="h-7 w-auto opacity-80"
               />
             </div>
             <p className="text-xs" style={{ color: "var(--sf-text-faint)" }}>

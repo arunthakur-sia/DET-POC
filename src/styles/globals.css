@@ -10,19 +10,19 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   DET — Dubai Department of Economy and Tourism
+   Hafeet Rail
    Design Token System  |  Light Mode (default)
 ═══════════════════════════════════════════════════════════════════ */
 :root {
   /* ── Brand primaries ── */
-  --det-navy:        #1b3764;   /* DET primary */
-  --det-navy-deep:   #132849;   /* darker shade */
-  --det-navy-mid:    #2e5196;   /* medium shade */
-  --det-navy-light:  #4a7ec5;   /* lighter interactive */
-  --det-gold:        #c9a84c;   /* DET gold accent */
-  --det-gold-light:  #ddb96a;   /* hover/lighter gold */
-  --det-gold-muted:  #e8d5a3;   /* very light gold tint */
-  --det-teal:        #1a9e8f;   /* success / process states */
+  --hr-navy:        #1b3764;   /* Hafeet Rail primary */
+  --hr-navy-deep:   #132849;   /* darker shade */
+  --hr-navy-mid:    #2e5196;   /* medium shade */
+  --hr-navy-light:  #4a7ec5;   /* lighter interactive */
+  --hr-gold:        #c9a84c;   /* Hafeet Rail gold accent */
+  --hr-gold-light:  #ddb96a;   /* hover/lighter gold */
+  --hr-gold-muted:  #e8d5a3;   /* very light gold tint */
+  --hr-teal:        #1a9e8f;   /* success / process states */
 
   /* ── Surface tokens ── */
   --sf-bg:           #f4f7fb;
@@ -72,27 +72,27 @@ body {
 /* ═══════════════════════════════════════════════════════════════════
    Utility classes
 ═══════════════════════════════════════════════════════════════════ */
-.det-surface {
+.hr-surface {
   background: var(--sf-surface);
   border: 1px solid var(--sf-border);
   box-shadow: var(--sf-shadow);
 }
 
-.det-soft-surface {
+.hr-soft-surface {
   background: var(--sf-surface-muted);
   border: 1px solid var(--sf-border);
 }
 
 /* Gold highlight bar used on card tops */
-.det-gold-bar {
+.hr-gold-bar {
   height: 3px;
-  background: linear-gradient(90deg, var(--det-gold) 0%, var(--det-gold-light) 100%);
+  background: linear-gradient(90deg, var(--hr-gold) 0%, var(--hr-gold-light) 100%);
 }
 
 /* Navy gradient bar (alternate) */
-.det-navy-bar {
+.hr-navy-bar {
   height: 3px;
-  background: linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 100%);
+  background: linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 100%);
 }
 
 /* ─── Input ─── */
@@ -103,14 +103,14 @@ body {
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 .sf-input:focus {
-  border-color: var(--det-navy-light);
+  border-color: var(--hr-navy-light);
   box-shadow: 0 0 0 3px rgba(74, 126, 197, 0.18);
   outline: none;
 }
 
-/* ─── Primary CTA button  (DET Navy) ─── */
+/* ─── Primary CTA button (Hafeet Rail Navy) ─── */
 .sf-button-primary {
-  background: linear-gradient(135deg, var(--det-navy) 0%, var(--det-navy-mid) 100%);
+  background: linear-gradient(135deg, var(--hr-navy) 0%, var(--hr-navy-mid) 100%);
   color: #ffffff;
   border: 1px solid rgba(19, 40, 73, 0.20);
   transition: transform 0.16s ease, box-shadow 0.16s ease, filter 0.16s ease;
@@ -122,46 +122,46 @@ body {
 }
 
 /* ─── Gold accent button ─── */
-.det-button-gold {
-  background: linear-gradient(135deg, var(--det-gold) 0%, var(--det-gold-light) 100%);
+.hr-button-gold {
+  background: linear-gradient(135deg, var(--hr-gold) 0%, var(--hr-gold-light) 100%);
   color: #1b3764;
   border: 1px solid rgba(201, 168, 76, 0.30);
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
-.det-button-gold:hover {
+.hr-button-gold:hover {
   transform: translateY(-1px);
   box-shadow: 0 8px 18px rgba(201, 168, 76, 0.32);
 }
 
 /* ─── Ghost button ─── */
-.det-button-ghost {
+.hr-button-ghost {
   background: transparent;
   border: 1px solid var(--sf-border);
   color: var(--sf-text-muted);
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
-.det-button-ghost:hover {
+.hr-button-ghost:hover {
   background: var(--sf-surface-muted);
-  border-color: var(--det-navy-light);
+  border-color: var(--hr-navy-light);
   color: var(--sf-text);
 }
 
 
 /* ─── Arabic bilingual text ─── */
-.det-arabic {
+.hr-arabic {
   font-family: var(--font-arabic), "Noto Sans Arabic", sans-serif;
   direction: rtl;
   unicode-bidi: embed;
   letter-spacing: 0;
 }
-.det-bilingual-label {
+.hr-bilingual-label {
   display: flex;
   align-items: center;
   gap: 0.5rem;
 }
 
 /* ─── Language toggle button ─── */
-.det-lang-toggle {
+.hr-lang-toggle {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -177,22 +177,22 @@ body {
   transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
   white-space: nowrap;
 }
-.det-lang-toggle:hover {
-  background: var(--det-navy);
-  border-color: var(--det-navy);
+.hr-lang-toggle:hover {
+  background: var(--hr-navy);
+  border-color: var(--hr-navy);
   color: #ffffff;
 }
 
 /* ─── Phase step indicator ─── */
-.det-phase-active {
-  color: var(--det-navy);
+.hr-phase-active {
+  color: var(--hr-navy);
   font-weight: 600;
 }
-.det-phase-done  { color: var(--det-teal); }
-.det-phase-lock  { color: var(--sf-text-faint); }
+.hr-phase-done  { color: var(--hr-teal); }
+.hr-phase-lock  { color: var(--sf-text-faint); }
 
 /* ─── Status chips ─── */
-.det-chip {
+.hr-chip {
   display: inline-flex;
   align-items: center;
   border-radius: 9999px;
@@ -202,20 +202,20 @@ body {
 }
 
 /* ─── Card hover lift ─── */
-.det-card {
+.hr-card {
   background: var(--sf-surface);
   border: 1px solid var(--sf-border);
   box-shadow: var(--sf-shadow-sm);
   border-radius: 1rem;
   transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
-.det-card:hover {
+.hr-card:hover {
   transform: translateY(-2px);
   box-shadow: var(--sf-shadow-lg);
 }
 
 /* ─── Sidebar nav item ─── */
-.det-nav-item {
+.hr-nav-item {
   display: flex;
   align-items: center;
   gap: 0.5rem;
@@ -225,13 +225,13 @@ body {
   color: var(--sf-text-muted);
   transition: background 0.15s ease, color 0.15s ease;
 }
-.det-nav-item:hover {
+.hr-nav-item:hover {
   background: var(--sf-surface-muted);
   color: var(--sf-text);
 }
-.det-nav-item.active {
+.hr-nav-item.active {
   background: rgba(27, 55, 100, 0.10);
-  color: var(--det-navy);
+  color: var(--hr-navy);
   font-weight: 600;
 }
 
@@ -420,21 +420,21 @@ details summary:hover {
 }
 
 /* Gold bar gradient flips for RTL */
-[dir="rtl"] .det-gold-bar {
-  background: linear-gradient(270deg, var(--det-gold) 0%, var(--det-gold-light) 100%);
+[dir="rtl"] .hr-gold-bar {
+  background: linear-gradient(270deg, var(--hr-gold) 0%, var(--hr-gold-light) 100%);
 }
-[dir="rtl"] .det-navy-bar {
-  background: linear-gradient(270deg, var(--det-navy) 0%, var(--det-navy-mid) 100%);
+[dir="rtl"] .hr-navy-bar {
+  background: linear-gradient(270deg, var(--hr-navy) 0%, var(--hr-navy-mid) 100%);
 }
 
 /* Sidebar nav item: icon stays on the inner side in RTL */
-[dir="rtl"] .det-nav-item {
+[dir="rtl"] .hr-nav-item {
   flex-direction: row-reverse;
 }
 
 /* Sidebar left-border active indicator flips */
-[dir="rtl"] .det-nav-item.active {
-  border-right: 3px solid var(--det-navy);
+[dir="rtl"] .hr-nav-item.active {
+  border-right: 3px solid var(--hr-navy);
   border-left: none;
 }
 
@@ -450,13 +450,13 @@ details summary:hover {
 
 /* Process optimizer: in RTL the sidebar goes to the right — flex handles this
    automatically, but we flip the border */
-[dir="rtl"] .det-sidebar-border {
+[dir="rtl"] .hr-sidebar-border {
   border-right: none;
   border-left: 1px solid var(--sf-border);
 }
 
 /* Phase active-process left border indicator */
-[dir="rtl"] .det-process-active-border {
-  border-right: 3px solid var(--det-navy-light) !important;
+[dir="rtl"] .hr-process-active-border {
+  border-right: 3px solid var(--hr-navy-light) !important;
   border-left: none !important;
 }

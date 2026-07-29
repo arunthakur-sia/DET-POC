@@ -201,7 +201,7 @@ export default function ExecutiveDashboard() {
       >
         <div
           className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: "var(--det-navy-light)" }}
+          style={{ borderColor: "var(--hr-navy-light)" }}
         />
       </div>
     );
@@ -213,10 +213,10 @@ export default function ExecutiveDashboard() {
   return (
     <>
       <Head>
-        <title>Executive Dashboard – Process Excellence | DET</title>
+        <title>Executive Dashboard – Process Excellence | Hafeet Rail</title>
         <meta
           name="description"
-          content="Portfolio-level automation intelligence for DET process transformation programme"
+          content="Portfolio-level automation intelligence for Hafeet Rail process transformation programme"
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -236,15 +236,15 @@ export default function ExecutiveDashboard() {
             className="h-0.5"
             style={{
               background:
-                "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-gold) 100%)",
+                "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 55%, var(--hr-gold) 100%)",
             }}
           />
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
                 <Image
-                  src="/assets/dubai-det-flag-logo.svg"
-                  alt="Dubai Economy and Tourism"
+                  src="/assets/hafeet-rail-logo.png"
+                  alt="Hafeet Rail"
                   width={110}
                   height={36}
                   className="h-9 w-auto"
@@ -265,13 +265,13 @@ export default function ExecutiveDashboard() {
             <div className="flex items-center gap-2.5">
               <Link
                 href="/dashboard"
-                className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
+                className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
               >
                 My Processes
               </Link>
               <button
                 onClick={() => setLang(lang === "en" ? "ar" : "en")}
-                className="det-lang-toggle"
+                className="hr-lang-toggle"
               >
                 {lang === "en" ? "العربية" : "English"}
               </button>
@@ -279,7 +279,7 @@ export default function ExecutiveDashboard() {
                 onClick={() =>
                   void signOut().then(() => void router.replace("/"))
                 }
-                className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
+                className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
               >
                 {t("signOut")}
               </button>
@@ -328,7 +328,7 @@ export default function ExecutiveDashboard() {
             <div className="flex h-64 items-center justify-center">
               <div
                 className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-                style={{ borderColor: "var(--det-navy-light)" }}
+                style={{ borderColor: "var(--hr-navy-light)" }}
               />
             </div>
           ) : (
@@ -341,7 +341,7 @@ export default function ExecutiveDashboard() {
                       label: "Total Processes",
                       value: agg.totalProcesses.toLocaleString(),
                       sub: "portfolio scope",
-                      accent: "var(--det-navy)",
+                      accent: "var(--hr-navy)",
                       icon: (
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -353,7 +353,7 @@ export default function ExecutiveDashboard() {
                       label: "Potential Hours Saved",
                       value: `${agg.totalHours.toLocaleString()} hrs`,
                       sub: "across portfolio",
-                      accent: "var(--det-teal)",
+                      accent: "var(--hr-teal)",
                       icon: (
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -365,7 +365,7 @@ export default function ExecutiveDashboard() {
                       label: "Potential Cost Saving",
                       value: fmtAed(agg.costAed),
                       sub: `at ${aedRate} AED / hr`,
-                      accent: "var(--det-gold)",
+                      accent: "var(--hr-gold)",
                       icon: (
                         <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}
@@ -465,13 +465,13 @@ export default function ExecutiveDashboard() {
                 {/* Health metric tiles */}
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-4">
                   {[
-                    { label: "Total Steps", value: agg.totalSteps, color: "var(--det-navy)" },
+                    { label: "Total Steps", value: agg.totalSteps, color: "var(--hr-navy)" },
                     { label: "Critical Issues", value: agg.criticalBottlenecks, color: "#dc2626" },
                     { label: "Quick Wins", value: agg.totalQuickWins, color: "#16a34a" },
                     {
                       label: "Avg Steps / Process",
                       value: agg.totalProcesses > 0 ? (agg.totalSteps / agg.totalProcesses).toFixed(1) : "—",
-                      color: "var(--det-teal)",
+                      color: "var(--hr-teal)",
                     },
                   ].map((tile) => (
                     <div
@@ -628,7 +628,7 @@ export default function ExecutiveDashboard() {
                               <td className="px-4 py-3">
                                 <span
                                   className="font-semibold"
-                                  style={{ color: "var(--det-navy)" }}
+                                  style={{ color: "var(--hr-navy)" }}
                                 >
                                   {proc.analysis?.processName ?? "Unnamed"}
                                 </span>
@@ -661,7 +661,7 @@ export default function ExecutiveDashboard() {
                               </td>
                               <td
                                 className="px-4 py-3 text-xs font-semibold"
-                                style={{ color: "var(--det-teal)" }}
+                                style={{ color: "var(--hr-teal)" }}
                               >
                                 {hours > 0 ? `${Math.round(hours)} hrs` : "—"}
                               </td>

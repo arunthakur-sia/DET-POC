@@ -173,7 +173,7 @@ function ProcessCard({
       {/* Accent bar */}
       <div
         className="h-0.5 rounded-t-2xl"
-        style={{ background: `linear-gradient(90deg, ${cfg.stroke} 0%, var(--det-gold) 100%)` }}
+        style={{ background: `linear-gradient(90deg, ${cfg.stroke} 0%, var(--hr-gold) 100%)` }}
       />
 
       <div className="flex flex-1 flex-col gap-4 p-5">
@@ -273,7 +273,7 @@ function ProcessCard({
           <span className="text-xs font-medium" style={{ color: "var(--sf-text-muted)" }}>
             Potential time saving
           </span>
-          <span className="text-sm font-bold" style={{ color: "var(--det-teal)" }}>
+          <span className="text-sm font-bold" style={{ color: "var(--hr-teal)" }}>
             {hours > 0 ? `${Math.round(hours)} hrs` : "—"}
           </span>
         </div>
@@ -337,7 +337,7 @@ function ProcessCard({
           ) : (
             <button
               onClick={() => setShowOverride(true)}
-              className="det-button-ghost flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium"
+              className="hr-button-ghost flex w-full items-center justify-center gap-1.5 rounded-lg py-2 text-xs font-medium"
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -400,7 +400,7 @@ function downloadCSV(fps: FlatProcess[], pathway: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `DET_${pathway.replace(/\s+/g, "_")}_processes.csv`;
+  a.download = `HafeetRail_${pathway.replace(/\s+/g, "_")}_processes.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -509,7 +509,7 @@ export default function PathwayDrilldown() {
       >
         <div
           className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: "var(--det-navy-light)" }}
+          style={{ borderColor: "var(--hr-navy-light)" }}
         />
       </div>
     );
@@ -519,7 +519,7 @@ export default function PathwayDrilldown() {
     <>
       <Head>
         <title>
-          {pathway ? `${pathway} — Pathway Drill-Through` : "Pathway Drill-Through"} | DET
+          {pathway ? `${pathway} — Pathway Drill-Through` : "Pathway Drill-Through"} | Hafeet Rail
         </title>
         <meta name="description" content="Per-pathway process list with ROI projections and classification override" />
         <link rel="icon" href="/favicon.ico" />
@@ -529,7 +529,7 @@ export default function PathwayDrilldown() {
         {/* ── Print-only header ─────────────────────────────────────── */}
         <div className="hidden print:block print:mb-6">
           <p className="text-lg font-bold">
-            DET Process Excellence — {pathway ?? "All Pathways"}
+            Hafeet Rail Process Excellence — {pathway ?? "All Pathways"}
           </p>
           <p className="text-sm text-gray-500">
             Exported on {new Date().toLocaleDateString("en-GB")}
@@ -550,15 +550,15 @@ export default function PathwayDrilldown() {
             className="h-0.5"
             style={{
               background:
-                "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-gold) 100%)",
+                "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 55%, var(--hr-gold) 100%)",
             }}
           />
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             <div className="flex items-center gap-3">
               <Link href="/executive-dashboard">
                 <Image
-                  src="/assets/dubai-det-flag-logo.svg"
-                  alt="DET"
+                  src="/assets/hafeet-rail-logo.png"
+                  alt="Hafeet Rail"
                   width={110}
                   height={36}
                   className="h-9 w-auto"
@@ -581,7 +581,7 @@ export default function PathwayDrilldown() {
             <div className="flex items-center gap-2.5">
               <Link
                 href="/executive-dashboard"
-                className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
+                className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
               >
                 ← Portfolio
               </Link>
@@ -589,7 +589,7 @@ export default function PathwayDrilldown() {
                 <>
                   <button
                     onClick={() => downloadCSV(filtered, pathway)}
-                    className="det-button-ghost flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium"
+                    className="hr-button-ghost flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium"
                   >
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -599,7 +599,7 @@ export default function PathwayDrilldown() {
                   </button>
                   <button
                     onClick={() => window.print()}
-                    className="det-button-ghost flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium"
+                    className="hr-button-ghost flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium"
                   >
                     <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
@@ -611,7 +611,7 @@ export default function PathwayDrilldown() {
               )}
               <button
                 onClick={() => setLang(lang === "en" ? "ar" : "en")}
-                className="det-lang-toggle"
+                className="hr-lang-toggle"
               >
                 {lang === "en" ? "العربية" : "English"}
               </button>
@@ -619,7 +619,7 @@ export default function PathwayDrilldown() {
                 onClick={() =>
                   void signOut().then(() => void router.replace("/"))
                 }
-                className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
+                className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
               >
                 {t("signOut")}
               </button>
@@ -695,7 +695,7 @@ export default function PathwayDrilldown() {
             <div className="flex h-64 items-center justify-center">
               <div
                 className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-                style={{ borderColor: "var(--det-navy-light)" }}
+                style={{ borderColor: "var(--hr-navy-light)" }}
               />
             </div>
           ) : filtered.length === 0 && pathway ? (

@@ -279,7 +279,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
       }}
     >
       {/* Teal accent bar */}
-      <div className="h-0.5 rounded-t-2xl" style={{ background: "linear-gradient(90deg, var(--det-teal) 0%, #1b3764 100%)" }} />
+      <div className="h-0.5 rounded-t-2xl" style={{ background: "linear-gradient(90deg, var(--hr-teal) 0%, #1b3764 100%)" }} />
 
       {/* Header */}
       <button
@@ -336,16 +336,16 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
             <div className="flex flex-wrap items-center gap-3">
               <div>
                 <p className="text-xs font-bold uppercase tracking-widest" style={{ color: "var(--sf-text-muted)" }}>Primary Classification</p>
-                <p className="mt-0.5 text-sm font-semibold" style={{ color: "var(--det-teal)" }}>
+                <p className="mt-0.5 text-sm font-semibold" style={{ color: "var(--hr-teal)" }}>
                   Classical RPA — Rule-Based Deterministic Automation
                 </p>
               </div>
               <div className="ml-auto">
                 <div className="flex items-center gap-2">
                   <div className="h-2 w-24 rounded-full overflow-hidden" style={{ background: "var(--sf-border)" }}>
-                    <div className="h-full rounded-full" style={{ width: `${entry.confidenceScore}%`, background: "var(--det-teal)" }} />
+                    <div className="h-full rounded-full" style={{ width: `${entry.confidenceScore}%`, background: "var(--hr-teal)" }} />
                   </div>
-                  <span className="text-xs font-bold" style={{ color: "var(--det-teal)" }}>{entry.confidenceScore}%</span>
+                  <span className="text-xs font-bold" style={{ color: "var(--hr-teal)" }}>{entry.confidenceScore}%</span>
                 </div>
               </div>
             </div>
@@ -373,8 +373,8 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
                 onClick={() => setActiveTab(tab.key)}
                 className="px-4 py-2 text-xs font-semibold transition-all"
                 style={{
-                  color: activeTab === tab.key ? "var(--det-teal)" : "var(--sf-text-muted)",
-                  borderBottom: activeTab === tab.key ? "2px solid var(--det-teal)" : "2px solid transparent",
+                  color: activeTab === tab.key ? "var(--hr-teal)" : "var(--sf-text-muted)",
+                  borderBottom: activeTab === tab.key ? "2px solid var(--hr-teal)" : "2px solid transparent",
                 }}
               >
                 {tab.label}
@@ -400,7 +400,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
                   style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}>
                   <div
                     className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-sm font-black"
-                    style={{ background: "rgba(26,158,143,0.12)", color: "var(--det-teal)" }}
+                    style={{ background: "rgba(26,158,143,0.12)", color: "var(--hr-teal)" }}
                   >
                     {tool.logo}
                   </div>
@@ -411,7 +411,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
                 </div>
               ))}
               <div className="rounded-xl p-3" style={{ background: "rgba(27,55,100,0.05)", border: "1px solid rgba(27,55,100,0.12)" }}>
-                <p className="text-xs font-semibold" style={{ color: "var(--det-navy)" }}>Estimated Bot Development Effort</p>
+                <p className="text-xs font-semibold" style={{ color: "var(--hr-navy)" }}>Estimated Bot Development Effort</p>
                 <p className="mt-1 text-sm font-bold" style={{ color: "var(--sf-text)" }}>
                   {entry.botEffort.tier} · {entry.botEffort.weeks}
                   <span className="ml-2 text-xs font-normal" style={{ color: "var(--sf-text-muted)" }}>
@@ -434,7 +434,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
                   <div key={us.id} className="rounded-xl p-4"
                     style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}>
                     <div className="mb-2 flex items-center justify-between gap-3">
-                      <span className="font-mono text-xs font-bold" style={{ color: "var(--det-teal)" }}>{us.id}</span>
+                      <span className="font-mono text-xs font-bold" style={{ color: "var(--hr-teal)" }}>{us.id}</span>
                       <div className="flex items-center gap-2">
                         <span className="rounded px-1.5 py-0.5 text-xs font-semibold"
                           style={{ background: "rgba(26,158,143,0.09)", color: "#0d7a6e", fontSize: "0.65rem" }}>
@@ -541,7 +541,7 @@ export default function RPABlueprint() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = `det-rpa-blueprints-${new Date().toISOString().slice(0, 10)}.json`;
+    a.download = `hr-rpa-blueprints-${new Date().toISOString().slice(0, 10)}.json`;
     a.click();
     URL.revokeObjectURL(url);
   };
@@ -549,7 +549,7 @@ export default function RPABlueprint() {
   if (authLoading || (!user && !authLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--sf-bg)" }}>
-        <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: "var(--det-navy-light)" }} />
+        <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: "var(--hr-navy-light)" }} />
       </div>
     );
   }
@@ -557,8 +557,8 @@ export default function RPABlueprint() {
   return (
     <>
       <Head>
-        <title>RPA Blueprint – Classical Automation Pathway | DET</title>
-        <meta name="description" content="Task-level RPA blueprints with bot logic, trigger conditions, and tool compatibility for DET process automation" />
+        <title>RPA Blueprint – Classical Automation Pathway | Hafeet Rail</title>
+        <meta name="description" content="Task-level RPA blueprints with bot logic, trigger conditions, and tool compatibility for Hafeet Rail process automation" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -573,11 +573,11 @@ export default function RPABlueprint() {
             boxShadow: "var(--sf-shadow-sm)",
           }}
         >
-          <div className="h-0.5" style={{ background: "linear-gradient(90deg, var(--det-teal) 0%, var(--det-navy) 100%)" }} />
+          <div className="h-0.5" style={{ background: "linear-gradient(90deg, var(--hr-teal) 0%, var(--hr-navy) 100%)" }} />
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
-                <Image src="/assets/dubai-det-flag-logo.svg" alt="Dubai Economy and Tourism" width={110} height={36} className="h-9 w-auto" />
+                <Image src="/assets/hafeet-rail-logo.png" alt="Hafeet Rail" width={110} height={36} className="h-9 w-auto" />
               </Link>
               <div className="hidden h-5 w-px sm:block" style={{ background: "var(--sf-border)" }} />
               <span className="hidden text-xs font-semibold sm:block" style={{ color: "var(--sf-text-muted)" }}>
@@ -585,14 +585,14 @@ export default function RPABlueprint() {
               </span>
             </div>
             <div className="flex items-center gap-2.5">
-              <Link href="/executive-dashboard" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Portfolio</Link>
-              <Link href="/ai-use-case-library" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">AI Use Cases</Link>
-              <Link href="/manual-workbench" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Lean Workbench</Link>
-              <Link href="/dashboard" className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">My Processes</Link>
-              <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="det-lang-toggle">
+              <Link href="/executive-dashboard" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Portfolio</Link>
+              <Link href="/ai-use-case-library" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">AI Use Cases</Link>
+              <Link href="/manual-workbench" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">Lean Workbench</Link>
+              <Link href="/dashboard" className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">My Processes</Link>
+              <button onClick={() => setLang(lang === "en" ? "ar" : "en")} className="hr-lang-toggle">
                 {lang === "en" ? "العربية" : "English"}
               </button>
-              <button onClick={() => void signOut().then(() => void router.replace("/"))} className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">
+              <button onClick={() => void signOut().then(() => void router.replace("/"))} className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium">
                 {t("signOut")}
               </button>
             </div>
@@ -612,7 +612,7 @@ export default function RPABlueprint() {
               onClick={handleExport}
               disabled={allBlueprints.length === 0}
               className="inline-flex flex-shrink-0 items-center gap-2 rounded-lg px-4 py-2 text-xs font-semibold disabled:opacity-40"
-              style={{ background: "var(--det-teal)", color: "#fff" }}
+              style={{ background: "var(--hr-teal)", color: "#fff" }}
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4" />
@@ -623,7 +623,7 @@ export default function RPABlueprint() {
 
           {fetching ? (
             <div className="flex h-64 items-center justify-center">
-              <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: "var(--det-teal)" }} />
+              <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent" style={{ borderColor: "var(--hr-teal)" }} />
             </div>
           ) : allBlueprints.length === 0 ? (
             <div
@@ -674,9 +674,9 @@ export default function RPABlueprint() {
                     onClick={() => setFilterEffort(tier)}
                     className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
                     style={{
-                      background: filterEffort === tier ? "var(--det-teal)" : "var(--sf-surface)",
+                      background: filterEffort === tier ? "var(--hr-teal)" : "var(--sf-surface)",
                       color: filterEffort === tier ? "#fff" : "var(--sf-text-muted)",
-                      border: `1px solid ${filterEffort === tier ? "var(--det-teal)" : "var(--sf-border)"}`,
+                      border: `1px solid ${filterEffort === tier ? "var(--hr-teal)" : "var(--sf-border)"}`,
                     }}
                   >
                     {tier === "All" ? "All Effort" : `${tier} Effort`}

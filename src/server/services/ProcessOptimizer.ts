@@ -251,7 +251,7 @@ export interface ActivityTableEntry {
   department?: string;
 }
 
-// Comprehensive document metadata extracted from RTA process documents
+// Comprehensive document metadata extracted from Hafeet Rail process documents
 export interface ProcessDocumentMetadata {
   // Process Information section
   processId?: string;
@@ -602,7 +602,7 @@ export class ProcessOptimizer {
 
       const pageTextResults = await Promise.all(textExtractionPromises);
 
-      // RTA process documents typically have flowchart on a specific page
+      // Hafeet Rail process documents typically have flowchart on a specific page
       // Always use Vision API for known flowchart pages + pages with very little text
       const FLOWCHART_PAGES = [11]; // Page 11 contains the flowchart
       const DIAGRAM_THRESHOLD = 200; // Very low - only truly empty pages
@@ -680,7 +680,7 @@ export class ProcessOptimizer {
     // Use Claude's native PDF support - sends PDF directly to Claude
     // This is faster and more accurate than converting to images
     // See: https://platform.claude.com/docs/en/build-with-claude/pdf-support
-    const prompt = `You are analyzing an RTA (Roads and Transport Authority) process document in Arabic/English bilingual format.
+    const prompt = `You are analyzing an Hafeet Rail process document in Arabic/English bilingual format.
 
 Extract ALL content from this PDF and return it as structured JSON. The document contains:
 1. A process flowchart/swimlane diagram (usually on one of the middle pages)
@@ -939,7 +939,7 @@ Return ONLY valid JSON (no markdown fences, no explanation):
           },
         }));
 
-        const prompt = `You are analyzing RTA (Roads and Transport Authority) process documents in Arabic/English bilingual format. The documents contain:
+        const prompt = `You are analyzing Hafeet Rail process documents in Arabic/English bilingual format. The documents contain:
 1. A process flowchart/swimlane diagram
 2. A detailed "Activities and Responsibilities" table (الأنشطة و المسؤوليات) listing ALL process steps with IDs like CS.H.3.1.01
 3. Process metadata including SIPOC, KPIs, controls, and approvals
@@ -983,10 +983,10 @@ Return ONLY a single JSON document inside a code fence like this:
   "stepCountDiscrepancy": false,
   "sipoc": {
     "suppliers": ["Asset Management Department"],
-    "inputs": ["All RTA projects/initiatives/practices aligned with Circular Economy"],
-    "process": "Manage RTA Circular Economy",
-    "outputs": ["Annual report for CE performance in RTA to the HE DG."],
-    "customers": ["All RTA's sectors and agencies and its affiliated departments."]
+    "inputs": ["All Hafeet Rail projects/initiatives/practices aligned with Circular Economy"],
+    "process": "Manage Hafeet Rail Circular Economy",
+    "outputs": ["Annual report for CE performance in Hafeet Rail to the HE DG."],
+    "customers": ["All Hafeet Rail's sectors and agencies and its affiliated departments."]
   },
   "kpis": [ { "name": "", "nameArabic": "", "formula": "", "target": "", "measurementFrequency": "" } ],
   "internalControls": [ { "controlId": "", "description": "", "riskMitigated": "", "controlType": "" } ],
@@ -1020,10 +1020,10 @@ Rules:
     | Component | Details (English) | Details (Arabic) |
     | Supplier  | Asset Management Department | إدارة األصول |
   * For Supplier row: Extract English text like ["Asset Management Department"] or ["N/A"]
-  * For Input row: Extract the COMPLETE English description (often a long sentence): ["All RTA projects/initiatives/practices aligned with Circular Economy"]  
-  * For Process row: Extract as string: "Manage RTA Circular Economy"
-  * For Output row: Extract COMPLETE English text: ["Annual report for CE performance in RTA to the HE DG."]
-  * For Customer row: Extract COMPLETE English text: ["All RTA's sectors and agencies and its affiliated departments."]
+  * For Input row: Extract the COMPLETE English description (often a long sentence): ["All Hafeet Rail projects/initiatives/practices aligned with Circular Economy"]  
+  * For Process row: Extract as string: "Manage Hafeet Rail Circular Economy"
+  * For Output row: Extract COMPLETE English text: ["Annual report for CE performance in Hafeet Rail to the HE DG."]
+  * For Customer row: Extract COMPLETE English text: ["All Hafeet Rail's sectors and agencies and its affiliated departments."]
   * IMPORTANT: DO NOT return empty arrays. If you cannot find text, use ["NOT FOUND"] so we can debug. Only use ["N/A"] if the cell actually says "N/A".
 - If multiple pages, merge into a single graph
 - Flag stepCountDiscrepancy if flowchartBoxCount != activitiesTableCount`;
@@ -1182,7 +1182,7 @@ Rules:
         },
       }));
 
-      const prompt = `You are analyzing RTA (Roads and Transport Authority) process documents in Arabic/English bilingual format. The documents contain:
+      const prompt = `You are analyzing Hafeet Rail process documents in Arabic/English bilingual format. The documents contain:
 1. A process flowchart/swimlane diagram
 2. A detailed "Activities and Responsibilities" table (الأنشطة و المسؤوليات) listing ALL process steps with IDs like CS.H.3.1.01
 3. Process metadata including SIPOC, KPIs, controls, and approvals
@@ -1226,10 +1226,10 @@ Return ONLY a single JSON document inside a code fence like this:
   "stepCountDiscrepancy": false,
   "sipoc": {
     "suppliers": ["Asset Management Department"],
-    "inputs": ["All RTA projects/initiatives/practices aligned with Circular Economy"],
-    "process": "Manage RTA Circular Economy",
-    "outputs": ["Annual report for CE performance in RTA to the HE DG."],
-    "customers": ["All RTA's sectors and agencies and its affiliated departments."]
+    "inputs": ["All Hafeet Rail projects/initiatives/practices aligned with Circular Economy"],
+    "process": "Manage Hafeet Rail Circular Economy",
+    "outputs": ["Annual report for CE performance in Hafeet Rail to the HE DG."],
+    "customers": ["All Hafeet Rail's sectors and agencies and its affiliated departments."]
   },
   "kpis": [ { "name": "", "nameArabic": "", "formula": "", "target": "", "measurementFrequency": "" } ],
   "internalControls": [ { "controlId": "", "description": "", "riskMitigated": "", "controlType": "" } ],
@@ -1263,10 +1263,10 @@ Rules:
     | Component | Details (English) | Details (Arabic) |
     | Supplier  | Asset Management Department | إدارة األصول |
   * For Supplier row: Extract English text like ["Asset Management Department"] or ["N/A"]
-  * For Input row: Extract the COMPLETE English description (often a long sentence): ["All RTA projects/initiatives/practices aligned with Circular Economy"]  
-  * For Process row: Extract as string: "Manage RTA Circular Economy"
-  * For Output row: Extract COMPLETE English text: ["Annual report for CE performance in RTA to the HE DG."]
-  * For Customer row: Extract COMPLETE English text: ["All RTA's sectors and agencies and its affiliated departments."]
+  * For Input row: Extract the COMPLETE English description (often a long sentence): ["All Hafeet Rail projects/initiatives/practices aligned with Circular Economy"]  
+  * For Process row: Extract as string: "Manage Hafeet Rail Circular Economy"
+  * For Output row: Extract COMPLETE English text: ["Annual report for CE performance in Hafeet Rail to the HE DG."]
+  * For Customer row: Extract COMPLETE English text: ["All Hafeet Rail's sectors and agencies and its affiliated departments."]
   * IMPORTANT: DO NOT return empty arrays. If you cannot find text, use ["NOT FOUND"] so we can debug. Only use ["N/A"] if the cell actually says "N/A".
 - If multiple pages, merge into a single graph
 - Flag stepCountDiscrepancy if flowchartBoxCount != activitiesTableCount`;
@@ -1511,7 +1511,7 @@ Rules:
       : "";
 
     const prompt = `
-You are a process optimization expert analyzing an organizational workflow for RTA (Roads and Transport Authority).
+You are a process optimization expert analyzing an organizational workflow for Hafeet Rail.
 
 STEP 1: IDENTIFY THE PROCESS TYPE AND APPLICABLE STANDARDS
 
@@ -1698,7 +1698,7 @@ For each quick win:
   
   When in doubt, leave as empty string "". It's better to have no methodology than to cite incorrectly.
   
-- Consider government constraints (compliance, audit trails, transparency)
+- Consider regulatory constraints (compliance, audit trails, transparency)
 
 PRIORITY ACTIONS:
 - Address the constraint/bottleneck first
@@ -2778,7 +2778,7 @@ JSON output:`;
 
     const today = new Date().toISOString().split("T")[0] ?? "";
     const sopPrompt = `
-You are generating an updated Standard Operating Procedure (SOP) document for RTA (Roads and Transport Authority).
+You are generating an updated Standard Operating Procedure (SOP) document for Hafeet Rail.
 
 CRITICAL RULES:
 1. DO NOT invent, fabricate, or hallucinate ANY information
@@ -3495,14 +3495,14 @@ CRITICAL RULES:
       .filter(Boolean)
       .join("\n");
 
-    const promptText = `You are a process optimization expert analyzing an RTA government workflow. Use the diagnose_process tool to return your structured analysis.
+    const promptText = `You are a process optimization expert analyzing a Hafeet Rail workflow. Use the diagnose_process tool to return your structured analysis.
 
 ${contextLines}
 
 Apply:
 - Lean waste analysis (8 wastes: transport, inventory, motion, waiting, overproduction, over-processing, defects, skills underutilization)
 - Theory of Constraints (identify the single bottleneck that limits throughput)
-- Government compliance context (audit trails, Arabic/English bilingual operations)
+- Regulatory compliance context (audit trails, Arabic/English bilingual operations)
 
 For each quick win, set performedBy to the exact role/department from the steps data above.
 For bestPractice, only cite if certain (e.g. "Lean - Eliminate waiting waste"). Leave empty string if unsure.
@@ -3514,13 +3514,13 @@ For stepClassifications, classify EVERY step listed above into one of:
 - "As-Is": step is already efficient, well-designed, simple, or mandatory by regulation — no optimization or automation is warranted; keep it as it is
 
 SCORING RULES — be conservative and accurate:
-- NOT every step needs automation. Many steps in a government process are simple, fast, or legally required as-is.
+- NOT every step needs automation. Many steps in a regulated process are simple, fast, or legally required as-is.
 - Use "As-Is" for steps that: are already quick (low actual/available time ratio), are simple hand-offs or notifications, are legally required manual sign-offs with no inefficiency, or genuinely have no pain point.
 - Reserve "AI Agent" only for steps with clear evidence of unstructured data, language, or variable judgment — do NOT use it just because a step seems complex.
 - Reserve "Classical RPA" only for steps that are genuinely repetitive and rules-based with structured data.
 - Use "Manual Optimization" only for steps that need process redesign or policy change before any automation is considered.
 - confidenceScore: set to 90+ only when you are very certain. Use 60-80 for moderate confidence. Use 40-60 if the step is ambiguous.
-- Expect roughly 30-50% of steps in a typical government process to be "As-Is".
+- Expect roughly 30-50% of steps in a typical regulated process to be "As-Is".
 
 Provide a confidenceScore (0-100), a concise reason (one sentence), and a currentStateDescription (2-3 sentences describing what the step does today, who performs it, how long it takes, and what its main inefficiencies are) for each step.`;
 

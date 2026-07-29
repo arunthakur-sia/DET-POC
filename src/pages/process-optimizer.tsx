@@ -722,14 +722,14 @@ export default function ProcessOptimizerPage() {
 
   const renderNavSidebar = () => (
     <div
-      className="h-full w-72 flex-shrink-0 overflow-y-auto det-sidebar-border"
+      className="h-full w-72 flex-shrink-0 overflow-y-auto hr-sidebar-border"
       style={{ background: "var(--sf-surface)", borderInlineEnd: "1px solid var(--sf-border)" }}
     >
-      {/* DET logo block */}
+      {/* Hafeet Rail logo block */}
       <div className="flex flex-col gap-2 border-b px-5 py-4" style={{ borderColor: "var(--sf-border)" }}>
         <Image
-          src="/assets/dubai-det-flag-logo.svg"
-          alt="Dubai Department of Economy and Tourism"
+          src="/assets/hafeet-rail-logo.png"
+          alt="Hafeet Rail"
           width={140}
           height={48}
           className="h-12 w-auto"
@@ -743,7 +743,7 @@ export default function ProcessOptimizerPage() {
           <div className="mt-2 flex items-center gap-2">
             <button
               onClick={() => setLang(lang === "en" ? "ar" : "en")}
-              className="det-lang-toggle"
+              className="hr-lang-toggle"
               title={lang === "en" ? "Switch to Arabic" : "Switch to English"}
             >
               {lang === "en" ? "العربية" : "English"}
@@ -756,7 +756,7 @@ export default function ProcessOptimizerPage() {
         <div className="mx-3 mt-3 rounded-lg border px-2 py-1.5 text-xs" style={{
           background: saveStatus === "saving" ? "rgba(201,168,76,0.10)" : saveStatus === "saved" ? "rgba(5,150,105,0.10)" : "rgba(220,38,38,0.08)",
           borderColor: saveStatus === "saving" ? "rgba(201,168,76,0.35)" : saveStatus === "saved" ? "rgba(5,150,105,0.35)" : "rgba(220,38,38,0.25)",
-          color: saveStatus === "saving" ? "var(--det-gold)" : saveStatus === "saved" ? "#065f46" : "#dc2626",
+          color: saveStatus === "saving" ? "var(--hr-gold)" : saveStatus === "saved" ? "#065f46" : "#dc2626",
         }}>
           {saveStatus === "saving" && t("saving")}
           {saveStatus === "saved" && t("saved")}
@@ -765,7 +765,7 @@ export default function ProcessOptimizerPage() {
       )}
 
       <nav className="px-3 pt-3">
-        <Link href="/dashboard" className="det-nav-item">
+        <Link href="/dashboard" className="hr-nav-item">
           <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6" />
           </svg>
@@ -782,7 +782,7 @@ export default function ProcessOptimizerPage() {
             <button
               onClick={() => setSelectedProjectIds(selectedProjectIds.size === userProjects.length ? new Set() : new Set(userProjects.map((p) => p.id)))}
               className="text-[10px] transition hover:opacity-75"
-              style={{ color: "var(--det-navy-light)" }}
+              style={{ color: "var(--hr-navy-light)" }}
             >
               {selectedProjectIds.size === userProjects.length ? t("deselectAll") : t("selectAll")}
             </button>
@@ -799,7 +799,7 @@ export default function ProcessOptimizerPage() {
                 key={proj.id}
                 className="flex items-start gap-2 rounded-lg border px-2 py-2 transition"
                 style={{
-                  borderColor: isActive ? "var(--det-navy-light)" : "var(--sf-border)",
+                  borderColor: isActive ? "var(--hr-navy-light)" : "var(--sf-border)",
                   background: isActive ? "rgba(27,55,100,0.08)" : "var(--sf-surface)",
                 }}
               >
@@ -813,7 +813,7 @@ export default function ProcessOptimizerPage() {
                     return next;
                   })}
                   className="mt-0.5 h-3 w-3 flex-shrink-0"
-                  style={{ accentColor: "var(--det-navy)" }}
+                  style={{ accentColor: "var(--hr-navy)" }}
                 />
                 <button className="min-w-0 flex-1 text-left" onClick={() => void router.push(`/process-optimizer?projectId=${proj.id}`)}>
                   <div className="truncate text-xs font-semibold leading-tight" style={{ color: "var(--sf-text)" }}>{proj.name}</div>
@@ -844,7 +844,7 @@ export default function ProcessOptimizerPage() {
         )}
 
         <div className="px-2 pt-3" style={{ borderTop: "1px solid var(--sf-border)" }}>
-          <Link href="/process-optimizer" className="det-nav-item">
+          <Link href="/process-optimizer" className="hr-nav-item">
             <svg className="h-4 w-4 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
             </svg>
@@ -883,7 +883,7 @@ export default function ProcessOptimizerPage() {
         <div {...getRootProps()}
           className={`cursor-pointer rounded-xl border-2 border-dashed p-5 text-center transition-colors ${isDragActive ? "" : ""} ${isProcessing ? "pointer-events-none opacity-60" : ""}`}
           style={{
-            borderColor: isDragActive ? "var(--det-navy-light)" : "var(--sf-border)",
+            borderColor: isDragActive ? "var(--hr-navy-light)" : "var(--sf-border)",
             background: isDragActive ? "rgba(27,55,100,0.06)" : "transparent",
           }}>
           <input {...getInputProps()} />
@@ -966,7 +966,7 @@ export default function ProcessOptimizerPage() {
             <div className="mb-2 flex flex-col gap-1">
               {(processedFiles.length > 0 ? processedFiles.map((f) => ({ name: f.name })) : storedDocuments).map((f, i) => (
                 <div key={i} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ background: "rgba(27,55,100,0.06)", border: "1px solid rgba(27,55,100,0.20)" }}>
-                  <svg className="h-3 w-3 flex-shrink-0" style={{ color: "var(--det-navy-light)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <svg className="h-3 w-3 flex-shrink-0" style={{ color: "var(--hr-navy-light)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
                   <span className="min-w-0 flex-1 truncate text-xs" style={{ color: "var(--sf-text)" }}>{f.name}</span>
@@ -1004,11 +1004,11 @@ export default function ProcessOptimizerPage() {
               <button key={idx} onClick={() => setSelectedProcessIdx(idx)}
                 className="w-full px-4 py-3 text-left transition-colors"
                 style={{
-                  borderLeft: isSelected ? "3px solid var(--det-navy-light)" : "3px solid transparent",
+                  borderLeft: isSelected ? "3px solid var(--hr-navy-light)" : "3px solid transparent",
                   background: isSelected ? "rgba(27,55,100,0.07)" : undefined,
                   borderBottom: "1px solid var(--sf-border)",
                 }}>
-                <p className="truncate text-sm font-medium" style={{ color: isSelected ? "var(--det-navy-light)" : "var(--sf-text)" }}>
+                <p className="truncate text-sm font-medium" style={{ color: isSelected ? "var(--hr-navy-light)" : "var(--sf-text)" }}>
                   {proc.analysis.processName}
                 </p>
                 {proc.analysis.documentMetadata?.processId && (
@@ -1039,7 +1039,7 @@ export default function ProcessOptimizerPage() {
                         );
                       });
                   })()}
-                  {isOptimized && <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: "rgba(27,55,100,0.12)", color: "var(--det-navy-mid)" }}>Optimised</span>}
+                  {isOptimized && <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: "rgba(27,55,100,0.12)", color: "var(--hr-navy-mid)" }}>Optimised</span>}
                   {processSops[idx] && <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: "rgba(5,150,105,0.10)", color: "#065f46" }}>SOP Ready</span>}
                 </div>
               </button>
@@ -1056,7 +1056,7 @@ export default function ProcessOptimizerPage() {
       <div className="flex items-center gap-5 text-sm">
         <button onClick={() => updateSelectedProcessPhase(1)}
           className="flex items-center gap-1.5 font-medium transition"
-          style={{ color: currentPhase >= 1 ? "var(--det-navy-light)" : "var(--sf-text-faint)" }}>
+          style={{ color: currentPhase >= 1 ? "var(--hr-navy-light)" : "var(--sf-text-faint)" }}>
           <span>1. {t("phase1")}</span>
           {currentPhase >= 1 && selectedProcess && <CheckCircleIcon className="h-4 w-4" style={{ color: "#059669" }} />}
         </button>
@@ -1064,7 +1064,7 @@ export default function ProcessOptimizerPage() {
         <button onClick={() => { if (currentOptimization) updateSelectedProcessPhase(2); }}
           disabled={!currentOptimization}
           className="flex items-center gap-1.5 font-medium transition disabled:cursor-not-allowed"
-          style={{ color: currentPhase >= 2 ? "var(--det-navy-light)" : "var(--sf-text-faint)" }}>
+          style={{ color: currentPhase >= 2 ? "var(--hr-navy-light)" : "var(--sf-text-faint)" }}>
           <span>2. {t("phase2")}</span>
           {currentOptimization && <CheckCircleIcon className="h-4 w-4" style={{ color: "#059669" }} />}
         </button>
@@ -1072,13 +1072,13 @@ export default function ProcessOptimizerPage() {
         <button onClick={() => { if (currentSop) updateSelectedProcessPhase(3); }}
           disabled={!currentSop}
           className="flex items-center gap-1.5 font-medium transition disabled:cursor-not-allowed"
-          style={{ color: currentPhase >= 3 ? "var(--det-navy-light)" : "var(--sf-text-faint)" }}>
+          style={{ color: currentPhase >= 3 ? "var(--hr-navy-light)" : "var(--sf-text-faint)" }}>
           <span>3. {t("phase3")}</span>
           {currentSop ? <CheckCircleIcon className="h-4 w-4" style={{ color: "#059669" }} /> : <LockClosedIcon className="h-4 w-4" style={{ color: "var(--sf-text-faint)" }} />}
         </button>
       </div>
       {selectedProcess && (
-        <span className="mx-4 min-w-0 flex-1 truncate text-center text-xs" style={{ color: "var(--det-gold)" }}>
+        <span className="mx-4 min-w-0 flex-1 truncate text-center text-xs" style={{ color: "var(--hr-gold)" }}>
           {selectedProcess.analysis.processName}
         </span>
       )}
@@ -1100,12 +1100,12 @@ export default function ProcessOptimizerPage() {
         <h3 className="mb-4 text-lg font-semibold" style={{ color: "var(--sf-text)" }}>{t("diagnosisReport")}</h3>
 
         <div className="mb-6 grid grid-cols-2 gap-3 md:grid-cols-4">
-          <div className="det-card rounded-lg p-3">
+          <div className="hr-card rounded-lg p-3">
             <div className="text-xs" style={{ color: "var(--sf-text-muted)" }}>Process</div>
             <div className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>{analysis.processName}</div>
             {metadata?.processId && <div className="font-mono text-xs" style={{ color: "var(--sf-text-faint)" }}>{metadata.processId}</div>}
           </div>
-          <div className="det-card rounded-lg p-3">
+          <div className="hr-card rounded-lg p-3">
             <div className="text-xs" style={{ color: "var(--sf-text-muted)" }}>Total Steps</div>
             <div className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>
               {totalSteps}
@@ -1115,11 +1115,11 @@ export default function ProcessOptimizerPage() {
             </div>
             {hasDiscrepancy && <div className="text-xs text-amber-600">\u26a0\ufe0f Mismatch</div>}
           </div>
-          <div className="det-card rounded-lg p-3">
+          <div className="hr-card rounded-lg p-3">
             <div className="text-xs" style={{ color: "var(--sf-text-muted)" }}>Duration (days)</div>
             <div className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>{totalDuration || "\u2014"}</div>
           </div>
-          <div className="det-card rounded-lg p-3">
+          <div className="hr-card rounded-lg p-3">
             <div className="text-xs" style={{ color: "var(--sf-text-muted)" }}>Process Owner</div>
             <div className="text-sm font-semibold" style={{ color: "var(--sf-text)" }}>{metadata?.processOwner ?? "N/A"}</div>
             {metadata?.department && <div className="text-xs" style={{ color: "var(--sf-text-faint)" }}>{metadata.department}</div>}
@@ -1131,7 +1131,7 @@ export default function ProcessOptimizerPage() {
             <h4 className="text-md mb-2 font-semibold" style={{ color: "var(--sf-text)" }}>Process KPIs</h4>
             <div className="grid grid-cols-1 gap-2 md:grid-cols-3">
               {metadata?.kpis?.map((kpi, i) => (
-                <div key={i} className="det-card rounded-lg p-3">
+                <div key={i} className="hr-card rounded-lg p-3">
                   <div className="text-sm font-medium" style={{ color: "var(--sf-text-muted)" }}>{kpi.name}</div>
                 </div>
               ))}
@@ -1142,7 +1142,7 @@ export default function ProcessOptimizerPage() {
         <div className="mb-6">
           <h4 className="text-md mb-2 font-semibold" style={{ color: "var(--sf-text)" }}>Current Process Flow</h4>
           {currentMermaid.trim() ? (
-            <div className="det-card rounded-lg p-4">
+            <div className="hr-card rounded-lg p-4">
               <MermaidDiagram key={`diag-${selectedProcessIdx}`} chart={currentMermaid} id={`diag-${selectedProcessIdx}`} />
             </div>
           ) : (
@@ -1574,7 +1574,7 @@ export const MONITORING_CONFIG = {
                       >
                         <div className="mb-2 flex items-start justify-between gap-2">
                           <div className="min-w-0">
-                            <span className="block font-mono text-[10px] font-semibold" style={{ color: "var(--det-navy-light)" }}>{sc.stepId}</span>
+                            <span className="block font-mono text-[10px] font-semibold" style={{ color: "var(--hr-navy-light)" }}>{sc.stepId}</span>
                             <span className="block truncate text-xs font-semibold leading-tight" style={{ color: "var(--sf-text)" }} title={sc.stepName}>{sc.stepName}</span>
                           </div>
                           <span className="flex-shrink-0 rounded px-2 py-0.5 text-[10px] font-semibold whitespace-nowrap" style={{ background: cfg.bg, color: cfg.color }}>{sc.classification}</span>
@@ -1688,7 +1688,7 @@ export const MONITORING_CONFIG = {
                               <div>
                                 <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--sf-text-faint)" }}>Quick wins flagged</div>
                                 {activeRelatedQuickWins.map((qw, qi) => (
-                                  <div key={qi} className="mb-1 rounded-lg px-3 py-1.5 text-xs" style={{ background: "rgba(201,168,76,0.12)", color: "var(--det-gold)" }}>{qw.suggestion}</div>
+                                  <div key={qi} className="mb-1 rounded-lg px-3 py-1.5 text-xs" style={{ background: "rgba(201,168,76,0.12)", color: "var(--hr-gold)" }}>{qw.suggestion}</div>
                                 ))}
                               </div>
                             )}
@@ -1824,12 +1824,12 @@ export const MONITORING_CONFIG = {
                   {quickWins.map((q, qi) => (
                     <tr key={qi} className="transition-colors" style={{ borderBottom: "1px solid var(--sf-border)" }}>
                       <td className="px-3 py-3">
-                        <input type="checkbox" style={{ accentColor: "var(--det-navy)" }} checked={Boolean(currentSelections[qi])} onChange={() => toggleQuickWin(qi)} />
+                        <input type="checkbox" style={{ accentColor: "var(--hr-navy)" }} checked={Boolean(currentSelections[qi])} onChange={() => toggleQuickWin(qi)} />
                       </td>
                       <td className="px-3 py-3 text-sm" style={{ color: "var(--sf-text)" }}>{q.suggestion}</td>
-                      <td className="px-3 py-3"><span className="font-mono text-xs font-semibold" style={{ color: "var(--det-navy-light)" }}>{q.stepId}</span></td>
+                      <td className="px-3 py-3"><span className="font-mono text-xs font-semibold" style={{ color: "var(--hr-navy-light)" }}>{q.stepId}</span></td>
                       <td className="px-3 py-3 text-sm" style={{ color: "var(--sf-text)" }}>{q.stepName}</td>
-                      <td className="px-3 py-3"><span className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" style={{ background: "rgba(27,55,100,0.10)", color: "var(--det-navy-mid)" }}>{q.performedBy ?? "\u2014"}</span></td>
+                      <td className="px-3 py-3"><span className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" style={{ background: "rgba(27,55,100,0.10)", color: "var(--hr-navy-mid)" }}>{q.performedBy ?? "\u2014"}</span></td>
                       <td className="px-3 py-3 whitespace-nowrap text-xs" style={{ color: "var(--sf-text-muted)" }}>{q.effort}</td>
                       <td className="px-3 py-3 whitespace-nowrap">
                         <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
@@ -1853,7 +1853,7 @@ export const MONITORING_CONFIG = {
         </div>
 
         <details className="mb-4">
-          <summary className="cursor-pointer text-xs" style={{ color: "var(--det-navy-light)" }}>Show diagnosis JSON (debug)</summary>
+          <summary className="cursor-pointer text-xs" style={{ color: "var(--hr-navy-light)" }}>Show diagnosis JSON (debug)</summary>
           <div className="mt-2 rounded-lg p-2" style={{ background: "var(--sf-surface-alt)", border: "1px solid var(--sf-border)" }}>
             <div className="mb-2 flex justify-end">
               <button onClick={() => void copyToClipboard(JSON.stringify(selectedProcess.diagnosis, undefined, 2))}
@@ -1875,14 +1875,14 @@ export const MONITORING_CONFIG = {
       <div className="p-5" style={{ borderTop: "1px solid var(--sf-border)", background: "var(--sf-surface-alt)" }}>
         <div className="mb-3 flex items-center justify-between">
           <h3 className="text-md font-semibold" style={{ color: "var(--sf-text)" }}>
-            Run Optimization for: <span className="font-normal" style={{ color: "var(--det-navy-light)" }}>{selectedProcess.analysis.processName}</span>
+            Run Optimization for: <span className="font-normal" style={{ color: "var(--hr-navy-light)" }}>{selectedProcess.analysis.processName}</span>
           </h3>
           <div className="flex items-center gap-1 text-sm">
             <button className="rounded-l border px-3 py-1 text-xs transition"
-              style={guidedMode ? { background: "var(--det-navy)", color: "#fff", borderColor: "var(--det-navy)" } : { color: "var(--sf-text-muted)", background: "var(--sf-surface)", borderColor: "var(--sf-border)" }}
+              style={guidedMode ? { background: "var(--hr-navy)", color: "#fff", borderColor: "var(--hr-navy)" } : { color: "var(--sf-text-muted)", background: "var(--sf-surface)", borderColor: "var(--sf-border)" }}
               onClick={() => setGuidedMode(true)}>{t("guided")}</button>
             <button className="rounded-r border px-3 py-1 text-xs transition"
-              style={!guidedMode ? { background: "var(--det-navy)", color: "#fff", borderColor: "var(--det-navy)" } : { color: "var(--sf-text-muted)", background: "var(--sf-surface)", borderColor: "var(--sf-border)" }}
+              style={!guidedMode ? { background: "var(--hr-navy)", color: "#fff", borderColor: "var(--hr-navy)" } : { color: "var(--sf-text-muted)", background: "var(--sf-surface)", borderColor: "var(--sf-border)" }}
               onClick={() => setGuidedMode(false)}>{t("custom")}</button>
           </div>
         </div>
@@ -1904,7 +1904,7 @@ export const MONITORING_CONFIG = {
               placeholder="Custom optimization instructions. Be specific and surgical."
               className="w-full rounded-lg border p-3 text-sm focus:outline-none"
               style={{ background: "var(--sf-surface)", borderColor: "var(--sf-border)", color: "var(--sf-text)" }}
-              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--det-navy-light)")}
+              onFocus={(e) => (e.currentTarget.style.borderColor = "var(--hr-navy-light)")}
               onBlur={(e) => (e.currentTarget.style.borderColor = "var(--sf-border)")}
               rows={5} />
             <div className="mt-1 text-xs" style={{ color: "var(--sf-text-faint)" }}>
@@ -1932,13 +1932,13 @@ export const MONITORING_CONFIG = {
         <div className="mb-8 flex flex-col gap-8">
           <div>
             <h4 className="text-md mb-2 font-semibold" style={{ color: "var(--sf-text)" }}>As-Is</h4>
-            <div className="det-card rounded-lg p-4">
+            <div className="hr-card rounded-lg p-4">
               <MermaidDiagram chart={currentOptimization.currentMermaid} id={`opt-current-${selectedProcessIdx}`} />
             </div>
           </div>
           <div>
             <h4 className="text-md mb-2 font-semibold" style={{ color: "var(--sf-text)" }}>To-Be</h4>
-            <div className="det-card rounded-lg p-4">
+            <div className="hr-card rounded-lg p-4">
               <MermaidDiagram chart={currentOptimization.optimizedMermaid} id={`opt-optimized-${selectedProcessIdx}`} />
             </div>
           </div>
@@ -1953,7 +1953,7 @@ export const MONITORING_CONFIG = {
                   {currentImpact.comparison.improvements.timeReduction} days ({currentImpact.comparison.improvements.timeReductionPercent}%)
                 </div>
               </div>
-              <div className="det-card rounded-lg p-3">
+              <div className="hr-card rounded-lg p-3">
                 <div className="text-xs" style={{ color: "var(--sf-text-muted)" }}>Steps</div>
                 <div className="text-base font-semibold" style={{ color: "var(--sf-text)" }}>
                   {currentImpact.comparison.current.totalSteps} {"\u2192"} {currentImpact.comparison.optimized.totalSteps}
@@ -2016,7 +2016,7 @@ export const MONITORING_CONFIG = {
             td: ({ ...props }) => <td className="border px-4 py-2 text-sm" style={{ color: "var(--sf-text-muted)", borderColor: "var(--sf-border)" }} {...props} />,
             code: ({ className, children, ...props }) => {
               const isInline = !className;
-              if (isInline) return <code className="rounded px-1.5 py-0.5 font-mono text-sm" style={{ background: "rgba(27,55,100,0.08)", color: "var(--det-navy-light)" }} {...props}>{children}</code>;
+              if (isInline) return <code className="rounded px-1.5 py-0.5 font-mono text-sm" style={{ background: "rgba(27,55,100,0.08)", color: "var(--hr-navy-light)" }} {...props}>{children}</code>;
               const match = /language-(\w+)/.exec(className ?? "");
               if (match?.[1] === "mermaid") {
                 const chartContent = Array.isArray(children) ? children.join("") : typeof children === "string" ? children : "";
@@ -2024,7 +2024,7 @@ export const MONITORING_CONFIG = {
               }
               return <pre className="my-4 overflow-x-auto rounded p-4" style={{ background: "var(--sf-surface-alt)" }}><code className={className} {...props}>{children}</code></pre>;
             },
-            blockquote: ({ ...props }) => <blockquote className="my-4 border-l-4 pl-4 italic" style={{ borderColor: "var(--det-navy-light)", color: "var(--sf-text-muted)" }} {...props} />,
+            blockquote: ({ ...props }) => <blockquote className="my-4 border-l-4 pl-4 italic" style={{ borderColor: "var(--hr-navy-light)", color: "var(--sf-text-muted)" }} {...props} />,
             hr: ({ ...props }) => <hr className="my-6" style={{ borderColor: "var(--sf-border)" }} {...props} />,
           }}>
             {currentSop}
@@ -2039,7 +2039,7 @@ export const MONITORING_CONFIG = {
   if (authLoading || (!user && !authLoading)) {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--sf-bg)" }}>
-        <div className="h-8 w-8 animate-spin rounded-full border-b-2" style={{ borderColor: "var(--det-navy-light)" }} />
+        <div className="h-8 w-8 animate-spin rounded-full border-b-2" style={{ borderColor: "var(--hr-navy-light)" }} />
       </div>
     );
   }
@@ -2047,8 +2047,8 @@ export const MONITORING_CONFIG = {
   return (
     <>
       <Head>
-        <title>Process Excellence Platform | DET</title>
-        <meta name="description" content="AI-Powered Process Optimization — Department of Economy and Tourism" />
+        <title>Process Excellence Platform | Hafeet Rail</title>
+        <meta name="description" content="AI-Powered Process Optimization — Hafeet Rail" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -2068,7 +2068,7 @@ export const MONITORING_CONFIG = {
           {projectLoading ? (
             <div className="flex flex-1 items-center justify-center">
               <div className="text-center">
-                <div className="mb-3 inline-block h-8 w-8 animate-spin rounded-full border-b-2" style={{ borderColor: "var(--det-navy-light)" }} />
+                <div className="mb-3 inline-block h-8 w-8 animate-spin rounded-full border-b-2" style={{ borderColor: "var(--hr-navy-light)" }} />
                 <p className="text-sm" style={{ color: "var(--sf-text-muted)" }}>{t("loadingProcess")}</p>
               </div>
             </div>
@@ -2078,7 +2078,7 @@ export const MONITORING_CONFIG = {
               <div className="w-full max-w-md">
                 <div className="mb-6 text-center">
                   <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "rgba(27,55,100,0.10)" }}>
-                    <svg className="h-7 w-7" style={{ color: "var(--det-navy-light)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <svg className="h-7 w-7" style={{ color: "var(--hr-navy-light)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>
                   </div>
@@ -2096,7 +2096,7 @@ export const MONITORING_CONFIG = {
                     placeholder={t("processNamePlaceholder")}
                     className="mb-4 w-full rounded-xl border px-4 py-3 text-sm focus:outline-none"
                     style={{ borderColor: "var(--sf-border)", color: "var(--sf-text)", background: "var(--sf-surface)" }}
-                    onFocus={(e) => (e.currentTarget.style.borderColor = "var(--det-navy-light)")}
+                    onFocus={(e) => (e.currentTarget.style.borderColor = "var(--hr-navy-light)")}
                     onBlur={(e) => (e.currentTarget.style.borderColor = "var(--sf-border)")}
                     autoFocus
                   />
@@ -2130,7 +2130,7 @@ export const MONITORING_CONFIG = {
                     {currentPhase === 2 && <>{renderOptimizationResults()}{!currentOptimization && renderOptimizationControls()}</>}
                     {isGenerating && (
                       <div className="p-8 text-center">
-                        <div className="mb-4 inline-block h-10 w-10 animate-spin rounded-full border-b-2" style={{ borderColor: "var(--det-navy-light)" }}></div>
+                        <div className="mb-4 inline-block h-10 w-10 animate-spin rounded-full border-b-2" style={{ borderColor: "var(--hr-navy-light)" }}></div>
                         <p style={{ color: "var(--sf-text-muted)" }}>{t("applyingOpts")}</p>
                       </div>
                     )}
@@ -2143,7 +2143,7 @@ export const MONITORING_CONFIG = {
               <div className="max-w-sm text-center">
                 {isProcessing ? (
                   <>
-                    <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-b-2" style={{ borderColor: "var(--det-navy-light)" }}></div>
+                    <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-b-2" style={{ borderColor: "var(--hr-navy-light)" }}></div>
                     <p style={{ color: "var(--sf-text-muted)" }}>{t("diagnosingDocs")}</p>
                     <p className="mt-1 text-sm" style={{ color: "var(--sf-text-faint)" }}>{t("aiExtracting")}</p>
                   </>

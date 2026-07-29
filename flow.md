@@ -58,8 +58,8 @@ tRPC Routers
 ```
 
 The app has two tools:
-- **Service Blueprinting Tool** — analyzes Dubai Government service blueprints
-- **SmartFlow** — RTA (Roads & Transport Authority) process optimization with full SOP generation
+- **Service Blueprinting Tool** — analyzes Hafeet Rail service blueprints
+- **SmartFlow** — Hafeet Rail process optimization with full SOP generation
 
 Both tools follow the same pattern:
 1. User uploads a file (PDF or TXT)
@@ -194,7 +194,7 @@ Then sequentially:
 
 **What is sent to Claude:**
 ```
-System: You are an expert in Dubai Government service design and blueprint analysis.
+System: You are an expert in Hafeet Rail service design and blueprint analysis.
 
 User:
 Analyze this service blueprint and extract:
@@ -223,7 +223,7 @@ Blueprint content:
 
 **What is sent to Claude (example for efficiency-focused):**
 ```
-System: You are a Dubai Government service improvement specialist.
+System: You are a Hafeet Rail service improvement specialist.
 
 User:
 Based on this blueprint analysis, generate an efficiency-focused improvement option.
@@ -281,13 +281,13 @@ Same structure as Call C but:
 **What is sent to Claude:**
 ```
 User:
-You are evaluating three service improvement options for a Dubai Government context.
+You are evaluating three service improvement options for a Hafeet Rail context.
 
 Option 1: [text]
 Option 2: [text]
 Option 3: [text]
 
-Which option best fits Dubai Government's priorities (efficiency, citizen experience, digital transformation)?
+Which option best fits Hafeet Rail's priorities (efficiency, citizen experience, digital transformation)?
 Respond with ONLY the number: 1, 2, or 3
 ```
 
@@ -488,7 +488,7 @@ Multiple image blocks (one per page) are included in a single Claude message, al
 
 **What is sent to Claude:**
 ```
-System: You are a process improvement expert specializing in government services.
+System: You are a process improvement expert specializing in rail operations services.
 
 User:
 Analyze this process and identify improvement opportunities.
@@ -978,7 +978,7 @@ Validated at build time by `src/env.js` using `@t3-oss/env-nextjs` + Zod. If mis
 
 ## 9. Request/Response Full Examples
 
-### Example: extractAndDiagnose for a 12-step RTA process
+### Example: extractAndDiagnose for a 12-step Hafeet Rail process
 
 **tRPC request (HTTP POST to /api/trpc/processOptimizer.extractAndDiagnose):**
 ```json

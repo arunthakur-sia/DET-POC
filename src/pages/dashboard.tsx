@@ -67,7 +67,7 @@ export default function Dashboard() {
     return (
       <div className="flex min-h-screen items-center justify-center" style={{ background: "var(--sf-bg)" }}>
         <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-          style={{ borderColor: "var(--det-navy-light)" }} />
+          style={{ borderColor: "var(--hr-navy-light)" }} />
       </div>
     );
   }
@@ -75,8 +75,8 @@ export default function Dashboard() {
   return (
     <>
       <Head>
-        <title>My Projects – Process Excellence Platform | DET</title>
-        <meta name="description" content="DET Process Excellence Dashboard" />
+        <title>My Projects – Process Excellence Platform | Hafeet Rail</title>
+        <meta name="description" content="Hafeet Rail Process Excellence Dashboard" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -94,14 +94,14 @@ export default function Dashboard() {
         >
           <div
             className="h-0.5"
-            style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-gold) 100%)" }}
+            style={{ background: "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 55%, var(--hr-gold) 100%)" }}
           />
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             {/* Logo */}
             <Link href="/dashboard" className="flex items-center gap-3">
               <Image
-                src="/assets/dubai-det-flag-logo.svg"
-                alt="Dubai Economy and Tourism"
+                src="/assets/hafeet-rail-logo.png"
+                alt="Hafeet Rail"
                 width={110}
                 height={36}
                 className="h-9 w-auto"
@@ -120,7 +120,7 @@ export default function Dashboard() {
               {/* Language toggle */}
               <button
                 onClick={() => setLang(lang === "en" ? "ar" : "en")}
-                className="det-lang-toggle"
+                className="hr-lang-toggle"
                 title={lang === "en" ? "Switch to Arabic" : "Switch to English"}
               >
                 {lang === "en" ? "العربية" : "English"}
@@ -129,7 +129,7 @@ export default function Dashboard() {
 
               <button
                 onClick={() => void handleSignOut()}
-                className="det-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
+                className="hr-button-ghost rounded-lg px-3 py-1.5 text-xs font-medium"
               >
                 {t("signOut")}
               </button>
@@ -156,7 +156,7 @@ export default function Dashboard() {
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all"
               style={{
                 background: "rgba(27,55,100,0.08)",
-                color: "var(--det-navy)",
+                color: "var(--hr-navy)",
                 border: "1px solid rgba(27,55,100,0.15)",
               }}
               onMouseEnter={(e) => {
@@ -198,7 +198,7 @@ export default function Dashboard() {
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all"
               style={{
                 background: "rgba(27,55,100,0.08)",
-                color: "var(--det-navy)",
+                color: "var(--hr-navy)",
                 border: "1px solid rgba(27,55,100,0.15)",
               }}
               onMouseEnter={(e) => {
@@ -258,7 +258,7 @@ export default function Dashboard() {
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="sf-input w-full rounded-lg py-2.5 pl-9 pr-4 text-sm rtl:pl-4 rtl:pr-9"
-                onFocus={(e) => (e.currentTarget.style.borderColor = "var(--det-navy-light)")}
+                onFocus={(e) => (e.currentTarget.style.borderColor = "var(--hr-navy-light)")}
                 onBlur={(e) => (e.currentTarget.style.borderColor = "var(--sf-border)")}
               />
             </div>
@@ -279,7 +279,7 @@ export default function Dashboard() {
           {fetching ? (
             <div className="flex h-64 items-center justify-center">
               <div className="h-8 w-8 animate-spin rounded-full border-2 border-t-transparent"
-                style={{ borderColor: "var(--det-navy-light)" }} />
+                style={{ borderColor: "var(--hr-navy-light)" }} />
             </div>
           ) : filtered.length === 0 ? (
             <EmptyState hasSearch={!!searchQuery} t={t} />
@@ -360,7 +360,7 @@ function ProjectCard({
       {/* Top accent bar */}
       <div
         className="h-0.5 rounded-t-2xl"
-        style={{ background: "linear-gradient(90deg, var(--det-navy) 0%, var(--det-navy-mid) 55%, var(--det-gold) 100%)" }}
+        style={{ background: "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 55%, var(--hr-gold) 100%)" }}
       />
 
       <div className="flex flex-1 flex-col p-5">
@@ -422,7 +422,7 @@ function ProjectCard({
         <Link
           href={`/process-optimizer?projectId=${project.id}`}
           className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold transition"
-          style={{ color: "var(--det-navy)" }}
+          style={{ color: "var(--hr-navy)" }}
           onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(27,55,100,0.07)"; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
         >
