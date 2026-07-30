@@ -155,15 +155,15 @@ export default function Dashboard() {
               href="/executive-dashboard"
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all"
               style={{
-                background: "rgba(27,55,100,0.08)",
+                background: "rgba(0, 51, 28,0.08)",
                 color: "var(--hr-navy)",
-                border: "1px solid rgba(27,55,100,0.15)",
+                border: "1px solid rgba(0, 51, 28,0.15)",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(27,55,100,0.14)";
+                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0, 51, 28,0.14)";
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(27,55,100,0.08)";
+                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0, 51, 28,0.08)";
               }}
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -197,15 +197,15 @@ export default function Dashboard() {
               href="/ai-use-case-library"
               className="inline-flex items-center gap-1.5 rounded-lg px-3 py-2 text-xs font-semibold transition-all"
               style={{
-                background: "rgba(27,55,100,0.08)",
+                background: "rgba(0, 51, 28,0.08)",
                 color: "var(--hr-navy)",
-                border: "1px solid rgba(27,55,100,0.15)",
+                border: "1px solid rgba(0, 51, 28,0.15)",
               }}
               onMouseEnter={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(27,55,100,0.14)";
+                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0, 51, 28,0.14)";
               }}
               onMouseLeave={(e) => {
-                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(27,55,100,0.08)";
+                (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0, 51, 28,0.08)";
               }}
             >
               <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -335,7 +335,7 @@ function ProjectCard({
     sopCount > 0
       ? { label: t("statusSopReady"), color: "#b45309", bg: "rgba(217,119,6,0.10)" }
       : optCount > 0
-        ? { label: t("statusOptimised"), color: "#1b3764", bg: "rgba(27,55,100,0.10)" }
+        ? { label: t("statusOptimised"), color: "#00331c", bg: "rgba(0, 51, 28,0.10)" }
         : processCount > 0
           ? { label: t("statusDiagnosed"), color: "#065f46", bg: "rgba(5,150,105,0.10)" }
           : { label: t("statusEmpty"), color: "#6b7280", bg: "rgba(107,114,128,0.08)" };
@@ -423,7 +423,7 @@ function ProjectCard({
           href={`/process-optimizer?projectId=${project.id}`}
           className="flex w-full items-center justify-center gap-2 rounded-lg py-2 text-sm font-semibold transition"
           style={{ color: "var(--hr-navy)" }}
-          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(27,55,100,0.07)"; }}
+          onMouseEnter={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "rgba(0, 51, 28,0.07)"; }}
           onMouseLeave={(e) => { (e.currentTarget as HTMLAnchorElement).style.background = "transparent"; }}
         >
           <span>{t("openProcess")}</span>
@@ -452,7 +452,7 @@ function EmptyState({
     >
       <div
         className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl"
-        style={{ background: "rgba(27,55,100,0.07)", border: "1px solid var(--sf-border)" }}
+        style={{ background: "rgba(0, 51, 28,0.07)", border: "1px solid var(--sf-border)" }}
       >
         <svg className="h-8 w-8" style={{ color: "var(--sf-text-faint)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5}

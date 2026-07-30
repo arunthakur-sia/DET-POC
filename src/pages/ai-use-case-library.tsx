@@ -166,7 +166,7 @@ const COMPLEXITY_COLORS: Record<"Low" | "Medium" | "High", { bg: string; color: 
   High:   { bg: "rgba(220,38,38,0.10)",  color: "#b91c1c" },
 };
 const READINESS_COLORS: Record<"High" | "Medium" | "Low", { bg: string; color: string }> = {
-  High:   { bg: "rgba(27,55,100,0.10)",  color: "#1b3764" },
+  High:   { bg: "rgba(0, 51, 28,0.10)",  color: "#00331c" },
   Medium: { bg: "rgba(201,168,76,0.12)", color: "#8a6b18" },
   Low:    { bg: "rgba(100,116,139,0.10)", color: "#475569" },
 };
@@ -192,9 +192,9 @@ const MATRIX_QUADRANTS = [
     sub: "High Complexity · High ROI",
     roi: "High" as const,
     complexity: "High" as const,
-    bg: "rgba(27,55,100,0.07)",
-    border: "rgba(27,55,100,0.20)",
-    color: "#1b3764",
+    bg: "rgba(0, 51, 28,0.07)",
+    border: "rgba(0, 51, 28,0.20)",
+    color: "#00331c",
     position: "bottom-right",
     description: "Invest carefully — transformative but needs programme sponsorship",
   },
@@ -509,7 +509,7 @@ function UseCaseCard({ uc, aedRate }: { uc: UseCaseEntry; aedRate: number }) {
               <div className="flex flex-wrap gap-2">
                 {uc.technologyFit.map((f, i) => (
                   <span key={i} className="rounded-lg px-2.5 py-1 text-xs font-medium"
-                    style={{ background: "rgba(27,55,100,0.07)", color: "var(--hr-navy)", border: "1px solid rgba(27,55,100,0.15)" }}>
+                    style={{ background: "rgba(0, 51, 28,0.07)", color: "var(--hr-navy)", border: "1px solid rgba(0, 51, 28,0.15)" }}>
                     {f}
                   </span>
                 ))}
@@ -786,7 +786,7 @@ export default function AIUseCaseLibrary() {
                     onClick={() => setFilterReadiness(tier)}
                     className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
                     style={{
-                      background: filterReadiness === tier ? "rgba(27,55,100,0.12)" : "var(--sf-surface)",
+                      background: filterReadiness === tier ? "rgba(0, 51, 28,0.12)" : "var(--sf-surface)",
                       color: filterReadiness === tier ? "var(--hr-navy)" : "var(--sf-text-muted)",
                       border: `1px solid ${filterReadiness === tier ? "var(--hr-navy)" : "var(--sf-border)"}`,
                     }}

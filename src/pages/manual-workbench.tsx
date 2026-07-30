@@ -123,7 +123,7 @@ function getQuadrant(qw: DiagnosisQuickWin): Quadrant {
 
 const QUADRANT_CONFIG: Record<Quadrant, { label: string; color: string; bg: string; description: string }> = {
   "Quick Win":  { label: "Quick Wins",  color: "#16a34a", bg: "rgba(22,163,74,0.08)",  description: "Low effort · High impact — implement first" },
-  "Strategic":  { label: "Strategic",   color: "#1b3764", bg: "rgba(27,55,100,0.09)",  description: "High effort · High impact — plan carefully" },
+  "Strategic":  { label: "Strategic",   color: "#00331c", bg: "rgba(0, 51, 28,0.09)",  description: "High effort · High impact — plan carefully" },
   "Fill-in":    { label: "Fill-ins",    color: "#c9a84c", bg: "rgba(201,168,76,0.10)", description: "Low effort · Low impact — when capacity allows" },
   "Defer":      { label: "Defer",       color: "#dc2626", bg: "rgba(220,38,38,0.07)",  description: "High effort · Low impact — question ROI" },
 };
@@ -142,7 +142,7 @@ interface RevisedFlowStep {
 const ACTION_CONFIG: Record<RevisedFlowStep["action"], { color: string; bg: string; icon: string }> = {
   Remove:      { color: "#b91c1c", bg: "rgba(220,38,38,0.09)",  icon: "✕" },
   Merge:       { color: "#0d7a6e", bg: "rgba(26,158,143,0.09)", icon: "⊕" },
-  Parallelize: { color: "#1b3764", bg: "rgba(27,55,100,0.09)",  icon: "⇉" },
+  Parallelize: { color: "#00331c", bg: "rgba(0, 51, 28,0.09)",  icon: "⇉" },
   Simplify:    { color: "#a16207", bg: "rgba(234,179,8,0.10)",  icon: "↓" },
 };
 
@@ -245,9 +245,9 @@ function StepImprovementCard({ qw }: { qw: DiagnosisQuickWin }) {
               onClick={() => setShowFramework((v) => !v)}
               className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-semibold transition-all"
               style={{
-                background: showFramework ? "rgba(27,55,100,0.12)" : "rgba(27,55,100,0.06)",
+                background: showFramework ? "rgba(0, 51, 28,0.12)" : "rgba(0, 51, 28,0.06)",
                 color: "var(--hr-navy)",
-                border: "1px solid rgba(27,55,100,0.18)",
+                border: "1px solid rgba(0, 51, 28,0.18)",
                 fontSize: "0.65rem",
               }}
               title="Click to view step-level framework guidance"
@@ -267,15 +267,15 @@ function StepImprovementCard({ qw }: { qw: DiagnosisQuickWin }) {
         <div
           className="px-3 py-3"
           style={{
-            background: fw.isInternal ? "rgba(27,55,100,0.04)" : "rgba(201,168,76,0.05)",
-            borderTop: `1px solid ${fw.isInternal ? "rgba(27,55,100,0.12)" : "rgba(201,168,76,0.18)"}`,
+            background: fw.isInternal ? "rgba(0, 51, 28,0.04)" : "rgba(201,168,76,0.05)",
+            borderTop: `1px solid ${fw.isInternal ? "rgba(0, 51, 28,0.12)" : "rgba(201,168,76,0.18)"}`,
           }}
         >
           <div className="mb-2 flex items-center gap-2">
             <span
               className="rounded px-1.5 py-0.5 text-xs font-bold"
               style={{
-                background: fw.isInternal ? "rgba(27,55,100,0.09)" : "rgba(201,168,76,0.12)",
+                background: fw.isInternal ? "rgba(0, 51, 28,0.09)" : "rgba(201,168,76,0.12)",
                 color: fw.isInternal ? "var(--hr-navy)" : "#8a6b18",
                 fontSize: "0.6rem",
               }}
@@ -335,7 +335,7 @@ function RevisedFlowPanel({ steps }: { steps: RevisedFlowStep[] }) {
                 </span>
                 {fw && (
                   <span className="rounded px-1.5 py-0.5 text-xs font-semibold"
-                    style={{ background: "rgba(27,55,100,0.07)", color: "var(--hr-navy)", fontSize: "0.6rem" }}>
+                    style={{ background: "rgba(0, 51, 28,0.07)", color: "var(--hr-navy)", fontSize: "0.6rem" }}>
                     {fw.tag}
                   </span>
                 )}
@@ -598,7 +598,7 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
                   <li key={pa.order} className="flex gap-3 rounded-xl p-3"
                     style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}>
                     <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                      style={{ background: "var(--hr-gold)", color: "#1b3764" }}>
+                      style={{ background: "var(--hr-gold)", color: "#00331c" }}>
                       {pa.order}
                     </span>
                     <div className="flex-1 min-w-0">

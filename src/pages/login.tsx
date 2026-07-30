@@ -73,7 +73,7 @@ export default function LoginPage() {
         />
         <div
           className="pointer-events-none fixed -bottom-20 -right-20 h-80 w-80 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(27,55,100,0.10) 0%, transparent 68%)" }}
+          style={{ background: "radial-gradient(circle, rgba(0, 51, 28,0.10) 0%, transparent 68%)" }}
         />
 
         {/* Logo cluster */}

@@ -15,10 +15,10 @@
 ═══════════════════════════════════════════════════════════════════ */
 :root {
   /* ── Brand primaries ── */
-  --hr-navy:        #1b3764;   /* Hafeet Rail primary */
-  --hr-navy-deep:   #132849;   /* darker shade */
-  --hr-navy-mid:    #2e5196;   /* medium shade */
-  --hr-navy-light:  #4a7ec5;   /* lighter interactive */
+  --hr-navy:        #00331c;   /* Hafeet Rail primary */
+  --hr-navy-deep:   #002514;   /* darker shade */
+  --hr-navy-mid:    #004f2b;   /* medium shade */
+  --hr-navy-light:  #006d3c;   /* lighter interactive */
   --hr-gold:        #c9a84c;   /* Hafeet Rail gold accent */
   --hr-gold-light:  #ddb96a;   /* hover/lighter gold */
   --hr-gold-muted:  #e8d5a3;   /* very light gold tint */
@@ -34,20 +34,20 @@
   --sf-border-soft:  #e8eef7;
 
   /* ── Text ── */
-  --sf-text:         #1b3764;
+  --sf-text:         #00331c;
   --sf-text-muted:   #5a6e8c;
   --sf-text-faint:   #8fa4bd;
 
   /* ── Interactive ── */
-  --sf-primary:      #1b3764;
-  --sf-primary-strong: #132849;
+  --sf-primary:      #00331c;
+  --sf-primary-strong: #002514;
   --sf-accent:       #c9a84c;
   --sf-accent-hover: #ddb96a;
 
   /* ── Shadows ── */
-  --sf-shadow:       0 12px 30px rgba(27, 55, 100, 0.10);
-  --sf-shadow-sm:    0 4px 12px rgba(27, 55, 100, 0.07);
-  --sf-shadow-lg:    0 20px 48px rgba(27, 55, 100, 0.14);
+  --sf-shadow:       0 12px 30px rgba(0, 51, 28, 0.10);
+  --sf-shadow-sm:    0 4px 12px rgba(0, 51, 28, 0.07);
+  --sf-shadow-lg:    0 20px 48px rgba(0, 51, 28, 0.14);
 }
 
 
@@ -65,7 +65,7 @@ body {
 body {
   background:
     radial-gradient(circle at 6% 10%, rgba(201, 168, 76, 0.07) 0%, transparent 40%),
-    radial-gradient(circle at 94% 90%, rgba(27, 55, 100, 0.06) 0%, transparent 38%),
+    radial-gradient(circle at 94% 90%, rgba(0, 51, 28, 0.06) 0%, transparent 38%),
     var(--sf-bg);
 }
 
@@ -117,14 +117,14 @@ body {
 }
 .sf-button-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(27, 55, 100, 0.28);
+  box-shadow: 0 10px 22px rgba(0, 51, 28, 0.28);
   filter: brightness(1.06);
 }
 
 /* ─── Gold accent button ─── */
 .hr-button-gold {
   background: linear-gradient(135deg, var(--hr-gold) 0%, var(--hr-gold-light) 100%);
-  color: #1b3764;
+  color: #00331c;
   border: 1px solid rgba(201, 168, 76, 0.30);
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
@@ -230,7 +230,7 @@ body {
   color: var(--sf-text);
 }
 .hr-nav-item.active {
-  background: rgba(27, 55, 100, 0.10);
+  background: rgba(0, 51, 28, 0.10);
   color: var(--hr-navy);
   font-weight: 600;
 }

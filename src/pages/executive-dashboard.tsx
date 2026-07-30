@@ -621,7 +621,7 @@ export default function ExecutiveDashboard() {
                                     ? "1px solid var(--sf-border-soft)"
                                     : "none",
                                 background: isExpanded
-                                  ? "rgba(27,55,100,0.04)"
+                                  ? "rgba(0, 51, 28,0.04)"
                                   : undefined,
                               }}
                             >

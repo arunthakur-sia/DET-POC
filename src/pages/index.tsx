@@ -131,7 +131,7 @@ export default function LandingPage() {
           />
           <div
             className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(27,55,100,0.09) 0%, transparent 65%)" }}
+            style={{ background: "radial-gradient(circle, rgba(0, 51, 28,0.09) 0%, transparent 65%)" }}
           />
 
           {/* Badge */}
@@ -231,8 +231,8 @@ export default function LandingPage() {
                   <div
                     className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl"
                     style={{
-                      background: "rgba(27,55,100,0.08)",
-                      border: "1px solid rgba(27,55,100,0.15)",
+                      background: "rgba(0, 51, 28,0.08)",
+                      border: "1px solid rgba(0, 51, 28,0.15)",
                     }}
                   >
                     {f.icon}

@@ -70,7 +70,7 @@ const PATHWAY_COLORS: Record<
   AutomationPathway,
   { stroke: string; bg: string; text: string }
 > = {
-  "AI Agent": { stroke: "#1b3764", bg: "rgba(27,55,100,0.09)", text: "#1b3764" },
+  "AI Agent": { stroke: "#00331c", bg: "rgba(0, 51, 28,0.09)", text: "#00331c" },
   "Classical RPA": { stroke: "#1a9e8f", bg: "rgba(26,158,143,0.09)", text: "#0d7a6e" },
   "Manual Optimization": {
     stroke: "#c9a84c",
@@ -262,7 +262,7 @@ function ProcessCard({
             >
               Pathway scores
             </p>
-            <ScoreBar label="AI Agent" score={scores.aiAgent} color="#1b3764" />
+            <ScoreBar label="AI Agent" score={scores.aiAgent} color="#00331c" />
             <ScoreBar label="Classical RPA" score={scores.classicalRpa} color="#1a9e8f" />
             <ScoreBar label="Manual Optim." score={scores.manualOptimization} color="#c9a84c" />
           </div>

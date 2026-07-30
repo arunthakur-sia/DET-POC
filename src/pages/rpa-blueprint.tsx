@@ -279,7 +279,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
       }}
     >
       {/* Teal accent bar */}
-      <div className="h-0.5 rounded-t-2xl" style={{ background: "linear-gradient(90deg, var(--hr-teal) 0%, #1b3764 100%)" }} />
+      <div className="h-0.5 rounded-t-2xl" style={{ background: "linear-gradient(90deg, var(--hr-teal) 0%, #00331c 100%)" }} />
 
       {/* Header */}
       <button
@@ -410,7 +410,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
                   </div>
                 </div>
               ))}
-              <div className="rounded-xl p-3" style={{ background: "rgba(27,55,100,0.05)", border: "1px solid rgba(27,55,100,0.12)" }}>
+              <div className="rounded-xl p-3" style={{ background: "rgba(0, 51, 28,0.05)", border: "1px solid rgba(0, 51, 28,0.12)" }}>
                 <p className="text-xs font-semibold" style={{ color: "var(--hr-navy)" }}>Estimated Bot Development Effort</p>
                 <p className="mt-1 text-sm font-bold" style={{ color: "var(--sf-text)" }}>
                   {entry.botEffort.tier} · {entry.botEffort.weeks}
