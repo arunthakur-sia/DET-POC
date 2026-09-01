@@ -47,7 +47,7 @@ function getTimeline(effort: "Low" | "Medium" | "High"): string {
   }
 }
 
-// ─── Hafeet Rail Internal Frameworks — step-level reference data ─────────────
+// ─── SIA Partners Internal Frameworks — step-level reference data ─────────────
 
 interface HRFramework {
   tag: string;
@@ -81,16 +81,16 @@ const HR_FRAMEWORKS: Record<string, HRFramework> = {
   },
   "Digital": {
     tag: "Digital",
-    name: "Hafeet Rail Digital Strategy",
-    description: "Smart transformation and digital-first service delivery principles for Hafeet Rail operations.",
-    howToApply: "Assess whether this step can be delivered digitally or via self-service. Prioritise API-driven, mobile-accessible, or proactive service alternatives aligned with the Hafeet Rail Digital Strategy.",
+    name: "SIA Partners Digital Strategy",
+    description: "Smart transformation and digital-first service delivery principles for SIA Partners operations.",
+    howToApply: "Assess whether this step can be delivered digitally or via self-service. Prioritise API-driven, mobile-accessible, or proactive service alternatives aligned with the SIA Partners Digital Strategy.",
     isInternal: false,
   },
   "Internal": {
     tag: "Internal",
-    name: "Process Excellence Toolkit — Hafeet Rail Internal",
-    description: "Hafeet Rail's internal guide for process review, owner assignment, and SOP publication.",
-    howToApply: "Use the Hafeet Rail Process Excellence Toolkit to assign a step owner, set a review cadence, and ensure this step is reflected in the current published SOP with the correct RACI mapping.",
+    name: "Process Excellence Toolkit — SIA Partners Internal",
+    description: "SIA Partners' internal guide for process review, owner assignment, and SOP publication.",
+    howToApply: "Use the SIA Partners Process Excellence Toolkit to assign a step owner, set a review cadence, and ensure this step is reflected in the current published SOP with the correct RACI mapping.",
     isInternal: true,
   },
 };
@@ -123,8 +123,8 @@ function getQuadrant(qw: DiagnosisQuickWin): Quadrant {
 
 const QUADRANT_CONFIG: Record<Quadrant, { label: string; color: string; bg: string; description: string }> = {
   "Quick Win":  { label: "Quick Wins",  color: "#16a34a", bg: "rgba(22,163,74,0.08)",  description: "Low effort · High impact — implement first" },
-  "Strategic":  { label: "Strategic",   color: "#00331c", bg: "rgba(0, 51, 28,0.09)",  description: "High effort · High impact — plan carefully" },
-  "Fill-in":    { label: "Fill-ins",    color: "#c9a84c", bg: "rgba(201,168,76,0.10)", description: "Low effort · Low impact — when capacity allows" },
+  "Strategic":  { label: "Strategic",   color: "#0a151e", bg: "rgba(10, 21, 30,0.09)",  description: "High effort · High impact — plan carefully" },
+  "Fill-in":    { label: "Fill-ins",    color: "#00a2a3", bg: "rgba(0,162,163,0.10)", description: "Low effort · Low impact — when capacity allows" },
   "Defer":      { label: "Defer",       color: "#dc2626", bg: "rgba(220,38,38,0.07)",  description: "High effort · Low impact — question ROI" },
 };
 
@@ -141,8 +141,8 @@ interface RevisedFlowStep {
 
 const ACTION_CONFIG: Record<RevisedFlowStep["action"], { color: string; bg: string; icon: string }> = {
   Remove:      { color: "#b91c1c", bg: "rgba(220,38,38,0.09)",  icon: "✕" },
-  Merge:       { color: "#0d7a6e", bg: "rgba(26,158,143,0.09)", icon: "⊕" },
-  Parallelize: { color: "#00331c", bg: "rgba(0, 51, 28,0.09)",  icon: "⇉" },
+  Merge:       { color: "#077c84", bg: "rgba(29,233,182,0.09)", icon: "⊕" },
+  Parallelize: { color: "#0a151e", bg: "rgba(10, 21, 30,0.09)",  icon: "⇉" },
   Simplify:    { color: "#a16207", bg: "rgba(234,179,8,0.10)",  icon: "↓" },
 };
 
@@ -245,9 +245,9 @@ function StepImprovementCard({ qw }: { qw: DiagnosisQuickWin }) {
               onClick={() => setShowFramework((v) => !v)}
               className="inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-xs font-semibold transition-all"
               style={{
-                background: showFramework ? "rgba(0, 51, 28,0.12)" : "rgba(0, 51, 28,0.06)",
+                background: showFramework ? "rgba(10, 21, 30,0.12)" : "rgba(10, 21, 30,0.06)",
                 color: "var(--hr-navy)",
-                border: "1px solid rgba(0, 51, 28,0.18)",
+                border: "1px solid rgba(10, 21, 30,0.18)",
                 fontSize: "0.65rem",
               }}
               title="Click to view step-level framework guidance"
@@ -267,20 +267,20 @@ function StepImprovementCard({ qw }: { qw: DiagnosisQuickWin }) {
         <div
           className="px-3 py-3"
           style={{
-            background: fw.isInternal ? "rgba(0, 51, 28,0.04)" : "rgba(201,168,76,0.05)",
-            borderTop: `1px solid ${fw.isInternal ? "rgba(0, 51, 28,0.12)" : "rgba(201,168,76,0.18)"}`,
+            background: fw.isInternal ? "rgba(10, 21, 30,0.04)" : "rgba(0,162,163,0.05)",
+            borderTop: `1px solid ${fw.isInternal ? "rgba(10, 21, 30,0.12)" : "rgba(0,162,163,0.18)"}`,
           }}
         >
           <div className="mb-2 flex items-center gap-2">
             <span
               className="rounded px-1.5 py-0.5 text-xs font-bold"
               style={{
-                background: fw.isInternal ? "rgba(0, 51, 28,0.09)" : "rgba(201,168,76,0.12)",
-                color: fw.isInternal ? "var(--hr-navy)" : "#8a6b18",
+                background: fw.isInternal ? "rgba(10, 21, 30,0.09)" : "rgba(0,162,163,0.12)",
+                color: fw.isInternal ? "var(--hr-navy)" : "#0a6b6b",
                 fontSize: "0.6rem",
               }}
             >
-              {fw.isInternal ? "Hafeet Rail Internal" : "External Framework"}
+              {fw.isInternal ? "SIA Partners Internal" : "External Framework"}
             </span>
             <span className="text-xs font-semibold" style={{ color: "var(--sf-text)" }}>{fw.name}</span>
           </div>
@@ -335,7 +335,7 @@ function RevisedFlowPanel({ steps }: { steps: RevisedFlowStep[] }) {
                 </span>
                 {fw && (
                   <span className="rounded px-1.5 py-0.5 text-xs font-semibold"
-                    style={{ background: "rgba(0, 51, 28,0.07)", color: "var(--hr-navy)", fontSize: "0.6rem" }}>
+                    style={{ background: "rgba(10, 21, 30,0.07)", color: "var(--hr-navy)", fontSize: "0.6rem" }}>
                     {fw.tag}
                   </span>
                 )}
@@ -566,7 +566,7 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
                 Suggested Improvements — Effort vs. Impact
               </h3>
               <p className="mb-3 text-xs" style={{ color: "var(--sf-text-faint)" }}>
-                Each step card includes an applicable framework tag. Click the tag to expand step-level implementation guidance (Lean, Six Sigma, or Hafeet Rail framework).
+                Each step card includes an applicable framework tag. Click the tag to expand step-level implementation guidance (Lean, Six Sigma, or SIA Partners framework).
               </p>
               <EffortImpactMatrix quickWins={quickWins} wasteFilter={wasteFilter} />
             </section>
@@ -598,7 +598,7 @@ function WorkbenchCard({ fp, wasteFilter }: { fp: FlatProcess; wasteFilter: Wast
                   <li key={pa.order} className="flex gap-3 rounded-xl p-3"
                     style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}>
                     <span className="flex h-5 w-5 flex-shrink-0 items-center justify-center rounded-full text-xs font-bold"
-                      style={{ background: "var(--hr-gold)", color: "#00331c" }}>
+                      style={{ background: "var(--hr-gold)", color: "#0a151e" }}>
                       {pa.order}
                     </span>
                     <div className="flex-1 min-w-0">
@@ -725,9 +725,9 @@ export default function ManualWorkbench() {
   return (
     <>
       <Head>
-        <title>Manual &amp; Lean Workbench – Process Excellence | Hafeet Rail</title>
+        <title>Manual &amp; Lean Workbench – Process Excellence | SIA Partners</title>
         <meta name="description"
-          content="Lean and Six Sigma improvement recommendations for Hafeet Rail processes not suited to automation" />
+          content="Lean and Six Sigma improvement recommendations for SIA Partners processes not suited to automation" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -745,7 +745,7 @@ export default function ManualWorkbench() {
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
-                <Image src="/assets/hafeet-rail-logo.png" alt="Hafeet Rail" width={110} height={36} className="h-9 w-auto" />
+                <Image src="/assets/sia-logo.png" alt="SIA Partners" width={110} height={36} className="h-9 w-auto" />
               </Link>
               <div className="hidden h-5 w-px sm:block" style={{ background: "var(--sf-border)" }} />
               <span className="hidden text-xs font-semibold sm:block" style={{ color: "var(--sf-text-muted)" }}>
@@ -777,7 +777,7 @@ export default function ManualWorkbench() {
               Manual &amp; Lean Optimization Workbench
             </h1>
             <p className="mt-0.5 text-sm" style={{ color: "var(--sf-text-muted)" }}>
-              Structured improvement recommendations for processes not suited to automation. Framework guidance (Lean, Six Sigma, Hafeet Rail Digital) is provided at the <strong>step level</strong> — click any framework tag to expand step-specific implementation blueprints.
+              Structured improvement recommendations for processes not suited to automation. Framework guidance (Lean, Six Sigma, SIA Partners Digital) is provided at the <strong>step level</strong> — click any framework tag to expand step-specific implementation blueprints.
             </p>
           </div>
 
@@ -843,7 +843,7 @@ export default function ManualWorkbench() {
         <footer className="mt-auto px-6 py-5"
           style={{ background: "var(--sf-surface)", borderTop: "1px solid var(--sf-border)" }}>
           <p className="mx-auto max-w-7xl text-xs" style={{ color: "var(--sf-text-faint)" }}>
-            Recommendations are AI-generated based on uploaded process documents. Framework guidance is provided at step level to support direct application of Lean, Six Sigma, and Hafeet Rail Digital Strategy principles. Timeline estimates are heuristic: Low effort ≈ 1–2 weeks · Medium ≈ 4–6 weeks · High ≈ 8–12 weeks. Always validate with process owners before implementing changes.
+            Recommendations are AI-generated based on uploaded process documents. Framework guidance is provided at step level to support direct application of Lean, Six Sigma, and SIA Partners Digital Strategy principles. Timeline estimates are heuristic: Low effort ≈ 1–2 weeks · Medium ≈ 4–6 weeks · High ≈ 8–12 weeks. Always validate with process owners before implementing changes.
           </p>
         </footer>
       </div>

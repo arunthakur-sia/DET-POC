@@ -10,19 +10,19 @@
 }
 
 /* ═══════════════════════════════════════════════════════════════════
-   Hafeet Rail
+   ARIA — by SIA Partners
    Design Token System  |  Light Mode (default)
 ═══════════════════════════════════════════════════════════════════ */
 :root {
   /* ── Brand primaries ── */
-  --hr-navy:        #00331c;   /* Hafeet Rail primary */
-  --hr-navy-deep:   #002514;   /* darker shade */
-  --hr-navy-mid:    #004f2b;   /* medium shade */
-  --hr-navy-light:  #006d3c;   /* lighter interactive */
-  --hr-gold:        #c9a84c;   /* Hafeet Rail gold accent */
-  --hr-gold-light:  #ddb96a;   /* hover/lighter gold */
-  --hr-gold-muted:  #e8d5a3;   /* very light gold tint */
-  --hr-teal:        #1a9e8f;   /* success / process states */
+  --hr-navy:        #0a151e;   /* SIA Partners primary */
+  --hr-navy-deep:   #05090d;   /* darker shade */
+  --hr-navy-mid:    #173044;   /* medium shade */
+  --hr-navy-light:  #077c84;   /* lighter interactive */
+  --hr-gold:        #00a2a3;   /* SIA Partners teal accent */
+  --hr-gold-light:  #00decc;   /* hover/lighter teal */
+  --hr-gold-muted:  #cdeceb;   /* very light teal tint */
+  --hr-teal:        #1de9b6;   /* success / process states */
 
   /* ── Surface tokens ── */
   --sf-bg:           #f4f7fb;
@@ -34,20 +34,20 @@
   --sf-border-soft:  #e8eef7;
 
   /* ── Text ── */
-  --sf-text:         #00331c;
+  --sf-text:         #0a151e;
   --sf-text-muted:   #5a6e8c;
   --sf-text-faint:   #8fa4bd;
 
   /* ── Interactive ── */
-  --sf-primary:      #00331c;
-  --sf-primary-strong: #002514;
-  --sf-accent:       #c9a84c;
-  --sf-accent-hover: #ddb96a;
+  --sf-primary:      #0a151e;
+  --sf-primary-strong: #05090d;
+  --sf-accent:       #00a2a3;
+  --sf-accent-hover: #00decc;
 
   /* ── Shadows ── */
-  --sf-shadow:       0 12px 30px rgba(0, 51, 28, 0.10);
-  --sf-shadow-sm:    0 4px 12px rgba(0, 51, 28, 0.07);
-  --sf-shadow-lg:    0 20px 48px rgba(0, 51, 28, 0.14);
+  --sf-shadow:       0 12px 30px rgba(10, 21, 30, 0.10);
+  --sf-shadow-sm:    0 4px 12px rgba(10, 21, 30, 0.07);
+  --sf-shadow-lg:    0 20px 48px rgba(10, 21, 30, 0.14);
 }
 
 
@@ -64,8 +64,8 @@ body {
 /* Radial gradient overlay */
 body {
   background:
-    radial-gradient(circle at 6% 10%, rgba(201, 168, 76, 0.07) 0%, transparent 40%),
-    radial-gradient(circle at 94% 90%, rgba(0, 51, 28, 0.06) 0%, transparent 38%),
+    radial-gradient(circle at 6% 10%, rgba(0, 162, 163, 0.07) 0%, transparent 40%),
+    radial-gradient(circle at 94% 90%, rgba(10, 21, 30, 0.06) 0%, transparent 38%),
     var(--sf-bg);
 }
 
@@ -104,11 +104,11 @@ body {
 }
 .sf-input:focus {
   border-color: var(--hr-navy-light);
-  box-shadow: 0 0 0 3px rgba(74, 126, 197, 0.18);
+  box-shadow: 0 0 0 3px rgba(7, 124, 132, 0.18);
   outline: none;
 }
 
-/* ─── Primary CTA button (Hafeet Rail Navy) ─── */
+/* ─── Primary CTA button (SIA Partners Navy) ─── */
 .sf-button-primary {
   background: linear-gradient(135deg, var(--hr-navy) 0%, var(--hr-navy-mid) 100%);
   color: #ffffff;
@@ -117,20 +117,20 @@ body {
 }
 .sf-button-primary:hover {
   transform: translateY(-1px);
-  box-shadow: 0 10px 22px rgba(0, 51, 28, 0.28);
+  box-shadow: 0 10px 22px rgba(10, 21, 30, 0.28);
   filter: brightness(1.06);
 }
 
 /* ─── Gold accent button ─── */
 .hr-button-gold {
   background: linear-gradient(135deg, var(--hr-gold) 0%, var(--hr-gold-light) 100%);
-  color: #00331c;
-  border: 1px solid rgba(201, 168, 76, 0.30);
+  color: #0a151e;
+  border: 1px solid rgba(0, 162, 163, 0.30);
   transition: transform 0.16s ease, box-shadow 0.16s ease;
 }
 .hr-button-gold:hover {
   transform: translateY(-1px);
-  box-shadow: 0 8px 18px rgba(201, 168, 76, 0.32);
+  box-shadow: 0 8px 18px rgba(0, 162, 163, 0.32);
 }
 
 /* ─── Ghost button ─── */
@@ -230,7 +230,7 @@ body {
   color: var(--sf-text);
 }
 .hr-nav-item.active {
-  background: rgba(0, 51, 28, 0.10);
+  background: rgba(10, 21, 30, 0.10);
   color: var(--hr-navy);
   font-weight: 600;
 }

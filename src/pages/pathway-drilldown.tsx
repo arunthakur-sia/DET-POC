@@ -70,12 +70,12 @@ const PATHWAY_COLORS: Record<
   AutomationPathway,
   { stroke: string; bg: string; text: string }
 > = {
-  "AI Agent": { stroke: "#00331c", bg: "rgba(0, 51, 28,0.09)", text: "#00331c" },
-  "Classical RPA": { stroke: "#1a9e8f", bg: "rgba(26,158,143,0.09)", text: "#0d7a6e" },
+  "AI Agent": { stroke: "#0a151e", bg: "rgba(10, 21, 30,0.09)", text: "#0a151e" },
+  "Classical RPA": { stroke: "#1de9b6", bg: "rgba(29,233,182,0.09)", text: "#077c84" },
   "Manual Optimization": {
-    stroke: "#c9a84c",
-    bg: "rgba(201,168,76,0.12)",
-    text: "#8a6b18",
+    stroke: "#00a2a3",
+    bg: "rgba(0,162,163,0.12)",
+    text: "#0a6b6b",
   },
   "As-Is": { stroke: "#64748b", bg: "rgba(100,116,139,0.08)", text: "#475569" },
 };
@@ -262,14 +262,14 @@ function ProcessCard({
             >
               Pathway scores
             </p>
-            <ScoreBar label="AI Agent" score={scores.aiAgent} color="#00331c" />
-            <ScoreBar label="Classical RPA" score={scores.classicalRpa} color="#1a9e8f" />
-            <ScoreBar label="Manual Optim." score={scores.manualOptimization} color="#c9a84c" />
+            <ScoreBar label="AI Agent" score={scores.aiAgent} color="#0a151e" />
+            <ScoreBar label="Classical RPA" score={scores.classicalRpa} color="#1de9b6" />
+            <ScoreBar label="Manual Optim." score={scores.manualOptimization} color="#00a2a3" />
           </div>
         )}
 
         {/* Estimated saving */}
-        <div className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: "rgba(26,158,143,0.07)", border: "1px solid rgba(26,158,143,0.12)" }}>
+        <div className="flex items-center justify-between rounded-xl px-3 py-2.5" style={{ background: "rgba(29,233,182,0.07)", border: "1px solid rgba(29,233,182,0.12)" }}>
           <span className="text-xs font-medium" style={{ color: "var(--sf-text-muted)" }}>
             Potential time saving
           </span>
@@ -400,7 +400,7 @@ function downloadCSV(fps: FlatProcess[], pathway: string) {
   const url = URL.createObjectURL(blob);
   const a = document.createElement("a");
   a.href = url;
-  a.download = `HafeetRail_${pathway.replace(/\s+/g, "_")}_processes.csv`;
+  a.download = `ARIA_${pathway.replace(/\s+/g, "_")}_processes.csv`;
   document.body.appendChild(a);
   a.click();
   document.body.removeChild(a);
@@ -519,7 +519,7 @@ export default function PathwayDrilldown() {
     <>
       <Head>
         <title>
-          {pathway ? `${pathway} — Pathway Drill-Through` : "Pathway Drill-Through"} | Hafeet Rail
+          {pathway ? `${pathway} — Pathway Drill-Through` : "Pathway Drill-Through"} | SIA Partners
         </title>
         <meta name="description" content="Per-pathway process list with ROI projections and classification override" />
         <link rel="icon" href="/favicon.ico" />
@@ -529,7 +529,7 @@ export default function PathwayDrilldown() {
         {/* ── Print-only header ─────────────────────────────────────── */}
         <div className="hidden print:block print:mb-6">
           <p className="text-lg font-bold">
-            Hafeet Rail Process Excellence — {pathway ?? "All Pathways"}
+            SIA Partners Process Excellence — {pathway ?? "All Pathways"}
           </p>
           <p className="text-sm text-gray-500">
             Exported on {new Date().toLocaleDateString("en-GB")}
@@ -557,8 +557,8 @@ export default function PathwayDrilldown() {
             <div className="flex items-center gap-3">
               <Link href="/executive-dashboard">
                 <Image
-                  src="/assets/hafeet-rail-logo.png"
-                  alt="Hafeet Rail"
+                  src="/assets/sia-logo.png"
+                  alt="SIA Partners"
                   width={110}
                   height={36}
                   className="h-9 w-auto"

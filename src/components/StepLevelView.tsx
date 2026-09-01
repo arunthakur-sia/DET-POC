@@ -29,9 +29,9 @@ export interface EnrichedStep {
 // ─── Constants ─────────────────────────────────────────────────────────────
 
 const PATHWAY_COLORS: Record<AutomationPathway, { bg: string; text: string; border: string }> = {
-  "AI Agent": { bg: "rgba(0, 51, 28,0.09)", text: "#00331c", border: "rgba(0, 51, 28,0.25)" },
-  "Classical RPA": { bg: "rgba(26,158,143,0.09)", text: "#0d7a6e", border: "rgba(26,158,143,0.25)" },
-  "Manual Optimization": { bg: "rgba(201,168,76,0.12)", text: "#8a6b18", border: "rgba(201,168,76,0.25)" },
+  "AI Agent": { bg: "rgba(10, 21, 30,0.09)", text: "#0a151e", border: "rgba(10, 21, 30,0.25)" },
+  "Classical RPA": { bg: "rgba(29,233,182,0.09)", text: "#077c84", border: "rgba(29,233,182,0.25)" },
+  "Manual Optimization": { bg: "rgba(0,162,163,0.12)", text: "#0a6b6b", border: "rgba(0,162,163,0.25)" },
   "As-Is": { bg: "rgba(100,116,139,0.08)", text: "#475569", border: "rgba(100,116,139,0.2)" },
 };
 
@@ -448,7 +448,7 @@ function StepCard({ step, index }: { step: EnrichedStep; index: number }) {
                         <span
                           className="rounded px-1.5 py-0.5 font-bold"
                           style={{
-                            background: "rgba(0, 51, 28,0.08)",
+                            background: "rgba(10, 21, 30,0.08)",
                             color: "var(--hr-navy)",
                             fontSize: "0.6rem",
                           }}

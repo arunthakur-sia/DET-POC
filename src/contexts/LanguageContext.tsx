@@ -22,7 +22,7 @@ const translations: Record<Lang, Record<string, string>> = {
     newProcess: "New Project",
 
     // Landing — hero
-    badge: "Hafeet Rail — Internal Platform",
+    badge: "SIA Partners — Internal Platform",
     heroHeadline: "Process Excellence",
     heroPlatform: "Platform",
     heroDesc:
@@ -52,20 +52,20 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Landing — about
     aboutEyebrow: "About",
-    aboutHeading: "Built for Hafeet Rail Operations",
+    aboutHeading: "Built for SIA Partners Operations",
     aboutBody:
-      "This platform enables Hafeet Rail teams to review service processes, surface operational bottlenecks, and apply evidence-based improvements. Move from document upload to a publishable, executive-ready SOP in a single integrated workflow.",
+      "This platform enables SIA Partners teams to review service processes, surface operational bottlenecks, and apply evidence-based improvements. Move from document upload to a publishable, executive-ready SOP in a single integrated workflow.",
 
     // Footer
     copyright:
-      "© {year} Hafeet Rail. All rights reserved.",
+      "© {year} SIA Partners. All rights reserved.",
 
     // Login
-    loginTitle: "Process Excellence Platform",
-    loginDeptLine: "Hafeet Rail",
+    loginTitle: "ARIA",
+    loginDeptLine: "SIA Partners",
     emailLabel: "Email Address",
     passwordLabel: "Password",
-    emailPlaceholder: "you@hafeetrail.ae",
+    emailPlaceholder: "you@sia-partners.com",
     passwordPlaceholder: "••••••••",
     signingIn: "Signing in…",
 
@@ -162,7 +162,7 @@ const translations: Record<Lang, Record<string, string>> = {
     newProcess: "عملية جديدة",
 
     // Landing — hero
-    badge: "حفيت للسكك الحديدية — منصة داخلية",
+    badge: "SIA Partners — منصة داخلية",
     heroHeadline: "التميز التشغيلي",
     heroPlatform: "المنصة",
     heroDesc:
@@ -192,20 +192,20 @@ const translations: Record<Lang, Record<string, string>> = {
 
     // Landing — about
     aboutEyebrow: "حول المنصة",
-    aboutHeading: "مُصمَّمة لعمليات حفيت للسكك الحديدية",
+    aboutHeading: "مُصمَّمة لعمليات SIA Partners",
     aboutBody:
-      "تُمكِّن هذه المنصة فرق حفيت للسكك الحديدية من مراجعة عمليات الخدمة وكشف الاختناقات التشغيلية وتطبيق التحسينات المبنية على الأدلة. انتقل من رفع الوثيقة إلى إجراء تشغيل جاهز للتنفيذ في سير عمل متكامل واحد.",
+      "تُمكِّن هذه المنصة فرق SIA Partners من مراجعة عمليات الخدمة وكشف الاختناقات التشغيلية وتطبيق التحسينات المبنية على الأدلة. انتقل من رفع الوثيقة إلى إجراء تشغيل جاهز للتنفيذ في سير عمل متكامل واحد.",
 
     // Footer
     copyright:
-      "© {year} حفيت للسكك الحديدية. جميع الحقوق محفوظة.",
+      "© {year} SIA Partners. جميع الحقوق محفوظة.",
 
     // Login
-    loginTitle: "منصة التميز التشغيلي",
-    loginDeptLine: "حفيت للسكك الحديدية",
+    loginTitle: "ARIA",
+    loginDeptLine: "SIA Partners",
     emailLabel: "البريد الإلكتروني",
     passwordLabel: "كلمة المرور",
-    emailPlaceholder: "you@hafeetrail.ae",
+    emailPlaceholder: "you@sia-partners.com",
     passwordPlaceholder: "••••••••",
     signingIn: "جارٍ تسجيل الدخول…",
 

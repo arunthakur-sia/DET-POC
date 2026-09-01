@@ -10,7 +10,7 @@ export default function LoginPage() {
   const { signIn, user, loading } = useAuth();
   const { lang, setLang, t } = useLanguage();
   const router = useRouter();
-  const [email, setEmail] = useState("demo@smartflow.com");
+  const [email, setEmail] = useState("demo@aria.com");
   const [password, setPassword] = useState("SmartFlow@2024");
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
@@ -38,8 +38,8 @@ export default function LoginPage() {
   return (
     <>
       <Head>
-        <title>Sign In – Process Excellence Platform | Hafeet Rail</title>
-        <meta name="description" content="تسجيل الدخول | Sign in to the Hafeet Rail Process Excellence Platform" />
+        <title>Sign In – ARIA | SIA Partners</title>
+        <meta name="description" content="تسجيل الدخول | Sign in to ARIA by SIA Partners" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -69,18 +69,18 @@ export default function LoginPage() {
         {/* Decorative orbs */}
         <div
           className="pointer-events-none fixed -top-32 -left-32 h-96 w-96 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(201,168,76,0.10) 0%, transparent 68%)" }}
+          style={{ background: "radial-gradient(circle, rgba(0,162,163,0.10) 0%, transparent 68%)" }}
         />
         <div
           className="pointer-events-none fixed -bottom-20 -right-20 h-80 w-80 rounded-full"
-          style={{ background: "radial-gradient(circle, rgba(0, 51, 28,0.10) 0%, transparent 68%)" }}
+          style={{ background: "radial-gradient(circle, rgba(10, 21, 30,0.10) 0%, transparent 68%)" }}
         />
 
         {/* Logo cluster */}
         <div className="mb-8 flex flex-col items-center gap-2">
           <Image
-            src="/assets/hafeet-rail-logo.png"
-            alt="Hafeet Rail"
+            src="/assets/sia-logo.png"
+            alt="SIA Partners"
             width={180}
             height={64}
             className="h-16 w-auto"
@@ -104,7 +104,7 @@ export default function LoginPage() {
             }}
           >
             <h1 className="text-xl font-bold text-white">{t("loginTitle")}</h1>
-            <p className="mt-1 text-xs" style={{ color: "rgba(201,168,76,0.90)" }}>
+            <p className="mt-1 text-xs" style={{ color: "rgba(0,162,163,0.90)" }}>
               {t("loginDeptLine")}
             </p>
           </div>

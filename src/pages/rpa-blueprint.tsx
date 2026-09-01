@@ -196,7 +196,7 @@ const STORY_EFFORT_LABEL: Record<"S" | "M" | "L", string> = {
 
 const TRIGGER_COLORS: Record<"Scheduled" | "Event-driven", { bg: string; color: string }> = {
   "Scheduled":    { bg: "rgba(99,102,241,0.10)", color: "#4338ca" },
-  "Event-driven": { bg: "rgba(26,158,143,0.10)", color: "#0d7a6e" },
+  "Event-driven": { bg: "rgba(29,233,182,0.10)", color: "#077c84" },
 };
 
 // ─── Step Decomposition Table ─────────────────────────────────────────────────
@@ -248,7 +248,7 @@ function StepDecompositionTable({ rpaSteps, proc }: { rpaSteps: StepOptimization
                 <td className="px-3 py-2.5 text-xs" style={{ color: "var(--sf-text-muted)" }}>{io.input}</td>
                 <td className="px-3 py-2.5 text-xs" style={{ color: "var(--sf-text-muted)" }}>{io.output}</td>
                 <td className="px-3 py-2.5">
-                  <span className="rounded-full px-2 py-0.5 font-semibold" style={{ background: "rgba(26,158,143,0.09)", color: "#0d7a6e", fontSize: "0.65rem" }}>
+                  <span className="rounded-full px-2 py-0.5 font-semibold" style={{ background: "rgba(29,233,182,0.09)", color: "#077c84", fontSize: "0.65rem" }}>
                     {i < 2 ? "Low" : i < 5 ? "Med" : "High"}
                   </span>
                 </td>
@@ -279,7 +279,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
       }}
     >
       {/* Teal accent bar */}
-      <div className="h-0.5 rounded-t-2xl" style={{ background: "linear-gradient(90deg, var(--hr-teal) 0%, #00331c 100%)" }} />
+      <div className="h-0.5 rounded-t-2xl" style={{ background: "linear-gradient(90deg, var(--hr-teal) 0%, #0a151e 100%)" }} />
 
       {/* Header */}
       <button
@@ -300,7 +300,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
             </span>
             {entry.rpaSteps.length > 0 && (
               <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
-                style={{ background: "rgba(26,158,143,0.09)", color: "#0d7a6e" }}>
+                style={{ background: "rgba(29,233,182,0.09)", color: "#077c84" }}>
                 {entry.rpaSteps.length} RPA step{entry.rpaSteps.length !== 1 ? "s" : ""}
               </span>
             )}
@@ -353,7 +353,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
               <div className="mt-3 flex flex-wrap gap-1.5">
                 {proc.diagnosis?.automationClassification?.keyFactors.map((f, i) => (
                   <span key={i} className="rounded-lg px-2 py-0.5 text-xs"
-                    style={{ background: "rgba(26,158,143,0.08)", color: "#0d7a6e", border: "1px solid rgba(26,158,143,0.18)" }}>
+                    style={{ background: "rgba(29,233,182,0.08)", color: "#077c84", border: "1px solid rgba(29,233,182,0.18)" }}>
                     {f}
                   </span>
                 ))}
@@ -400,7 +400,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
                   style={{ background: "var(--sf-surface-muted)", border: "1px solid var(--sf-border-soft)" }}>
                   <div
                     className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-xl text-sm font-black"
-                    style={{ background: "rgba(26,158,143,0.12)", color: "var(--hr-teal)" }}
+                    style={{ background: "rgba(29,233,182,0.12)", color: "var(--hr-teal)" }}
                   >
                     {tool.logo}
                   </div>
@@ -410,7 +410,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
                   </div>
                 </div>
               ))}
-              <div className="rounded-xl p-3" style={{ background: "rgba(0, 51, 28,0.05)", border: "1px solid rgba(0, 51, 28,0.12)" }}>
+              <div className="rounded-xl p-3" style={{ background: "rgba(10, 21, 30,0.05)", border: "1px solid rgba(10, 21, 30,0.12)" }}>
                 <p className="text-xs font-semibold" style={{ color: "var(--hr-navy)" }}>Estimated Bot Development Effort</p>
                 <p className="mt-1 text-sm font-bold" style={{ color: "var(--sf-text)" }}>
                   {entry.botEffort.tier} · {entry.botEffort.weeks}
@@ -437,7 +437,7 @@ function RPABlueprintCard({ entry }: { entry: RPABlueprintEntry }) {
                       <span className="font-mono text-xs font-bold" style={{ color: "var(--hr-teal)" }}>{us.id}</span>
                       <div className="flex items-center gap-2">
                         <span className="rounded px-1.5 py-0.5 text-xs font-semibold"
-                          style={{ background: "rgba(26,158,143,0.09)", color: "#0d7a6e", fontSize: "0.65rem" }}>
+                          style={{ background: "rgba(29,233,182,0.09)", color: "#077c84", fontSize: "0.65rem" }}>
                           {STORY_EFFORT_LABEL[us.effort]}
                         </span>
                       </div>
@@ -557,8 +557,8 @@ export default function RPABlueprint() {
   return (
     <>
       <Head>
-        <title>RPA Blueprint – Classical Automation Pathway | Hafeet Rail</title>
-        <meta name="description" content="Task-level RPA blueprints with bot logic, trigger conditions, and tool compatibility for Hafeet Rail process automation" />
+        <title>RPA Blueprint – Classical Automation Pathway | SIA Partners</title>
+        <meta name="description" content="Task-level RPA blueprints with bot logic, trigger conditions, and tool compatibility for SIA Partners process automation" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -577,7 +577,7 @@ export default function RPABlueprint() {
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
-                <Image src="/assets/hafeet-rail-logo.png" alt="Hafeet Rail" width={110} height={36} className="h-9 w-auto" />
+                <Image src="/assets/sia-logo.png" alt="SIA Partners" width={110} height={36} className="h-9 w-auto" />
               </Link>
               <div className="hidden h-5 w-px sm:block" style={{ background: "var(--sf-border)" }} />
               <span className="hidden text-xs font-semibold sm:block" style={{ color: "var(--sf-text-muted)" }}>

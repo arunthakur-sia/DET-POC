@@ -82,7 +82,7 @@ export default async function handler(
   }
 
   // ─── 2. Create demo user ──────────────────────────────────────────────────
-  const email = "demo@smartflow.com";
+  const email = "demo@aria.com";
   const password = "SmartFlow@2024";
 
   const { data: existing } = await supabaseAdmin.auth.admin.listUsers();

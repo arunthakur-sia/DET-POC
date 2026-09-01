@@ -213,10 +213,10 @@ export default function ExecutiveDashboard() {
   return (
     <>
       <Head>
-        <title>Executive Dashboard – Process Excellence | Hafeet Rail</title>
+        <title>Executive Dashboard – Process Excellence | SIA Partners</title>
         <meta
           name="description"
-          content="Portfolio-level automation intelligence for Hafeet Rail process transformation programme"
+          content="Portfolio-level automation intelligence for SIA Partners process transformation programme"
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -243,8 +243,8 @@ export default function ExecutiveDashboard() {
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
                 <Image
-                  src="/assets/hafeet-rail-logo.png"
-                  alt="Hafeet Rail"
+                  src="/assets/sia-logo.png"
+                  alt="SIA Partners"
                   width={110}
                   height={36}
                   className="h-9 w-auto"
@@ -621,7 +621,7 @@ export default function ExecutiveDashboard() {
                                     ? "1px solid var(--sf-border-soft)"
                                     : "none",
                                 background: isExpanded
-                                  ? "rgba(0, 51, 28,0.04)"
+                                  ? "rgba(10, 21, 30,0.04)"
                                   : undefined,
                               }}
                             >

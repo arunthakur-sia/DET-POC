@@ -166,8 +166,8 @@ const COMPLEXITY_COLORS: Record<"Low" | "Medium" | "High", { bg: string; color: 
   High:   { bg: "rgba(220,38,38,0.10)",  color: "#b91c1c" },
 };
 const READINESS_COLORS: Record<"High" | "Medium" | "Low", { bg: string; color: string }> = {
-  High:   { bg: "rgba(0, 51, 28,0.10)",  color: "#00331c" },
-  Medium: { bg: "rgba(201,168,76,0.12)", color: "#8a6b18" },
+  High:   { bg: "rgba(10, 21, 30,0.10)",  color: "#0a151e" },
+  Medium: { bg: "rgba(0,162,163,0.12)", color: "#0a6b6b" },
   Low:    { bg: "rgba(100,116,139,0.10)", color: "#475569" },
 };
 
@@ -192,9 +192,9 @@ const MATRIX_QUADRANTS = [
     sub: "High Complexity · High ROI",
     roi: "High" as const,
     complexity: "High" as const,
-    bg: "rgba(0, 51, 28,0.07)",
-    border: "rgba(0, 51, 28,0.20)",
-    color: "#00331c",
+    bg: "rgba(10, 21, 30,0.07)",
+    border: "rgba(10, 21, 30,0.20)",
+    color: "#0a151e",
     position: "bottom-right",
     description: "Invest carefully — transformative but needs programme sponsorship",
   },
@@ -204,9 +204,9 @@ const MATRIX_QUADRANTS = [
     sub: "Low Complexity · Low–Medium ROI",
     roi: "Low" as const,
     complexity: "Low" as const,
-    bg: "rgba(201,168,76,0.08)",
-    border: "rgba(201,168,76,0.20)",
-    color: "#8a6b18",
+    bg: "rgba(0,162,163,0.08)",
+    border: "rgba(0,162,163,0.20)",
+    color: "#0a6b6b",
     position: "top-left",
     description: "Consider when capacity allows — incremental gains",
   },
@@ -509,7 +509,7 @@ function UseCaseCard({ uc, aedRate }: { uc: UseCaseEntry; aedRate: number }) {
               <div className="flex flex-wrap gap-2">
                 {uc.technologyFit.map((f, i) => (
                   <span key={i} className="rounded-lg px-2.5 py-1 text-xs font-medium"
-                    style={{ background: "rgba(0, 51, 28,0.07)", color: "var(--hr-navy)", border: "1px solid rgba(0, 51, 28,0.15)" }}>
+                    style={{ background: "rgba(10, 21, 30,0.07)", color: "var(--hr-navy)", border: "1px solid rgba(10, 21, 30,0.15)" }}>
                     {f}
                   </span>
                 ))}
@@ -642,8 +642,8 @@ export default function AIUseCaseLibrary() {
   return (
     <>
       <Head>
-        <title>AI Use Case Library – Agentic Pathway | Hafeet Rail</title>
-        <meta name="description" content="Curated AI Agent use cases mapped to Hafeet Rail processes with savings vs. complexity positioning" />
+        <title>AI Use Case Library – Agentic Pathway | SIA Partners</title>
+        <meta name="description" content="Curated AI Agent use cases mapped to SIA Partners processes with savings vs. complexity positioning" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -662,7 +662,7 @@ export default function AIUseCaseLibrary() {
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
-                <Image src="/assets/hafeet-rail-logo.png" alt="Hafeet Rail" width={110} height={36} className="h-9 w-auto" />
+                <Image src="/assets/sia-logo.png" alt="SIA Partners" width={110} height={36} className="h-9 w-auto" />
               </Link>
               <div className="hidden h-5 w-px sm:block" style={{ background: "var(--sf-border)" }} />
               <span className="hidden text-xs font-semibold sm:block" style={{ color: "var(--sf-text-muted)" }}>
@@ -786,7 +786,7 @@ export default function AIUseCaseLibrary() {
                     onClick={() => setFilterReadiness(tier)}
                     className="rounded-full px-3 py-1.5 text-xs font-semibold transition-all"
                     style={{
-                      background: filterReadiness === tier ? "rgba(0, 51, 28,0.12)" : "var(--sf-surface)",
+                      background: filterReadiness === tier ? "rgba(10, 21, 30,0.12)" : "var(--sf-surface)",
                       color: filterReadiness === tier ? "var(--hr-navy)" : "var(--sf-text-muted)",
                       border: `1px solid ${filterReadiness === tier ? "var(--hr-navy)" : "var(--sf-border)"}`,
                     }}

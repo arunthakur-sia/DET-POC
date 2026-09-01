@@ -725,11 +725,11 @@ export default function ProcessOptimizerPage() {
       className="h-full w-72 flex-shrink-0 overflow-y-auto hr-sidebar-border"
       style={{ background: "var(--sf-surface)", borderInlineEnd: "1px solid var(--sf-border)" }}
     >
-      {/* Hafeet Rail logo block */}
+      {/* SIA Partners logo block */}
       <div className="flex flex-col gap-2 border-b px-5 py-4" style={{ borderColor: "var(--sf-border)" }}>
         <Image
-          src="/assets/hafeet-rail-logo.png"
-          alt="Hafeet Rail"
+          src="/assets/sia-logo.png"
+          alt="SIA Partners"
           width={140}
           height={48}
           className="h-12 w-auto"
@@ -754,8 +754,8 @@ export default function ProcessOptimizerPage() {
 
       {saveStatus !== "idle" && (
         <div className="mx-3 mt-3 rounded-lg border px-2 py-1.5 text-xs" style={{
-          background: saveStatus === "saving" ? "rgba(201,168,76,0.10)" : saveStatus === "saved" ? "rgba(5,150,105,0.10)" : "rgba(220,38,38,0.08)",
-          borderColor: saveStatus === "saving" ? "rgba(201,168,76,0.35)" : saveStatus === "saved" ? "rgba(5,150,105,0.35)" : "rgba(220,38,38,0.25)",
+          background: saveStatus === "saving" ? "rgba(0,162,163,0.10)" : saveStatus === "saved" ? "rgba(5,150,105,0.10)" : "rgba(220,38,38,0.08)",
+          borderColor: saveStatus === "saving" ? "rgba(0,162,163,0.35)" : saveStatus === "saved" ? "rgba(5,150,105,0.35)" : "rgba(220,38,38,0.25)",
           color: saveStatus === "saving" ? "var(--hr-gold)" : saveStatus === "saved" ? "#065f46" : "#dc2626",
         }}>
           {saveStatus === "saving" && t("saving")}
@@ -800,7 +800,7 @@ export default function ProcessOptimizerPage() {
                 className="flex items-start gap-2 rounded-lg border px-2 py-2 transition"
                 style={{
                   borderColor: isActive ? "var(--hr-navy-light)" : "var(--sf-border)",
-                  background: isActive ? "rgba(0, 51, 28,0.08)" : "var(--sf-surface)",
+                  background: isActive ? "rgba(10, 21, 30,0.08)" : "var(--sf-surface)",
                 }}
               >
                 <input
@@ -884,7 +884,7 @@ export default function ProcessOptimizerPage() {
           className={`cursor-pointer rounded-xl border-2 border-dashed p-5 text-center transition-colors ${isDragActive ? "" : ""} ${isProcessing ? "pointer-events-none opacity-60" : ""}`}
           style={{
             borderColor: isDragActive ? "var(--hr-navy-light)" : "var(--sf-border)",
-            background: isDragActive ? "rgba(0, 51, 28,0.06)" : "transparent",
+            background: isDragActive ? "rgba(10, 21, 30,0.06)" : "transparent",
           }}>
           <input {...getInputProps()} />
           <svg className="mx-auto mb-2 h-6 w-6" style={{ color: "var(--sf-text-faint)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -965,7 +965,7 @@ export default function ProcessOptimizerPage() {
             </div>
             <div className="mb-2 flex flex-col gap-1">
               {(processedFiles.length > 0 ? processedFiles.map((f) => ({ name: f.name })) : storedDocuments).map((f, i) => (
-                <div key={i} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ background: "rgba(0, 51, 28,0.06)", border: "1px solid rgba(0, 51, 28,0.20)" }}>
+                <div key={i} className="flex items-center gap-2 rounded-lg px-2 py-1.5" style={{ background: "rgba(10, 21, 30,0.06)", border: "1px solid rgba(10, 21, 30,0.20)" }}>
                   <svg className="h-3 w-3 flex-shrink-0" style={{ color: "var(--hr-navy-light)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                   </svg>
@@ -1005,7 +1005,7 @@ export default function ProcessOptimizerPage() {
                 className="w-full px-4 py-3 text-left transition-colors"
                 style={{
                   borderLeft: isSelected ? "3px solid var(--hr-navy-light)" : "3px solid transparent",
-                  background: isSelected ? "rgba(0, 51, 28,0.07)" : undefined,
+                  background: isSelected ? "rgba(10, 21, 30,0.07)" : undefined,
                   borderBottom: "1px solid var(--sf-border)",
                 }}>
                 <p className="truncate text-sm font-medium" style={{ color: isSelected ? "var(--hr-navy-light)" : "var(--sf-text)" }}>
@@ -1039,7 +1039,7 @@ export default function ProcessOptimizerPage() {
                         );
                       });
                   })()}
-                  {isOptimized && <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: "rgba(0, 51, 28,0.12)", color: "var(--hr-navy-mid)" }}>Optimised</span>}
+                  {isOptimized && <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: "rgba(10, 21, 30,0.12)", color: "var(--hr-navy-mid)" }}>Optimised</span>}
                   {processSops[idx] && <span className="rounded-full px-2 py-0.5 text-[10px] font-medium" style={{ background: "rgba(5,150,105,0.10)", color: "#065f46" }}>SOP Ready</span>}
                 </div>
               </button>
@@ -1688,7 +1688,7 @@ export const MONITORING_CONFIG = {
                               <div>
                                 <div className="mb-1.5 text-[10px] font-semibold uppercase tracking-wide" style={{ color: "var(--sf-text-faint)" }}>Quick wins flagged</div>
                                 {activeRelatedQuickWins.map((qw, qi) => (
-                                  <div key={qi} className="mb-1 rounded-lg px-3 py-1.5 text-xs" style={{ background: "rgba(201,168,76,0.12)", color: "var(--hr-gold)" }}>{qw.suggestion}</div>
+                                  <div key={qi} className="mb-1 rounded-lg px-3 py-1.5 text-xs" style={{ background: "rgba(0,162,163,0.12)", color: "var(--hr-gold)" }}>{qw.suggestion}</div>
                                 ))}
                               </div>
                             )}
@@ -1829,7 +1829,7 @@ export const MONITORING_CONFIG = {
                       <td className="px-3 py-3 text-sm" style={{ color: "var(--sf-text)" }}>{q.suggestion}</td>
                       <td className="px-3 py-3"><span className="font-mono text-xs font-semibold" style={{ color: "var(--hr-navy-light)" }}>{q.stepId}</span></td>
                       <td className="px-3 py-3 text-sm" style={{ color: "var(--sf-text)" }}>{q.stepName}</td>
-                      <td className="px-3 py-3"><span className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" style={{ background: "rgba(0, 51, 28,0.10)", color: "var(--hr-navy-mid)" }}>{q.performedBy ?? "\u2014"}</span></td>
+                      <td className="px-3 py-3"><span className="inline-flex rounded-full px-2 py-0.5 text-xs font-medium" style={{ background: "rgba(10, 21, 30,0.10)", color: "var(--hr-navy-mid)" }}>{q.performedBy ?? "\u2014"}</span></td>
                       <td className="px-3 py-3 whitespace-nowrap text-xs" style={{ color: "var(--sf-text-muted)" }}>{q.effort}</td>
                       <td className="px-3 py-3 whitespace-nowrap">
                         <span className="rounded-full px-2 py-0.5 text-xs font-semibold"
@@ -1947,7 +1947,7 @@ export const MONITORING_CONFIG = {
           <div className="mb-6 rounded-xl p-4" style={{ background: "var(--sf-surface)", border: "1px solid var(--sf-border)" }}>
             <h4 className="text-md mb-2 font-semibold" style={{ color: "var(--sf-text)" }}>Optimization Impact</h4>
             <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-lg p-3" style={{ background: "rgba(0, 51, 28,0.06)", border: "1px solid rgba(0, 51, 28,0.20)" }}>
+              <div className="rounded-lg p-3" style={{ background: "rgba(10, 21, 30,0.06)", border: "1px solid rgba(10, 21, 30,0.20)" }}>
                 <div className="text-xs" style={{ color: "var(--sf-text-muted)" }}>Time Saved</div>
                 <div className="text-base font-semibold" style={{ color: "var(--sf-text)" }}>
                   {currentImpact.comparison.improvements.timeReduction} days ({currentImpact.comparison.improvements.timeReductionPercent}%)
@@ -2016,7 +2016,7 @@ export const MONITORING_CONFIG = {
             td: ({ ...props }) => <td className="border px-4 py-2 text-sm" style={{ color: "var(--sf-text-muted)", borderColor: "var(--sf-border)" }} {...props} />,
             code: ({ className, children, ...props }) => {
               const isInline = !className;
-              if (isInline) return <code className="rounded px-1.5 py-0.5 font-mono text-sm" style={{ background: "rgba(0, 51, 28,0.08)", color: "var(--hr-navy-light)" }} {...props}>{children}</code>;
+              if (isInline) return <code className="rounded px-1.5 py-0.5 font-mono text-sm" style={{ background: "rgba(10, 21, 30,0.08)", color: "var(--hr-navy-light)" }} {...props}>{children}</code>;
               const match = /language-(\w+)/.exec(className ?? "");
               if (match?.[1] === "mermaid") {
                 const chartContent = Array.isArray(children) ? children.join("") : typeof children === "string" ? children : "";
@@ -2047,8 +2047,8 @@ export const MONITORING_CONFIG = {
   return (
     <>
       <Head>
-        <title>Process Excellence Platform | Hafeet Rail</title>
-        <meta name="description" content="AI-Powered Process Optimization — Hafeet Rail" />
+        <title>ARIA | SIA Partners</title>
+        <meta name="description" content="AI-Powered Process Optimization — SIA Partners" />
         <link rel="icon" href="/favicon.ico" />
       </Head>
 
@@ -2077,7 +2077,7 @@ export const MONITORING_CONFIG = {
             <div className="flex flex-1 items-center justify-center p-12">
               <div className="w-full max-w-md">
                 <div className="mb-6 text-center">
-                  <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "rgba(0, 51, 28,0.10)" }}>
+                  <div className="mb-3 inline-flex h-14 w-14 items-center justify-center rounded-full" style={{ background: "rgba(10, 21, 30,0.10)" }}>
                     <svg className="h-7 w-7" style={{ color: "var(--hr-navy-light)" }} fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
                     </svg>

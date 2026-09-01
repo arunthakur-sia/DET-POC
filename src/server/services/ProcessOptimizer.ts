@@ -251,7 +251,7 @@ export interface ActivityTableEntry {
   department?: string;
 }
 
-// Comprehensive document metadata extracted from Hafeet Rail process documents
+// Comprehensive document metadata extracted from SIA Partners process documents
 export interface ProcessDocumentMetadata {
   // Process Information section
   processId?: string;
@@ -602,7 +602,7 @@ export class ProcessOptimizer {
 
       const pageTextResults = await Promise.all(textExtractionPromises);
 
-      // Hafeet Rail process documents typically have flowchart on a specific page
+      // SIA Partners process documents typically have flowchart on a specific page
       // Always use Vision API for known flowchart pages + pages with very little text
       const FLOWCHART_PAGES = [11]; // Page 11 contains the flowchart
       const DIAGRAM_THRESHOLD = 200; // Very low - only truly empty pages
@@ -680,7 +680,7 @@ export class ProcessOptimizer {
     // Use Claude's native PDF support - sends PDF directly to Claude
     // This is faster and more accurate than converting to images
     // See: https://platform.claude.com/docs/en/build-with-claude/pdf-support
-    const prompt = `You are analyzing an Hafeet Rail process document in Arabic/English bilingual format.
+    const prompt = `You are analyzing a SIA Partners process document in Arabic/English bilingual format.
 
 Extract ALL content from this PDF and return it as structured JSON. The document contains:
 1. A process flowchart/swimlane diagram (usually on one of the middle pages)
@@ -939,7 +939,7 @@ Return ONLY valid JSON (no markdown fences, no explanation):
           },
         }));
 
-        const prompt = `You are analyzing Hafeet Rail process documents in Arabic/English bilingual format. The documents contain:
+        const prompt = `You are analyzing SIA Partners process documents in Arabic/English bilingual format. The documents contain:
 1. A process flowchart/swimlane diagram
 2. A detailed "Activities and Responsibilities" table (الأنشطة و المسؤوليات) listing ALL process steps with IDs like CS.H.3.1.01
 3. Process metadata including SIPOC, KPIs, controls, and approvals
@@ -983,10 +983,10 @@ Return ONLY a single JSON document inside a code fence like this:
   "stepCountDiscrepancy": false,
   "sipoc": {
     "suppliers": ["Asset Management Department"],
-    "inputs": ["All Hafeet Rail projects/initiatives/practices aligned with Circular Economy"],
-    "process": "Manage Hafeet Rail Circular Economy",
-    "outputs": ["Annual report for CE performance in Hafeet Rail to the HE DG."],
-    "customers": ["All Hafeet Rail's sectors and agencies and its affiliated departments."]
+    "inputs": ["All SIA Partners projects/initiatives/practices aligned with Circular Economy"],
+    "process": "Manage SIA Partners Circular Economy",
+    "outputs": ["Annual report for CE performance in SIA Partners to the HE DG."],
+    "customers": ["All SIA Partners' sectors and agencies and its affiliated departments."]
   },
   "kpis": [ { "name": "", "nameArabic": "", "formula": "", "target": "", "measurementFrequency": "" } ],
   "internalControls": [ { "controlId": "", "description": "", "riskMitigated": "", "controlType": "" } ],
@@ -1020,10 +1020,10 @@ Rules:
     | Component | Details (English) | Details (Arabic) |
     | Supplier  | Asset Management Department | إدارة األصول |
   * For Supplier row: Extract English text like ["Asset Management Department"] or ["N/A"]
-  * For Input row: Extract the COMPLETE English description (often a long sentence): ["All Hafeet Rail projects/initiatives/practices aligned with Circular Economy"]  
-  * For Process row: Extract as string: "Manage Hafeet Rail Circular Economy"
-  * For Output row: Extract COMPLETE English text: ["Annual report for CE performance in Hafeet Rail to the HE DG."]
-  * For Customer row: Extract COMPLETE English text: ["All Hafeet Rail's sectors and agencies and its affiliated departments."]
+  * For Input row: Extract the COMPLETE English description (often a long sentence): ["All SIA Partners projects/initiatives/practices aligned with Circular Economy"]  
+  * For Process row: Extract as string: "Manage SIA Partners Circular Economy"
+  * For Output row: Extract COMPLETE English text: ["Annual report for CE performance in SIA Partners to the HE DG."]
+  * For Customer row: Extract COMPLETE English text: ["All SIA Partners' sectors and agencies and its affiliated departments."]
   * IMPORTANT: DO NOT return empty arrays. If you cannot find text, use ["NOT FOUND"] so we can debug. Only use ["N/A"] if the cell actually says "N/A".
 - If multiple pages, merge into a single graph
 - Flag stepCountDiscrepancy if flowchartBoxCount != activitiesTableCount`;
@@ -1182,7 +1182,7 @@ Rules:
         },
       }));
 
-      const prompt = `You are analyzing Hafeet Rail process documents in Arabic/English bilingual format. The documents contain:
+      const prompt = `You are analyzing SIA Partners process documents in Arabic/English bilingual format. The documents contain:
 1. A process flowchart/swimlane diagram
 2. A detailed "Activities and Responsibilities" table (الأنشطة و المسؤوليات) listing ALL process steps with IDs like CS.H.3.1.01
 3. Process metadata including SIPOC, KPIs, controls, and approvals
@@ -1226,10 +1226,10 @@ Return ONLY a single JSON document inside a code fence like this:
   "stepCountDiscrepancy": false,
   "sipoc": {
     "suppliers": ["Asset Management Department"],
-    "inputs": ["All Hafeet Rail projects/initiatives/practices aligned with Circular Economy"],
-    "process": "Manage Hafeet Rail Circular Economy",
-    "outputs": ["Annual report for CE performance in Hafeet Rail to the HE DG."],
-    "customers": ["All Hafeet Rail's sectors and agencies and its affiliated departments."]
+    "inputs": ["All SIA Partners projects/initiatives/practices aligned with Circular Economy"],
+    "process": "Manage SIA Partners Circular Economy",
+    "outputs": ["Annual report for CE performance in SIA Partners to the HE DG."],
+    "customers": ["All SIA Partners' sectors and agencies and its affiliated departments."]
   },
   "kpis": [ { "name": "", "nameArabic": "", "formula": "", "target": "", "measurementFrequency": "" } ],
   "internalControls": [ { "controlId": "", "description": "", "riskMitigated": "", "controlType": "" } ],
@@ -1263,10 +1263,10 @@ Rules:
     | Component | Details (English) | Details (Arabic) |
     | Supplier  | Asset Management Department | إدارة األصول |
   * For Supplier row: Extract English text like ["Asset Management Department"] or ["N/A"]
-  * For Input row: Extract the COMPLETE English description (often a long sentence): ["All Hafeet Rail projects/initiatives/practices aligned with Circular Economy"]  
-  * For Process row: Extract as string: "Manage Hafeet Rail Circular Economy"
-  * For Output row: Extract COMPLETE English text: ["Annual report for CE performance in Hafeet Rail to the HE DG."]
-  * For Customer row: Extract COMPLETE English text: ["All Hafeet Rail's sectors and agencies and its affiliated departments."]
+  * For Input row: Extract the COMPLETE English description (often a long sentence): ["All SIA Partners projects/initiatives/practices aligned with Circular Economy"]  
+  * For Process row: Extract as string: "Manage SIA Partners Circular Economy"
+  * For Output row: Extract COMPLETE English text: ["Annual report for CE performance in SIA Partners to the HE DG."]
+  * For Customer row: Extract COMPLETE English text: ["All SIA Partners' sectors and agencies and its affiliated departments."]
   * IMPORTANT: DO NOT return empty arrays. If you cannot find text, use ["NOT FOUND"] so we can debug. Only use ["N/A"] if the cell actually says "N/A".
 - If multiple pages, merge into a single graph
 - Flag stepCountDiscrepancy if flowchartBoxCount != activitiesTableCount`;
@@ -1511,7 +1511,7 @@ Rules:
       : "";
 
     const prompt = `
-You are a process optimization expert analyzing an organizational workflow for Hafeet Rail.
+You are a process optimization expert analyzing an organizational workflow for SIA Partners.
 
 STEP 1: IDENTIFY THE PROCESS TYPE AND APPLICABLE STANDARDS
 
@@ -2778,7 +2778,7 @@ JSON output:`;
 
     const today = new Date().toISOString().split("T")[0] ?? "";
     const sopPrompt = `
-You are generating an updated Standard Operating Procedure (SOP) document for Hafeet Rail.
+You are generating an updated Standard Operating Procedure (SOP) document for SIA Partners.
 
 CRITICAL RULES:
 1. DO NOT invent, fabricate, or hallucinate ANY information
@@ -3495,7 +3495,7 @@ CRITICAL RULES:
       .filter(Boolean)
       .join("\n");
 
-    const promptText = `You are a process optimization expert analyzing a Hafeet Rail workflow. Use the diagnose_process tool to return your structured analysis.
+    const promptText = `You are a process optimization expert analyzing a SIA Partners workflow. Use the diagnose_process tool to return your structured analysis.
 
 ${contextLines}
 

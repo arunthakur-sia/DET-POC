@@ -50,10 +50,10 @@ export default function LandingPage() {
   return (
     <>
       <Head>
-        <title>Process Excellence Platform – Hafeet Rail</title>
+        <title>ARIA – SIA Partners</title>
         <meta
           name="description"
-          content="منصة التميز التشغيلي | Internal process improvement platform for Hafeet Rail"
+          content="ARIA | Internal process improvement platform for SIA Partners"
         />
         <link rel="icon" href="/favicon.ico" />
       </Head>
@@ -70,7 +70,7 @@ export default function LandingPage() {
             boxShadow: "var(--sf-shadow-sm)",
           }}
         >
-          {/* Hafeet Rail brand top bar */}
+          {/* SIA Partners brand top bar */}
           <div
             className="h-1"
             style={{ background: "linear-gradient(90deg, var(--hr-navy) 0%, var(--hr-navy-mid) 55%, var(--hr-gold) 100%)" }}
@@ -80,8 +80,8 @@ export default function LandingPage() {
             {/* Logo */}
             <div className="flex items-center gap-4">
               <Image
-                src="/assets/hafeet-rail-logo.png"
-                alt="Hafeet Rail"
+                src="/assets/sia-logo.png"
+                alt="SIA Partners"
                 width={150}
                 height={52}
                 className="h-11 w-auto"
@@ -127,19 +127,19 @@ export default function LandingPage() {
           {/* Decorative orbs */}
           <div
             className="pointer-events-none absolute -top-40 -left-40 h-[32rem] w-[32rem] rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(201,168,76,0.09) 0%, transparent 65%)" }}
+            style={{ background: "radial-gradient(circle, rgba(0,162,163,0.09) 0%, transparent 65%)" }}
           />
           <div
             className="pointer-events-none absolute -bottom-24 -right-24 h-96 w-96 rounded-full"
-            style={{ background: "radial-gradient(circle, rgba(0, 51, 28,0.09) 0%, transparent 65%)" }}
+            style={{ background: "radial-gradient(circle, rgba(10, 21, 30,0.09) 0%, transparent 65%)" }}
           />
 
           {/* Badge */}
           <div
             className="mb-6 inline-flex items-center gap-2 rounded-full px-4 py-1.5 text-xs font-semibold uppercase tracking-widest"
             style={{
-              background: "rgba(201,168,76,0.12)",
-              border: "1px solid rgba(201,168,76,0.30)",
+              background: "rgba(0,162,163,0.12)",
+              border: "1px solid rgba(0,162,163,0.30)",
               color: "var(--hr-gold)",
             }}
           >
@@ -231,8 +231,8 @@ export default function LandingPage() {
                   <div
                     className="mb-5 flex h-12 w-12 items-center justify-center rounded-xl"
                     style={{
-                      background: "rgba(0, 51, 28,0.08)",
-                      border: "1px solid rgba(0, 51, 28,0.15)",
+                      background: "rgba(10, 21, 30,0.08)",
+                      border: "1px solid rgba(10, 21, 30,0.15)",
                     }}
                   >
                     {f.icon}
@@ -283,8 +283,8 @@ export default function LandingPage() {
                   </div>
                   <div className="flex flex-shrink-0 flex-col items-center gap-4">
                     <Image
-                      src="/assets/hafeet-rail-logo.png"
-                      alt="Hafeet Rail"
+                      src="/assets/sia-logo.png"
+                      alt="SIA Partners"
                       width={148}
                       height={60}
                       className="h-16 w-auto opacity-90"
@@ -307,8 +307,8 @@ export default function LandingPage() {
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 text-center md:flex-row md:justify-between md:text-start">
             <div className="flex items-center gap-3">
               <Image
-                src="/assets/hafeet-rail-logo.png"
-                alt="Hafeet Rail"
+                src="/assets/sia-logo.png"
+                alt="SIA Partners"
                 width={88}
                 height={30}
                 className="h-7 w-auto opacity-80"
