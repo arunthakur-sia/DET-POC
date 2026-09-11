@@ -745,7 +745,7 @@ export default function ManualWorkbench() {
           <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-2.5">
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
-                <Image src="/assets/sia-logo.png" alt="SIA Partners" width={110} height={36} className="h-9 w-auto" />
+                <Image src="/assets/sia-logo.svg" alt="SIA Partners" width={94} height={36} className="h-9 w-auto" />
               </Link>
               <div className="hidden h-5 w-px sm:block" style={{ background: "var(--sf-border)" }} />
               <span className="hidden text-xs font-semibold sm:block" style={{ color: "var(--sf-text-muted)" }}>

@@ -79,10 +79,10 @@ export default function LoginPage() {
         {/* Logo cluster */}
         <div className="mb-8 flex flex-col items-center gap-2">
           <Image
-            src="/assets/sia-logo.png"
+            src="/assets/sia-logo.svg"
             alt="SIA Partners"
-            width={180}
-            height={64}
+            width={94}
+            height={36}
             className="h-16 w-auto"
           />
         </div>

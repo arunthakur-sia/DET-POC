@@ -728,11 +728,11 @@ export default function ProcessOptimizerPage() {
       {/* SIA Partners logo block */}
       <div className="flex flex-col gap-2 border-b px-5 py-4" style={{ borderColor: "var(--sf-border)" }}>
         <Image
-          src="/assets/sia-logo.png"
+          src="/assets/sia-logo.svg"
           alt="SIA Partners"
-          width={140}
-          height={48}
-          className="h-12 w-auto"
+          width={94}
+          height={36}
+          className="h-12 w-auto self-start"
           priority
         />
         <div className="mt-0.5">
@@ -870,9 +870,14 @@ export default function ProcessOptimizerPage() {
 
   const renderProcessPanel = () => {
     const hasDiagnosedDocuments = processedFiles.length > 0 || allProcesses.length > 0;
-    const availableFileCount = stagedFiles.length > 0
+    // Matches handleRunDiagnosis: a re-run reprocesses stored + staged files together,
+    // while a first run only processes the newly staged files (falling back to stored
+    // documents only when nothing is staged).
+    const availableFileCount = hasDiagnosedDocuments
       ? storedDocuments.length + stagedFiles.length
-      : storedDocuments.length;
+      : stagedFiles.length > 0
+        ? stagedFiles.length
+        : storedDocuments.length;
 
     return (
     <div className="flex flex-col h-full overflow-y-auto">

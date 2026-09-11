@@ -80,10 +80,10 @@ export default function LandingPage() {
             {/* Logo */}
             <div className="flex items-center gap-4">
               <Image
-                src="/assets/sia-logo.png"
+                src="/assets/sia-logo.svg"
                 alt="SIA Partners"
-                width={150}
-                height={52}
+                width={94}
+                height={36}
                 className="h-11 w-auto"
               />
             </div>
@@ -283,10 +283,10 @@ export default function LandingPage() {
                   </div>
                   <div className="flex flex-shrink-0 flex-col items-center gap-4">
                     <Image
-                      src="/assets/sia-logo.png"
+                      src="/assets/sia-logo.svg"
                       alt="SIA Partners"
-                      width={148}
-                      height={60}
+                      width={94}
+                      height={36}
                       className="h-16 w-auto opacity-90"
                     />
                   </div>
@@ -307,10 +307,10 @@ export default function LandingPage() {
           <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 text-center md:flex-row md:justify-between md:text-start">
             <div className="flex items-center gap-3">
               <Image
-                src="/assets/sia-logo.png"
+                src="/assets/sia-logo.svg"
                 alt="SIA Partners"
-                width={88}
-                height={30}
+                width={94}
+                height={36}
                 className="h-7 w-auto opacity-80"
               />
             </div>

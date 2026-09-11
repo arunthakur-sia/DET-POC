@@ -243,9 +243,9 @@ export default function ExecutiveDashboard() {
             <div className="flex items-center gap-3">
               <Link href="/dashboard">
                 <Image
-                  src="/assets/sia-logo.png"
+                  src="/assets/sia-logo.svg"
                   alt="SIA Partners"
-                  width={110}
+                  width={94}
                   height={36}
                   className="h-9 w-auto"
                 />
